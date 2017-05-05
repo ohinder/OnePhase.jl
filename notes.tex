@@ -1,0 +1,212 @@
+\documentclass{article}
+
+\input{preamble.tex}
+
+\begin{document}
+
+\title{Notes on solver}
+\author{Oliver Hinder, Yinyu Ye}
+
+\maketitle
+
+
+\abstract{
+Solver
+}
+
+
+
+\section{Log barrier sub-problems}
+
+This paper is concerned with the following problem:
+\begin{subequations}\label{solve-problem}
+\begin{flalign}
+& \min{f(x) - \mu \log( a(x) - r )} \\
+& a(x) \ge r
+\end{flalign}
+\end{subequations}
+The KKT conditions for \eqref{barrier-problem} are:
+\begin{subequations}\label{KKT-barrier}
+\begin{flalign}
+\nabla_{x} \Lag(x,y) = \nabla f(x) - \nabla a(x)^T y &= 0 \\
+\ResComp(x, y) = Y a(x) - \mu  e &= 0  \\
+a(x), y &\ge 0
+\end{flalign}
+\end{subequations}
+Where the Lagrangian $\Lag(x,y) := f(x) - y^T a(x)$.
+
+We combine the log barrier merit function and the complementary conditions as follows:
+\begin{flalign}
+\phi(x,y) = \psi(x) + \MeritComp(x,y)
+\end{flalign}
+With:
+$$
+\MeritComp(x,y) = \frac{\| \ResComp(x, y) \|_{\infty}^3}{\mu^2}
+$$
+
+We now introduces models to locally approximate these merit functions $\nabla_{x} \Lag(x,y)$, $\psi$, $\ResComp$ and $\phi$ respectively. To describe our approximations of a function $f$ around the point $(x, y)$ we use the function $\tilde{\Delta}_{(x,y)}^{f}(u, v)$ to denote the predicted increase in the function $f$ at the new point $(x + u, y + v)$. Observe that we use different approximations depending on the choice of function $f$.
+
+
+We use a typical linear approximate of $\nabla_{x} \Lag(x,y)$ as follows:
+\begin{flalign}
+\tilde{\Delta}_{(x,y)}^{\nabla_{x} \Lag} (d_{x}, d_{y}) = \nabla_{x,x} L(x,y) d_{x} + \nabla a(x) d_{y}
+\end{flalign}
+The following function $\tilde{\Delta}_{(x,y)}^{\psi} ( u )$ is an approximation of the function $\psi(x)$ at the point $(x,y)$ and predicts how much the function $\psi$ changes as we change the current from $x$ to $x + u$.
+\begin{flalign}
+\tilde{\Delta}_{(x,y)}^{\psi} ( u ) = \frac{1}{2} u^T M(x, y) u + \nabla \psi(x)^T u
+\end{flalign}
+
+With:
+\begin{flalign}
+M (x,y) = \nabla^2 \Lag (x, y) + \sum_i{ \frac{y_i}{a(x)} \nabla a(x)^T \nabla a(x) }
+\end{flalign}  
+Note that if we set $y_i = \frac{\mu}{s_i}$ then $M(x,y) = \nabla^2 \psi(x)$ and $\tilde{\Delta}_{(x,y)}^{\psi}$ becomes the second order taylor approximation of $\psi$ at the point $x$. Thus we can think of $\tilde{\Delta}_{(x,y)}^{\psi} ( u )$ as a primal-dual approximation of the function $\psi$. 
+
+We can also build a model of the $\MeritComp(x,y) $ as follows:
+\begin{flalign}
+\tilde{\Delta}^{\MeritComp}_{(x,y)}( d_{x}, d_{y} ) = \frac{\| S y + Y d_{s} + S d_{y} - \mu e \|_{\infty}^3 - \| \ResComp(x, y)  \|_{\infty}^3}{\mu^2}
+\end{flalign}
+With $S$ a diagonal matrix containing entries of $a(x)$ and $d_{s} = \nabla a(x) d_{x}$. This model $\tilde{\Delta}^{\ResComp}_{(x,y)}$ corresponds to the typical primal-dual linear model of $\ResComp$ i.e. $C(x + d_{x}, y + d_{y}) \approx S y + Y d_{s} + S d_{y} - \mu e$.
+
+With $S$ and $Y$ contain the diagonal elements of $a(x)$ and $y$ respectively.
+
+This allows us to approximate the change in the function $\phi$ at the point $(x,y)$ as follows:
+\begin{flalign}
+\tilde{\Delta}^{\phi}_{(x,y)}(d_{x}, d_{y}) = \tilde{\Delta}^{\psi}_{(x,y)}( d_{x} ) +   \tilde{\Delta}^{\MeritComp}_{(x,y)}( d_{x}, d_{y} )
+\end{flalign}
+
+We say an iterate $(x, y)$ satisfies approximate complementary if $(x,y) \in \Q$ where $\Q$ is defined as follows:
+\begin{flalign}\label{approximate-complementary}
+\Q = \left\{ (x, y) \in \R^{\NumVar} \times \R^{\NumCon} : a(x) > 0, y > 0, \| \ResComp(x, y) \|_{\infty} \le \frac{\mu}{2} \right\}
+ \end{flalign}
+We say the point $(x, y)$ is a $\mu$-scaled KKT point if $(x,y) \in \T$ where: 
+\begin{flalign}\label{first-order-necessary}
+\T = \left\{ (x, y) \in \Q :  \| \nabla \Lag (x, y) \| \le \mu ( \| y \|_1 + 1)  \right\}
+ \end{flalign}
+ 
+In which case the algorithm terminates.
+ 
+\section{Algorithm}\label{sec:alg}
+
+Let $s = a(x)$. Furthermore, let $S$, $Y$ denote the diagonal matrices with entries of $s$ and $y$ respectively. We can linearize \eqref{KKT-barrier} at the iterate $(x, y, s)$ as follows:
+\begin{flalign}
+\begin{bmatrix}
+\nabla^2 \Lag (\hat{x}, \hat{y}) &  -\nabla a(\hat{x})^T & 0  \\
+-\nabla a(\hat{x}) & 0 & I \\
+0 & \hat{S} & \hat{Y}
+\end{bmatrix} 
+\begin{bmatrix}
+d_x \\
+d_y \\
+d_s
+\end{bmatrix}
+&= -\begin{bmatrix}
+\nabla \Lag(x, y) \\
+r \\
+\ResComp(x, y)
+\end{bmatrix}
+\end{flalign}
+
+
+\begin{flalign}
+\begin{bmatrix}
+\nabla^2 \Lag (\hat{x}, \hat{y}) &  -\nabla a(\hat{x})^T & 0  \\
+-\hat{Y} \nabla a(\hat{x}) & 0 & \hat{Y}  \\
+\nabla a(\hat{x})^T \hat{S}^{-1} \hat{Y}  \nabla a(\hat{x}) & \nabla a(x)^T & 0
+\end{bmatrix} 
+\begin{bmatrix}
+d_x \\
+d_y \\
+d_s
+\end{bmatrix}
+&= -\begin{bmatrix}
+\nabla \Lag(x, y) \\
+\hat{Y} r \\
+\nabla a(\hat{x})^T \hat{S}^{-1} \ResComp(x, y)
+\end{bmatrix}
+\end{flalign}
+
+$$
+\nabla \Lag(x, y) + \nabla a(x)^T S^{-1} \ResComp(x, y) = \nabla \Lag(x, y) + \nabla a(x)^T S^{-1} (Y a(x) - \mu  e) = \nabla \Lag(x, \mu S^{-1} e)
+$$
+
+
+
+Observe that \eqref{newton-system} may be singular or correspond to a direction that makes the log barrier objective worse. To rectify this problem we compute the direction as follows:
+\begin{subequations}\label{compute-directions}
+\begin{flalign}
+& d_x = \arg \min_{\| u \|_{2} \le r}{ \tilde{\Delta}^{\psi}_{(x,y)} (u) } \label{compute-directions-dx} \\
+& d_s = \nabla a(x) d_{x} \\
+& d_y =  -S^{-1} \left( Y d_{s} + \ResComp (x, y) \right) \label{compute-dy}
+\end{flalign}
+\end{subequations}
+
+******CAREFUL WITH SIGNS i.e. should be $d_{s} = - \nabla a(x) d_{x}$,  $d_{y} = -S^{-1} \left( Y d_{s} + \ResComp (x, y) \right)$ ***************
+
+It is well-known from trust region literature that there exists some $\delta \in [0, \infty)$ such that:
+\begin{flalign}\label{trust-region-linear-system}
+(M(x,y) + \delta I) d_x = -\nabla \psi(x)
+\end{flalign}
+Furthermore, by re-arranging this equation we can deduce that $(d_x, d_y, d_s)$ satisfies a perturbed version of \eqref{newton-system}:
+\begin{flalign}\label{perturbed-newton-system}
+\begin{bmatrix}
+\nabla^2 \Lag (x, y) + \delta I & -\nabla a(x)^T & 0  \\
+-\nabla a(x) & 0 & I \\
+0 & S & Y
+\end{bmatrix} 
+\begin{bmatrix}
+d_x \\
+d_y \\
+d_s
+\end{bmatrix}
+&=  -\begin{bmatrix}
+\nabla \Lag(x, y) \\
+0 \\
+\ResComp(x, y)
+\end{bmatrix}
+\end{flalign}
+
+\begin{algorithm}[H]
+\caption{Primal-dual trust region step}\label{AlgTrust}
+\begin{algorithmic}
+\Function{\AlgTrust}{$x, y, r$}
+\begin{subequations}\label{compute-directions}
+**** $\in$ ****
+\begin{flalign}
+& d_x \in \arg \min_{\| u \| \le r}{ \tilde{\Delta}^{\psi}_{(x, y)} ( u ) } \label{compute-directions-dx} \\
+& d_s = \nabla a(x) d_{x} \\
+& S = \Diag(a(x)) \\
+& d_y =  - S^{-1} \left( Y d_{s} + \ResComp (x, y) \right)
+\end{flalign}
+\end{subequations}
+\State $(x^{+}, y^{+}) \gets (x + d_{x}, y + d_{y})$
+\State $\Return (x^{+}, y^{+}, d_{x}, d_{y})$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+Our complete algorithm is summarized as follows:
+
+\begin{algorithm}[H]
+\begin{algorithmic}\label{AlgMain}
+\Function{\AlgMain}{$x^1, y^1$}
+\For{$k = 1, ... , \infty$}
+\State $r \gets R (y^k)$
+\Repeat
+\State $(x^{+}, y^{+}, d_{x}, d_{y}) \gets \callAlgTrust{x^k, y^k, r}$
+\If{$(x^{+}, y^{+}) \in \Q$}
+\If{$(x^{+}, y^{+}) \in \T$}
+\State \Return{$(x^{+}, y^{+})$}
+\EndIf
+\EndIf
+\State $r \gets r / 2$
+\Until{$\phi(x^{+}) > \phi(x^k) + \frac{1}{2} \tilde{\Delta}_{(x^k,y^k)}^{\phi}  ( d_{x}, d_{y} )$}
+\State $x^{k} \gets x^{+}$
+\State $y^k \gets y^{+}$
+\EndFor
+\EndFunction
+\end{algorithmic}
+\caption{Primal-dual non-convex interior point algorithm}
+\end{algorithm}
+
+\end{document}
