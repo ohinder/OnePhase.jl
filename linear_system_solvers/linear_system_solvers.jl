@@ -3,7 +3,9 @@ abstract abstract_linear_system_solver;
 
 include("julia.jl")
 #include("matlab.jl")
-include("mumps_wrapper.jl")
+if MUMPS
+	include("mumps_wrapper.jl")
+end
 
 function initialize!(solver::abstract_linear_system_solver)
 

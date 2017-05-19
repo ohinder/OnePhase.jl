@@ -21,16 +21,18 @@ Solver
 This paper is concerned with the following problem:
 \begin{subequations}\label{solve-problem}
 \begin{flalign}
-& \min{f(x) - \mu \log( a(x) - r )} \\
-& a(x) \ge r
+& \min{f(x) - \mu \log( s )} + \frac{1}{2} d_{x}^T D_{x} d_{x} + \frac{1}{2} d_{s}^T D_{s} d_{s} \\
+& a(x)  - s = r \mu \\
+& s \ge 0
 \end{flalign}
 \end{subequations}
-The KKT conditions for \eqref{barrier-problem} are:
+The KKT conditions for \eqref{solve-problem} are:
 \begin{subequations}\label{KKT-barrier}
 \begin{flalign}
-\nabla_{x} \Lag(x,y) = \nabla f(x) - \nabla a(x)^T y &= 0 \\
-\ResComp(x, y) = Y a(x) - \mu  e &= 0  \\
-a(x), y &\ge 0
+\nabla_{x} \Lag(x,y) = \nabla f(x) + D_{x} d_{x}  - \nabla a(x)^T y &= 0 \\
+\ResComp_{\mu}(s, y) = Y s - \mu e &= 0  \\
+\ResPrimal_{\mu}(x, s) = a(x) - s - \mu r &= 0 \\ 
+s, y &\ge 0
 \end{flalign}
 \end{subequations}
 Where the Lagrangian $\Lag(x,y) := f(x) - y^T a(x)$.
@@ -88,12 +90,12 @@ In which case the algorithm terminates.
  
 \section{Algorithm}\label{sec:alg}
 
-Let $s = a(x)$. Furthermore, let $S$, $Y$ denote the diagonal matrices with entries of $s$ and $y$ respectively. We can linearize \eqref{KKT-barrier} at the iterate $(x, y, s)$ as follows:
+Let $S$, $Y$ denote the diagonal matrices with entries of $s$ and $y$ respectively. We can linearize \eqref{KKT-barrier} at the iterate $(x, y, s)$ as follows:
 \begin{flalign}
 \begin{bmatrix}
-\nabla^2 \Lag (\hat{x}, \hat{y}) &  -\nabla a(\hat{x})^T & 0  \\
--\nabla a(\hat{x}) & 0 & I \\
-0 & \hat{S} & \hat{Y}
+\nabla^2 \Lag (\hat{x}, \hat{y}) + D_{x} &  -\nabla a(\hat{x})^T & 0 \\
+\nabla a(\hat{x}) & 0 & -I \\
+0 & \hat{S} & \hat{Y} + D_{s}
 \end{bmatrix} 
 \begin{bmatrix}
 d_x \\
@@ -102,32 +104,31 @@ d_s
 \end{bmatrix}
 &= -\begin{bmatrix}
 \nabla \Lag(x, y) \\
-r \\
-\ResComp(x, y)
+\ResPrimal_{\mu}(x, s)  \\
+\ResComp_{\mu}(s, y)
 \end{bmatrix}
 \end{flalign}
 
+Which is equivalent to solving:
 
 \begin{flalign}
 \begin{bmatrix}
-\nabla^2 \Lag (\hat{x}, \hat{y}) &  -\nabla a(\hat{x})^T & 0  \\
--\hat{Y} \nabla a(\hat{x}) & 0 & \hat{Y}  \\
-\nabla a(\hat{x})^T \hat{S}^{-1} \hat{Y}  \nabla a(\hat{x}) & \nabla a(x)^T & 0
+\nabla^2 \Lag (\hat{x}, \hat{y}) + \nabla a(x)^T D_{s} \nabla a(x) + D_{x}  &  \nabla a(\hat{x})^T  \\
+\nabla a(\hat{x}) & -(\hat{Y}  + D_{s})^{-1}  \hat{S}  \\
 \end{bmatrix} 
 \begin{bmatrix}
 d_x \\
-d_y \\
-d_s
+-d_y 
 \end{bmatrix}
 &= -\begin{bmatrix}
 \nabla \Lag(x, y) \\
-\hat{Y} r \\
-\nabla a(\hat{x})^T \hat{S}^{-1} \ResComp(x, y)
+\ResPrimal_{\mu}(x, s)  + (\hat{Y} + D_{s})^{-1} \ResComp_{\mu}(s, y)
 \end{bmatrix}
 \end{flalign}
 
+One can also solve this system by solving the Schur complement:
 $$
-\nabla \Lag(x, y) + \nabla a(x)^T S^{-1} \ResComp(x, y) = \nabla \Lag(x, y) + \nabla a(x)^T S^{-1} (Y a(x) - \mu  e) = \nabla \Lag(x, \mu S^{-1} e)
+(\nabla^2 \Lag (\hat{x}, \hat{y}) + \nabla a(\hat{x})^T (\hat{Y}  + D_{s}) \hat{S}^{-1} \nabla a(\hat{x})  + D_{x} ) d_{x}  = -\nabla \Lag(x, \mu S^{-1} e) - \nabla a(\hat{x})^T  \hat{Y} \hat{S}^{-1} \ResPrimal_{\mu}(x, s) 
 $$
 
 
@@ -207,6 +208,33 @@ Our complete algorithm is summarized as follows:
 \EndFunction
 \end{algorithmic}
 \caption{Primal-dual non-convex interior point algorithm}
+\end{algorithm}
+
+
+\section{Delta computation}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\State $\lambda_{lb} = 0$, $\lambda_{ub} = \delta_{\max} = \| H \|^2_{F}$, $\delta_{k-1}$ \Comment{lower and upper bounds on minimum eigenvalue}
+\State Try $\delta = 0$, if succeeds, trial solve with this delta. If step size is small skip to trust region step.
+\State $\delta = \delta_{k-1}$
+ \If{$\delta = 0$}
+\State $\delta = \delta_{\min}$
+\EndIf
+\For{$i = 1, ..., \infty$}
+\State Break if inertia correct and update $\lambda_{lb}$ and $\lambda_{ub}$.
+\State $\delta = \delta 100$
+\EndFor
+\State \text{Trust region}
+\State $R = \| d_{x}^{k-1} \|_{2}$
+\For{$i = 1, ..., \infty$}
+\State Compute trust region with $R$
+\State If trust region is too accurate increase radius size
+\State If step unsuccessful decrease radius size
+\State Prevent oscillation
+\EndFor
+\end{algorithmic}
+\caption{Delta}
 \end{algorithm}
 
 \end{document}

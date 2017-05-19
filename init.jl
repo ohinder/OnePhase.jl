@@ -21,7 +21,7 @@ function run_lp()
     dir, = compute_direction(intial_it, intial_it, speye(length(intial_it.point.x)), par, :affine)
     shrink_direction!(dir,0.1)
 
-    is_feasible(intial_it, par)
+    is_feasible(intial_it, par.comp_feas)
 
     dir = zero_point(length(intial_it.point.x),length(intial_it.point.s))
     acceptable(intial_it, intial_it, dir, par)
@@ -35,8 +35,9 @@ end
 
 function initial_point(nlp::abstract_nlp, x::Array{Float64,1})
     a = eval_a(nlp, x)
-    mu = norm(min(a,0),Inf)
-    s = max(sqrt(mu), a)
+    infeas = norm(min(a,0.0),Inf)
+    s = max(0, a) + infeas
+    mu = maximum(s - a)
     y = mu ./ s;
 
 
@@ -71,6 +72,5 @@ function run_netlib_lp(name::String, par::Class_parameters)
 
     intial_it = initial_point(LP, x)
 
-    #iter, status, hist = simple_LP_solver(intial_it, par)
-    iter, status, hist = better_LP_solver(intial_it, par)
+    iter, status, hist = one_phase_IPM(intial_it, par)
 end

@@ -2,10 +2,19 @@ function comp(it::Class_iterate)
     return it.point.s .* it.point.y - it.point.mu
 end
 
+function isbad(num::Float64)
+    if isnan(num) || isinf(num)
+      warn("$num not expected!")
+    end
+end
+
 function eval_f(it::Class_iterate)
     start_advanced_timer("eval/f")
     fval = eval_f(it.nlp, it.point.x)
     pause_advanced_timer("eval/f")
+
+    isbad(fval)
+
     return fval
 end
 
@@ -13,7 +22,16 @@ function eval_a(it::Class_iterate)
     start_advanced_timer("eval/a")
     a = eval_a(it.nlp, it.point.x)
     pause_advanced_timer("eval/a")
+
+    for i = 1:length(a)
+      isbad(a[i])
+    end
+
     return a
+end
+
+function eval_kkt_err(it)
+    return scaled_dual_feas(it) + norm(comp(it), Inf)
 end
 
 function eval_primal_residual(it)
@@ -25,6 +43,7 @@ function eval_grad_f(it::Class_iterate)
     start_advanced_timer("eval/grad")
     grad = eval_grad_lag(it.nlp, it.point.x, zeros(ncon(it)), 1.0)
     pause_advanced_timer("eval/grad")
+
     return grad
 end
 
@@ -61,10 +80,20 @@ function eval_jac(it::Class_iterate)
 end
 
 
-function eval_merit_function(it::Class_iterate)
-    merit = eval_phi(it) + norm(comp(it),Inf)^3 / (it.point.mu)^2
+function eval_merit_function(it::Class_iterate, pars::Class_parameters)
+    if is_feasible(it, pars.comp_feas)
+      if length(it.point.s) > 0
+        comp_penalty = norm(comp(it),Inf)^3 / (it.point.mu)^2
+      else
+        comp_penalty = 0.0
+      end
 
-    return merit
+      merit = eval_phi(it) + comp_penalty
+
+      return merit
+    else
+      return Inf
+    end
 end
 
 function eval_lag_hess(it::Class_iterate, w::Float64=1.0)
@@ -75,6 +104,25 @@ function eval_lag_hess(it::Class_iterate, w::Float64=1.0)
     return lag_hess
 end
 
+function eval_phi_hess(it::Class_iterate, w::Float64=1.0)
+    y = it.point.mu ./ it.point.s
+    phi_hess = eval_lag_hess(it.nlp, it.point.x, y, w)
+    J = eval_jac(it)
+    D = spdiagm(y ./ it.point.s)
+    phi_hess += J' * D * J
+
+    return phi_hess
+end
+
+function eval_primal_dual_hess(it::Class_iterate, w::Float64=1.0)
+    pd_hess = eval_lag_hess(it.nlp, it.point.x, it.point.y, w)
+    J = eval_jac(it)
+    D = spdiagm(it.point.y ./ it.point.s)
+    pd_hess += J' * D * J
+
+    return pd_hess
+end
+
 function comp_predicted(it::Class_iterate, dir::Class_point)
     y = it.point.y;
     s = it.point.s;
@@ -83,15 +131,22 @@ end
 
 function phi_predicted_reduction(it::Class_iterate, dir::Class_point)
     grad_phi = eval_grad_phi(it)
-    return dot(dir.x,grad_phi)
+    H = eval_primal_dual_hess(it)
+
+    return dot(dir.x, grad_phi) + 0.5 * dot(dir.x, H * dir.x)
 end
 
 function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
     C_k = norm(comp(it),Inf)
     P_k = norm(comp_predicted(it, dir), Inf)
     #@show C_k, P_k
-    comp_penalty = (P_k^3 - C_k^3) / (it.point.mu)^2
+    if length(it.point.s) > 0
+      comp_penalty = (P_k^3 - C_k^3) / (it.point.mu)^2
+    else
+      comp_penalty = 0.0
+    end
     #@show comp_penalty
+
     predict_red = phi_predicted_reduction(it, dir)
     #@show predict_red
 

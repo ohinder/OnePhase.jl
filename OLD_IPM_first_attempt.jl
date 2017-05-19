@@ -122,7 +122,7 @@ function affine_line_search(iter::Class_iterate, org_dir::Class_point, par::Clas
 
     #comp_dont_increase = norm(comp(candidate),Inf) / candidate.point.mu <= (0.9 + norm(comp(iter),Inf)) / (iter.point.mu * 2)
 
-    if is_feasible(intial_candidate, par)# && comp_dont_increase
+    if is_feasible(intial_candidate, par.comp_feas)# && comp_dont_increase
         residual_step_size = 1.0 - step_size
         candidate = intial_candidate
 
@@ -136,7 +136,7 @@ function affine_line_search(iter::Class_iterate, org_dir::Class_point, par::Clas
 
             @show i, dual_reduction, mu_reduction
 
-            if !is_feasible(new_candidate, par) || dual_reduction / 10.0 > mu_reduction
+            if !is_feasible(new_candidate, par.comp_feas) || dual_reduction / 10.0 > mu_reduction
                 return candidate, :success, step_size
             end
 
@@ -152,7 +152,7 @@ function affine_line_search(iter::Class_iterate, org_dir::Class_point, par::Clas
             dir = scale_direction(org_dir, step_size)
             candidate = move(iter, dir)
 
-            if is_feasible(candidate, par)
+            if is_feasible(candidate, par.comp_feas)
                 return candidate, :success, step_size
             end
 

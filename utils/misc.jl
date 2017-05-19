@@ -1,4 +1,4 @@
-using MAT
+#using MAT
 
 function if_mkdir(dir::String)
   if !isdir(dir)
@@ -6,8 +6,18 @@ function if_mkdir(dir::String)
   end
 end
 
-function rd(num::Float64) # round
-    return pd(@sprintf("%.2e", num))
+function rd(num::Float64, digits::Int64=2) # round
+    if digits == 2
+      return pd(@sprintf("%.2e", num))
+    elseif digits == 3
+      return pd(@sprintf("%.3e", num))
+    elseif digits == 4
+      return pd(@sprintf("%.4e", num))
+    elseif digits == 5
+      return pd(@sprintf("%.5e", num))
+    else
+      error("digits $digits not supported for rd")
+    end
 end
 
 function pd(input)
@@ -32,7 +42,7 @@ function solve_quadratic(a::Float64, b::Float64, c::Float64)
 
     return (val + pm, val - pm)
 end
-
+#=
 function read_lp(name::String)
   lp_data = matopen("netlib/$(name).mat")
 
@@ -46,4 +56,4 @@ function read_lp(name::String)
   bhat = [b; -b; lbounds; -ubounds];
 
   return Class_QP(bhat, Ahat, c)
-end
+end=#
