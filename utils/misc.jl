@@ -42,6 +42,11 @@ function solve_quadratic(a::Float64, b::Float64, c::Float64)
 
     return (val + pm, val - pm)
 end
+
+function my_warn(str::String)
+    println("WARNING: ", str)
+end
+
 #=
 function read_lp(name::String)
   lp_data = matopen("netlib/$(name).mat")

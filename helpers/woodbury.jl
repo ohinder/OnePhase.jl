@@ -53,7 +53,7 @@ function ls_solve(W::woodbury_identity, rhs::Array{Float64,1})
     tol = 1e-8;
     err = rel_error(W, rhs, sol) # why is this rel error?
     if err > tol
-        warn("numerical instability using Woodbury, using direct factorization instead of woodbury.")
+        my_warn("numerical instability using Woodbury, using direct factorization instead of woodbury.")
         sol = ls_solve_direct(W, rhs)
         err = rel_error(W, rhs, sol)
 

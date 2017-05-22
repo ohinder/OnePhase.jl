@@ -1,16 +1,21 @@
 Short term:
-- do commit
 
-- run on sherlock
+*- remain feasible to bounds and make sure we start sufficiently feasible (perhaps compute max infeasiblity)*
+*- fix fixed variables *
+
+
+- *fix error with predicted reduction of complementarity*
+- **stabilization should prioritize complementarity if dual is small and comp not satisfied**
+- *measure complementarity in output in relative terms*
+
+- split up parameters i.e. initialization parameters etc ...
+
+- install IPOPT on sherlock
 
 - KKT system S_diag and X_diag as variables
 
-- *first stable step find optimal delta*
-- fix delta recording in output
-- delta, flags, was the last iteration a failure?
 - increase delta when ever there is any sort of failure
 
-- *fix error with predicted reduction of complementarity*
 
 - add option to move dual and primal iterates independently
 
@@ -31,6 +36,10 @@ Short term:
 - validate LP direction
 
 Long term:
+- automatic scaling trust region algorithm
+
+- momentum/CG in stabilization steps
+
 - re-use permutations for cholesky
 - filter during stable steps, either accept improvement in dual or primal
 

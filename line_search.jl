@@ -134,27 +134,28 @@ type Class_filter
     scaled_kkt_err::Float64
     mu::Float64
 
-    function Class_filter(iter::Class_iterate)
+    function Class_filter(iter::Class_iterate, pars::Class_parameters)
       this = new()
       this.fval = eval_phi(iter)
-      this.scaled_kkt_err = eval_kkt_err(iter)
+      this.scaled_kkt_err = eval_kkt_err(iter, pars)
       this.mu = iter.point.mu
 
       return this
     end
 end
 
-function add!(ar::Array{Class_filter,1}, iter::Class_iterate)
-    push!( ar, Class_filter(iter) )
+function add!(ar::Array{Class_filter,1}, iter::Class_iterate, pars::Class_parameters)
+    push!( ar, Class_filter(iter, pars) )
 end
 
-function satisfies_filter!(ar::Array{Class_filter,1}, iter::Class_iterate, step_size::Float64, pars::Class_parameters)
-    p = Class_filter(iter)
+function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_size::Float64, pars::Class_parameters)
+    p = Class_filter(can, pars)
 
     for i = 1:length(ar)
         #tol = 1e-3 * max(1.0, p.scaled_kkt_err)
         expected_reduction = pars.kkt_reduction_factor
-        if !( p.fval < ar[i].fval - (p.scaled_kkt_err)^2 || p.mu < ar[i].mu || p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
+        #p.fval < ar[i].fval - (p.scaled_kkt_err)^2 ||
+        if !( p.mu < ar[i].mu || p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
             return false
         end
     end
@@ -169,6 +170,7 @@ function accept_func_stable!(accept::abstract_ls_info, iter::Class_iterate, cand
     accept.actual_red = new_merit - old_merit
     accept.frac_progress = accept.actual_red / accept.predict_red
     if accept.frac_progress > pars.predict_reduction_factor * accept.step_size_P
+        #@show accept.frac_progress, accept.actual_red
         return :success
     else
         return :not_enough_progress
@@ -208,7 +210,7 @@ function accept_func!(accept::Class_kkt_ls, iter::Class_iterate, candidate::Clas
 end
 
 function accept_func!(accept::Class_agg_ls, intial_it::Class_iterate, candidate::Class_iterate, filter::Array{Class_filter,1},  pars::Class_parameters)
-    if scaled_dual_feas(candidate) < get_mu(candidate) * pars.agg_protect_factor
+    if scaled_dual_feas(candidate, pars) < get_mu(candidate) * pars.agg_protect_factor
       return :success
     else
       return :not_enough_progress
@@ -236,7 +238,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
     end
 
     if accept_obj.predict_red >= 0.0
-        warn("predicted reduction non-negative")
+        my_warn("predicted reduction non-negative")
         #accept_obj.num_steps = 0
         #return :predict_red_non_negative, iter, accept_obj
     end
@@ -313,7 +315,7 @@ function eigenvector_ls(iter::Class_iterate, orginal_dir::Class_point, pars::Cla
     @show step_size, norm(orginal_dir.x), best_val - intial_val
 
     if i == max_it
-      warn("max it reached for eig search")
+      my_warn("max it reached for eig search")
     end
 
     return :success, best_candidate

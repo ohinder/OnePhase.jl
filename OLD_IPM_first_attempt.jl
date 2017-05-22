@@ -20,7 +20,7 @@ function one_phase(intial_it::Class_iterate, par::Class_parameters)
         # DISPLAY
         record_progress!(t,"sta", stable_iter, dir_stable, 0.0, step_size_stabilization, progress, par)
 
-        if scaled_dual_feas(stable_iter) < get_mu(stable_iter)
+        if scaled_dual_feas(stable_iter, par) < get_mu(stable_iter)
             if false
               t += 1
               M = form_mat(iter)

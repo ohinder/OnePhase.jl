@@ -1,76 +1,91 @@
-function test(it::Class_iterate)
-    @show eval_f(it)
-    @show eval_phi(it)
-    @show eval_a(it)
-    @show comp(it)
-    @show eval_merit_function(it)
 
-    @show eval_grad_lag(it)
-    @show eval_grad_phi(it)
 
-    @show eval_lag_hess(it)
+function initial_point_satisfy_bounds(nlp::Class_CUTEst, pars::Class_parameters)
+    x = suggested_starting_point(nlp)
+
+    threshold_too_close = 1e-6
+    thres = 1.0;
+    feas_mu_ratio = 1e1
+
+    ifree = _i_not_fixed(nlp.nlp)
+    uvar = nlp.nlp.meta.uvar[ifree]
+    lvar =  nlp.nlp.meta.lvar[ifree]
+
+    x = deepcopy(x)
+
+    for i = 1:length(x)
+      if (uvar[i] < lvar[i] + threshold_too_close)
+        @show uvar[i] - lvar[i]
+        println("ERROR: bounds too close!")
+        error("bounds too close!")
+      end
+
+      if lvar[i] + threshold_too_close > x[i] || x[i] > uvar[i] - threshold_too_close
+        if uvar[i] - lvar[i] < thres
+          x[i] = (uvar[i] + lvar[i]) / 2.0
+        elseif abs(lvar[i]) < abs(uvar[i])
+          x[i] = lvar[i] + thres/2.0
+        else
+          x[i] = uvar[i] - thres/2.0
+        end
+      end
+    end
+
+    m = nbounds_orginal(nlp) + ncons_orginal(nlp)
+    init_point = Class_point(x, zeros(m), zeros(m), 0.0)
+
+    a = eval_a(nlp, x);
+    mu = feas_mu_ratio * max(norm(min(a,0.0),Inf), 1e-3);
+
+    for k = 1:20
+        for i in bound_indicies(nlp)
+            @assert(a[i] > 0.0)
+            init_point.s[i] = a[i]
+            init_point.y[i] = mu / init_point.s[i]
+        end
+
+        for i in cons_indicies(nlp)
+            init_point.s[i] = max(a[i], 0.0 ) + mu / feas_mu_ratio
+            init_point.y[i] = mu / init_point.s[i]
+        end
+
+        if true
+          if norm(eval_grad_lag(nlp, init_point.x, init_point.y),Inf) / max(norm(init_point.y,Inf),1.0) < 10 * mu
+            break
+          else
+            mu *= 5.0
+          end
+        else
+          break
+        end
+    end
+
+    init_point.mu = mu
+
+    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0));
+
+    return init_it
 end
 
-function run_lp()
-    #intial_it = toy_LP()
-    intial_it = toy_LP2()
 
-    test(intial_it);
-    validate(intial_it);
-
-    dir, = compute_direction(intial_it, intial_it, speye(length(intial_it.point.x)), par, :affine)
-    shrink_direction!(dir,0.1)
-
-    is_feasible(intial_it, par.comp_feas)
-
-    dir = zero_point(length(intial_it.point.x),length(intial_it.point.s))
-    acceptable(intial_it, intial_it, dir, par)
-
-    @show eval_primal_residual(intial_it)
-    final_iter, status = one_phase(intial_it, par)
-    @show eval_primal_residual(final_iter)
-
-    simple_LP_solver(intial_it, par)
-end
-
-function initial_point(nlp::abstract_nlp, x::Array{Float64,1})
+function initial_point_generic(nlp::abstract_nlp,pars::Class_parameters)
+    x = suggested_starting_point(nlp)
     a = eval_a(nlp, x)
     infeas = norm(min(a,0.0),Inf)
-    s = max(0, a) + infeas
-    mu = maximum(s - a)
-    y = mu ./ s;
+    init_point = Class_point(x, zeros(length(a)), zeros(length(a)), infeas)
 
-
-
-    init_point = Class_point(x, y, s, mu)
-
-    initial_it = Class_iterate(init_point, nlp, Class_local_info(0.0));
-    #A = eval_jac(initial_it)
-    #grad = eval_
-    return initial_it
-end
-
-function comp_matrix(n::Int64)
-    M = spzeros(n,n)
-    for i = 1:(n-1)
-        M[i,i+1] = 1.0
-        M[i+1,i] = 1.0
+    feas_mu_ratio = 1e1
+    mu = feas_mu_ratio * max(infeas, 1e-8)
+    for i = 1:20
+      init_point.mu = mu
+      init_point.s = max(0, a) + mu / feas_mu_ratio
+      init_point.y = mu ./ init_point.s;
     end
-    return M
-end
 
-function run_netlib_lp(name::String, par::Class_parameters)
-    LP = read_lp(name)
+    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0));
 
-    #LP.Q = 1e-1 * comp_matrix(dim(LP))
-    #LP.b += 1e-5
+    # make sure
+    # dual <= primal = mu
 
-    println("Running:", name)
-    @show dim(LP), ncon(LP)
-
-    x = zeros(dim(LP));
-
-    intial_it = initial_point(LP, x)
-
-    iter, status, hist = one_phase_IPM(intial_it, par)
+    return init_it
 end

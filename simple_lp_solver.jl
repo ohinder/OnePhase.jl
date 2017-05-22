@@ -15,7 +15,7 @@ function simple_LP_solver(intial_it::Class_iterate, pars::Class_parameters)
   for t = 1:300
      factor!(kkt_solver, iter)
 
-     if scaled_dual_feas(iter) < get_mu(iter)
+     if scaled_dual_feas(iter, par) < get_mu(iter)
        step_type = "agg"
        reduct_factors = Reduct_affine()
        # get_mu(it) * (1.0 - eta)

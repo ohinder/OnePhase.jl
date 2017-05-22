@@ -10,11 +10,31 @@ type Class_reduction_factors
     end
 end
 
+
+function Reduct_affine()
+  return Class_reduction_factors(0.0, 0.0, 0.0);
+end
+
+function Reduct_stable()
+  return Class_reduction_factors(1.0, 0.0, 1.0);
+end
+
+function Eta_reduct(eta::Float64, strategy::Symbol)
+    if strategy == :dual_agg
+      return Class_reduction_factors(eta, 0.0, eta);
+    elseif strategy == :symmetric
+      return Class_reduction_factors(eta, eta, eta);
+    else
+      error("This eta reduction strategy does not exist")
+    end
+end
+
+
 type System_rhs
     dual_r::Array{Float64,1}
     primal_r::Array{Float64,1}
     comp_r::Array{Float64,1}
-    
+
     function System_rhs()
         return new()
     end

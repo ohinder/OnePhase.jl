@@ -14,6 +14,7 @@ type alg_history
     dir_s_norm::Float64
     kkt_err::Class_kkt_error
     mu::Float64
+    dual_scaled::Float64
     norm_grad_lag::Float64
     primal_residual::Float64
     comp::Float64
@@ -49,6 +50,7 @@ function record_progress!(t::Int64, step_type::String, iter::Class_iterate, kss:
     hist.mu = get_mu(iter)
     hist.dot_sy = dot(iter.point.s,iter.point.y)/length(iter.point.s)
     hist.norm_grad_lag = norm(eval_grad_lag(iter),Inf)
+    hist.dual_scaled = scaled_dual_feas(iter, par)
     hist.primal_residual = norm(eval_primal_residual(iter),Inf)
     hist.comp = norm(comp(iter),Inf)
     hist.farkas = norm(eval_farkas(iter),Inf)
@@ -66,35 +68,16 @@ function record_progress!(t::Int64, step_type::String, iter::Class_iterate, kss:
     push!(progress, hist)
 
     if par.output_level >= 2
-      println(pd(t,5), pd(step_type, 5), rd(eta.mu),  rd(ls_info.step_size_P),  rd(ls_info.step_size_D), pd(ls_info.num_steps,3), rd(hist.dir_x_norm), rd(hist.dir_y_norm), rd(kkt_ratio), "|", rd(hist.mu), rd(hist.norm_grad_lag), rd(hist.primal_residual), rd(hist.comp), rd(hist.farkas), "|", rd(hist.delta),  rd(hist.y_norm), rd(hist.x_norm), rd(hist.eval_grad_phi), rd(hist.eval_merit_function, 5))
+      println(pd(t,5), pd(step_type, 5), rd(eta.mu),  rd(ls_info.step_size_P),  rd(ls_info.step_size_D), pd(ls_info.num_steps,3), rd(hist.dir_x_norm), rd(hist.dir_y_norm), rd(kkt_ratio), "|", rd(hist.mu), rd(hist.dual_scaled), rd(hist.primal_residual), rd(hist.comp), rd(hist.farkas), "|", rd(hist.delta),  rd(hist.y_norm), rd(hist.x_norm), rd(hist.eval_grad_phi), rd(hist.eval_merit_function, 5))
     end
 end
 
-
-function Reduct_affine()
-  return Class_reduction_factors(0.0, 0.0, 0.0);
+function dual_scale(iter::Class_iterate, pars::Class_parameters)
+    return pars.dual_scale_threshold / max(norm(get_y(iter), Inf), pars.dual_scale_threshold)
 end
 
-function Reduct_stable()
-  return Class_reduction_factors(1.0, 0.0, 1.0);
-end
-
-function Eta_reduct(eta::Float64, strategy::Symbol)
-    if strategy == :dual_agg
-      return Class_reduction_factors(eta, 0.0, eta);
-    elseif strategy == :symmetric
-      return Class_reduction_factors(eta, eta, eta);
-    else
-      error("This eta reduction strategy does not exist")
-    end
-end
-
-function dual_scale(iter::Class_iterate)
-    return 100.0 / max(norm(get_y(iter), Inf),100.0)
-end
-
-function scaled_dual_feas(iter::Class_iterate)
-    return norm(eval_grad_lag(iter),Inf) * dual_scale(iter)
+function scaled_dual_feas(iter::Class_iterate, pars::Class_parameters)
+    return norm(eval_grad_lag(iter),Inf) * dual_scale(iter, pars)
 end
 
 function is_feasible(it::Class_iterate, comp_feas::Float64)
@@ -110,7 +93,7 @@ end
 function terminate(iter::Class_iterate, par::Class_parameters)
     tol = par.tol
 
-    if scaled_dual_feas(iter) < tol && get_mu(iter) < tol && norm(eval_primal_residual(iter),Inf) < tol
+    if scaled_dual_feas(iter, par) < tol && get_mu(iter) < tol && norm(eval_primal_residual(iter),Inf) < tol
         return :optimal
     elseif norm(eval_farkas(iter),Inf) < tol && norm(eval_primal_residual(iter),Inf) > tol && norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible

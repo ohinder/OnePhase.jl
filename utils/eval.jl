@@ -2,9 +2,14 @@ function comp(it::Class_iterate)
     return it.point.s .* it.point.y - it.point.mu
 end
 
+function comp_ratio_max(it::Class_iterate)
+    return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu / it.point.s .* it.point.y))
+end
+
 function isbad(num::Float64)
     if isnan(num) || isinf(num)
-      warn("$num not expected!")
+      my_warn("$num not expected!")
+      error("$num not expected!")
     end
 end
 
@@ -30,8 +35,8 @@ function eval_a(it::Class_iterate)
     return a
 end
 
-function eval_kkt_err(it)
-    return scaled_dual_feas(it) + norm(comp(it), Inf)
+function eval_kkt_err(it::Class_iterate, par::Class_parameters)
+    return scaled_dual_feas(it, par) + norm(comp(it), Inf)
 end
 
 function eval_primal_residual(it)
@@ -129,7 +134,14 @@ function comp_predicted(it::Class_iterate, dir::Class_point)
     return s .* y + dir.y .* s + dir.s .* y - it.point.mu
 end
 
-function phi_predicted_reduction(it::Class_iterate, dir::Class_point)
+function phi_predicted_reduction_primal(it::Class_iterate, dir::Class_point)
+    grad_phi = eval_grad_phi(it)
+    H = eval_phi_hess(it)
+
+    return dot(dir.x, grad_phi) + 0.5 * dot(dir.x, H * dir.x)
+end
+
+function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point)
     grad_phi = eval_grad_phi(it)
     H = eval_primal_dual_hess(it)
 
@@ -147,7 +159,7 @@ function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
     end
     #@show comp_penalty
 
-    predict_red = phi_predicted_reduction(it, dir)
+    predict_red = phi_predicted_reduction_primal_dual(it, dir)
     #@show predict_red
 
     return predict_red + comp_penalty

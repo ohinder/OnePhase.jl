@@ -11,21 +11,34 @@ type Class_local_info
 end
 
 type Class_iterate
+    primal_residual_intial::Array{Float64,1}
     point::Class_point
     nlp::abstract_nlp
     cache::Class_cache
     local_info::Class_local_info
 
     function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info)
-      return new(intial_point, nlp, Class_cache(), local_info)
+      this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
+      this.primal_residual_intial = eval_primal_residual(this) / intial_point.mu;
+      return this
+    end
+
+    function Class_iterate()
+      return new()
     end
 end
 
 import Base.copy
 
 function copy(it::Class_iterate)
-   new_point = deepcopy(it.point)
-   new_it = Class_iterate(new_point, it.nlp, it.local_info)
+   new_it = Class_iterate()
+   new_it.point = deepcopy(it.point)
+
+   new_it.primal_residual_intial = it.primal_residual_intial
+   new_it.nlp = it.nlp
+   new_it.local_info = it.local_info
+
+   return new_it
 end
 
 function validate(it::Class_iterate)
@@ -85,8 +98,18 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       new_it.point.mu += dir.mu * step_size
       new_it.point.x += dir.x * step_size
       new_a = eval_a(new_it)
-      new_it.point.s = new_a + (new_it.point.mu / it.point.mu) * primal_res_old
-      #new_it.point.s += dir.s
+
+      #nl_s = new_it.point.s + step_size * dir.s
+      nl_s = new_a - new_it.point.mu * it.primal_residual_intial
+      if pars.s_update == :careful
+        new_it.point.s = nl_s
+      elseif pars.s_update == :loose
+        rf = 1.5
+        l_s = new_it.point.s + step_size * dir.s
+        new_it.point.s = min(nl_s * rf, max(nl_s / rf, l_s))
+      else
+        error("pars.s_update option $(pars.s_update) not avaliable")
+      end
 
       if minimum(new_it.point.s) > 0.0
         lb1, ub1 = dual_bounds(it, new_it.point.y, dir.y, pars.comp_feas)
@@ -95,7 +118,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
         if pars.move_primal_seperate_to_dual
             if lb1 < ub1 / 1.01
                 ∇a = eval_jac(new_it)
-                scale = dual_scale(new_it)
+                scale = dual_scale(new_it, pars)
 
                 if lb2 < ub2
                   q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
@@ -119,7 +142,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                 if !is_feasible(new_it, pars.comp_feas)
                   @show minimum(new_it.point.y), maximum(new_it.point.s)
                   println("line=",@__LINE__, "file=",@__FILE__)
-                  warn("infeasibility should have been detected earlier!!!")
+                  my_warn("infeasibility should have been detected earlier!!!")
                   @show (lb1, ub1), (lb2, ub2)
                   return it, false, step_size_D
                 else

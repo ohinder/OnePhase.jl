@@ -29,7 +29,11 @@ function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduc
           compute_direction!(kkt_solver)
 
           if kkt_solver.kkt_err_norm.ratio < pars.saddle_err_tol
+            #if delta == 0.0
+            #  status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, :accept_kkt, filter, pars, pars.min_step_size_stable)
+            #else
             status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, ls_mode, filter, pars, pars.min_step_size_stable)
+            #end
 
             if status == :success
               success = true
@@ -56,7 +60,7 @@ function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduc
         end
     end
 
-    warn("ipopt_strategy failed with delta=$delta")
+    my_warn("ipopt_strategy failed with delta=$delta")
     return :failure, iter, Blank_ls_info()
 end
 
@@ -112,7 +116,7 @@ function optimal_stable_step!(iter::Class_iterate, stable_reduct_factors::Class_
             @show norm(kkt_solver.dir.x)
             status, candidate, step_info_candidate = simple_ls(iter, kkt_solver.dir, :accept_stable, pars)
           else
-            warn("eigenvector inaccurate")
+            my_warn("eigenvector inaccurate")
           end
 
           if inertia == 0 || step_info_candidate.step_size_P < 1.0
@@ -126,7 +130,7 @@ function optimal_stable_step!(iter::Class_iterate, stable_reduct_factors::Class_
         end
 
         if i == max_it
-          warn("delta too small")
+          my_warn("delta too small")
         end
     elseif get_delta(iter) > 1e-4 && mode == :eigenvector
         println("eigenvector")
