@@ -116,9 +116,9 @@ end
 function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, eta::Class_reduction_factors)
     start_advanced_timer("kkt/rhs");
 
-    mu_dir = -(1.0 - eta.mu) * get_mu(iter)
     kkt_solver.rhs = System_rhs(iter, eta)
-    kkt_solver.dir.mu = mu_dir
+    kkt_solver.dir.mu = -(1.0 - eta.mu) * get_mu(iter)
+    kkt_solver.dir.primal_scale = -(1.0 - eta.P) * iter.point.primal_scale
 
     pause_advanced_timer("kkt/rhs");
 end

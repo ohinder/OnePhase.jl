@@ -1,27 +1,8 @@
 include("include.jl")
 
-test_name = ARGS[1]
+folder_name = ARGS[1]
 
-type problem_summary
-    status::Symbol
-    it_count::Int64
-    total_time::Float64
-
-    function problem_summary()
-        return new()
-    end
-end
-
-function write_summary(stream::IOStream, summary::Dict{String, problem_summary})
-    write(stream, "problem_name \t status \t it count \t total_time \n");
-    for (problem_name, info) in summary
-      write(stream, "$(pd(problem_name)) \t $(pd(info.status)) \t $(pd(info.it_count)) \t $(rd(info.total_time))\n");
-    end
-end
-
-
-
-function run_cutest_problems(problems::Array{String,1}, test_name::String)
+function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_name::String, par::Class_parameters)
 
     if_mkdir("results/$test_name")
     if_mkdir("results/$test_name/log")
@@ -43,9 +24,8 @@ function run_cutest_problems(problems::Array{String,1}, test_name::String)
 
               reset_advanced_timer()
               start_advanced_timer()
-              intial_it = initial_point_satisfy_bounds(nlp, nlp_raw.meta.x0, my_par)
-
-              iter, status, history, t = one_phase_IPM(intial_it, my_par);
+              intial_it = init(nlp, par)
+              iter, status, history, t = one_phase_IPM(intial_it, par);
               pause_advanced_timer()
               print_timer_stats()
 
@@ -75,10 +55,16 @@ function run_cutest_problems(problems::Array{String,1}, test_name::String)
     end
 end
 
+function run_cutest_problems_using_IPOPT(problems::Array{String,1}, test_name::String)
+
+end
+
 #run_cutest_problems(["DISCS"], "test")
 
 function filter_cutest(problem)
-    if problem["derivative_order"] >= 2 && 100 <= problem["variables"]["number"] && problem["variables"]["number"] <= 1000 && 100 <= problem["constraints"]["number"] && problem["constraints"]["number"] <= 3000
+    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
+    regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    if correct_size && regular
         return true
     else
       return false
@@ -88,5 +74,29 @@ end
 #problem_list = CUTEst.select(max_var=100, max_var=1000, min_con=100, max_con=3000)
 problem_list = CUTEst.select(custom_filter=filter_cutest)
 problem_list = convert(Array{String,1},problem_list)
-#problem_list = ["PT"] #"DISCS"]
-run_cutest_problems(problem_list, test_name)
+
+if false
+problem_list = ["PT"]
+folder_name = "test_run"
+end
+
+if true
+    run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
+end
+
+if false
+    folder_name = "par1"
+    if_mkdir("results/$folder_name")
+
+    for mu_ratio in [0.01, 1.0, 100.0]
+        my_par.mu_primal_ratio = mu_ratio
+        run_cutest_problems_using_our_solver(problem_list, "$folder_name/mu_ratio-$mu_ratio", my_par)
+    end
+
+    my_par.mu_primal_ratio = 1.0
+    my_par.start_satisfying_bounds = true
+    run_cutest_problems_using_our_solver(problem_list, "$folder_name/bounds", my_par)
+
+    my_par.start_satisfying_bounds = false
+    run_cutest_problems_using_our_solver(problem_list, "$folder_name/nobounds", my_par)
+end

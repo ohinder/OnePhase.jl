@@ -19,7 +19,7 @@ type Class_iterate
 
     function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info)
       this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
-      this.primal_residual_intial = eval_primal_residual(this) / intial_point.mu;
+      this.primal_residual_intial = eval_primal_residual(this);
       return this
     end
 
@@ -95,12 +95,13 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
     if pars.move_type == :primal_dual
       primal_res_old = (it.point.s - eval_a(it))
       new_it = copy(it)
-      new_it.point.mu += dir.mu * step_size
       new_it.point.x += dir.x * step_size
       new_a = eval_a(new_it)
 
       #nl_s = new_it.point.s + step_size * dir.s
-      nl_s = new_a - new_it.point.mu * it.primal_residual_intial
+      new_it.point.primal_scale += dir.primal_scale * step_size
+      nl_s = new_a - new_it.point.primal_scale * it.primal_residual_intial
+
       if pars.s_update == :careful
         new_it.point.s = nl_s
       elseif pars.s_update == :loose
@@ -109,6 +110,14 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
         new_it.point.s = min(nl_s * rf, max(nl_s / rf, l_s))
       else
         error("pars.s_update option $(pars.s_update) not avaliable")
+      end
+
+      if pars.mu_update == :static || (pars.mu_update == :dynamic_agg && dir.mu == 0.0)
+        new_it.point.mu += dir.mu * step_size
+      elseif pars.mu_update == :dynamic || pars.mu_update == :dynamic_agg
+        new_it.point.mu = mean(new_it.point.s .* (new_it.point.y + step_size * dir.y))
+      else
+        error("this mu_update option is not valid")
       end
 
       if minimum(new_it.point.s) > 0.0
@@ -152,7 +161,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
               return it, false, step_size
             end
         else
-          if lb <= step_size && step_size <= ub
+          if lb1 <= step_size && step_size <= ub1
             new_it.point.y += dir.y * step_size
 
             return new_it, true, step_size
@@ -169,9 +178,17 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       new_it.point.mu += dir.mu * step_size
       new_it.point.x += dir.x * step_size
       new_a = eval_a(new_it)
-      new_it.point.s = new_a + (new_it.point.mu/it.point.mu) * (it.point.s - eval_a(it))
+      
+      new_it.point.primal_scale += dir.primal_scale * step_size
+      new_it.point.s = new_a - new_it.point.primal_scale * it.primal_residual_intial
       #new_it.point.s += dir.s
       new_it.point.y = new_it.point.mu ./ new_it.point.s
+
+      if is_feasible(new_it, pars.comp_feas)
+        return new_it, true, step_size
+      else
+        return it, false, step_size
+      end
     end
 end
 

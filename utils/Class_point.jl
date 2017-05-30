@@ -5,19 +5,21 @@ type Class_point
     y::Array{Float64,1}
     s::Array{Float64,1}
     mu::Float64
+    primal_scale::Float64
 
     function Class_point(x::Array{Float64,1},y::Array{Float64,1},s::Array{Float64,1},mu::Float64)
         @assert(length(s) == length(y))
-        return new(x, y, s, mu)
+        return new(x, y, s, mu, 1.0)
     end
 end
 
-function shrink_direction!(dir::Class_point, by::Float64)
+#=function shrink_direction!(dir::Class_point, by::Float64)
     dir.x = dir.x * by
     dir.y = dir.y * by
     dir.s = dir.s * by
     dir.mu = dir.mu * by;
-end
+    dir.mu = dir.mu * by;
+end=#
 
 function zero_point(dim::Int64,ncon::Int64)
     return Class_point(zeros(dim),zeros(ncon),zeros(ncon),0.0)

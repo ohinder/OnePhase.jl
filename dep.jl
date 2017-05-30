@@ -12,7 +12,7 @@ rsync -a --stats /Users/Oliver/Google\ Drive/Stanford/Research/one-phase-2.0 ohi
 one-phase-2.0
 
 # download results
-rsync -a --stats ohinder@sherlock.stanford.edu:one-phase-2.0/results/test4 /Users/Oliver/Google\ Drive/Stanford/Research/one-phase-2.0/results 
+rsync -a --stats ohinder@sherlock.stanford.edu:one-phase-2.0/results /Users/Oliver/Google\ Drive/Stanford/Research/one-phase-2.0
 
 sbatch run_cutest.sbatch
 squeue -u $USER

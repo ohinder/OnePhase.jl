@@ -3,7 +3,7 @@ function comp(it::Class_iterate)
 end
 
 function comp_ratio_max(it::Class_iterate)
-    return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu / it.point.s .* it.point.y))
+    return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu ./ (it.point.s .* it.point.y)))
 end
 
 function isbad(num::Float64)

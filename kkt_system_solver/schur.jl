@@ -86,7 +86,7 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
     output_level = kkt_solver.pars.output_level
     res_old = schur_rhs
     if output_level >= 4
-      println("res", 0, "=", norm(res_old,2))
+      println("res", 0, " ", rd(norm(res_old,2)))
     end
     dir_x = convert(Array{BigFloat,1}, zeros(length(dir.x)))
 
@@ -97,12 +97,12 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
         res = schur_rhs - ( jac_res + H_org * dir_x + kkt_solver.delta_x_vec .* dir_x )
 
         if output_level >= 4
-          println("res", i, "=", norm(res,2))
+          println("res", i, " ", rd(Float64(norm(res,2))))
         end
 
-        if norm(res,2) > 0.8 * norm(res_old,2)
-          break
-        end
+        #if norm(res,2) > 0.95 * norm(res_old,2)
+        #  break
+        #end
         res_old = res
     end
     dir.x = dir_x

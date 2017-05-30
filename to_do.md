@@ -1,8 +1,16 @@
 Short term:
 
+*- test on difficult set i.e. problems with few degrees of freedom*
+
+*- when should i apply aggressive steps ??? *
+*- compare d_P and d_D *
+*- perhaps use a more aggressive criterion for accepting aggressive steps? *
+*- or look at how well complementarity is updated for each variable = decrease????*
+
 *- remain feasible to bounds and make sure we start sufficiently feasible (perhaps compute max infeasiblity)*
 *- fix fixed variables *
 
+*- homogenous variant of algorithm ??? *
 
 - *fix error with predicted reduction of complementarity*
 - **stabilization should prioritize complementarity if dual is small and comp not satisfied**
