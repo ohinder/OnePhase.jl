@@ -16,9 +16,15 @@ type Class_iterate
     nlp::abstract_nlp
     cache::Class_cache
     local_info::Class_local_info
+    ncon::Int64
+    nvar::Int64
 
     function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info)
       this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
+      this.nvar = length(intial_point.x)
+      this.ncon = length(intial_point.y)
+      @assert(this.ncon == length(intial_point.y))
+
       this.primal_residual_intial = eval_primal_residual(this);
       return this
     end
@@ -28,20 +34,30 @@ type Class_iterate
     end
 end
 
+function validate(it::Class_iterate)
+    @assert(it.nvar == length(it.point.x))
+    @assert(it.ncon == length(it.point.y))
+    @assert(it.ncon == length(it.point.s))
+end
+
 import Base.copy
 
 function copy(it::Class_iterate)
+   validate(it)
+
    new_it = Class_iterate()
    new_it.point = deepcopy(it.point)
 
    new_it.primal_residual_intial = it.primal_residual_intial
    new_it.nlp = it.nlp
    new_it.local_info = it.local_info
+   new_it.nvar = it.nvar
+   new_it.ncon = it.ncon
 
    return new_it
 end
 
-function validate(it::Class_iterate)
+function finite_diff_check(it::Class_iterate)
    approx_grad = Calculus.gradient(it.nlp.eval_f, it.point.x)
    actual_grad = it.nlp.eval_grad_lag(it.point.x, zeros(length(it.point.y)))
    @assert(norm(approx_grad -  actual_grad, 2) < 1e-3)
@@ -178,7 +194,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       new_it.point.mu += dir.mu * step_size
       new_it.point.x += dir.x * step_size
       new_a = eval_a(new_it)
-      
+
       new_it.point.primal_scale += dir.primal_scale * step_size
       new_it.point.s = new_a - new_it.point.primal_scale * it.primal_residual_intial
       #new_it.point.s += dir.s

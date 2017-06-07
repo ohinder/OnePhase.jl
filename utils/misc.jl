@@ -46,19 +46,3 @@ end
 function my_warn(str::String)
     println("WARNING: ", str)
 end
-
-#=
-function read_lp(name::String)
-  lp_data = matopen("netlib/$(name).mat")
-
-  A = read(lp_data,"A")
-  b = read(lp_data,"b")[:]
-  c = read(lp_data,"c")[:]
-  lbounds = read(lp_data,"lbounds")[:]
-  ubounds = read(lp_data,"ubounds")[:]
-
-  Ahat = [A; -A; eye(length(lbounds)); -eye(length(ubounds))];
-  bhat = [b; -b; lbounds; -ubounds];
-
-  return Class_QP(bhat, Ahat, c)
-end=#

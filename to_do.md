@@ -1,6 +1,14 @@
 Short term:
 
-*- test on difficult set i.e. problems with few degrees of freedom*
+*- netlib and show dual variable issues *
+*- create infeasible test set*
+
+*- mu stuff *
+
+*- initialization scheme*
+*- record complementarity*
+**- use cache**
+
 
 *- when should i apply aggressive steps ??? *
 *- compare d_P and d_D *
@@ -19,6 +27,7 @@ Short term:
 - split up parameters i.e. initialization parameters etc ...
 
 - install IPOPT on sherlock
+
 
 - KKT system S_diag and X_diag as variables
 
@@ -43,7 +52,9 @@ Short term:
 - create notes of what I am doing
 - validate LP direction
 
-Long term:
+**Long term:**
+- (1) find LP solution first, (2) start from analytic centre, (3) re-write so problem is well-conditioned
+
 - automatic scaling trust region algorithm
 
 - momentum/CG in stabilization steps
@@ -51,6 +62,6 @@ Long term:
 - re-use permutations for cholesky
 - filter during stable steps, either accept improvement in dual or primal
 
-Blue sky
+**Blue sky**
 - run non-linear CG to 0.99 accuracy in 100 iterations. Use NC certificates to deduce correct delta.
 - do linear algebra to deal with duplicates of constraints

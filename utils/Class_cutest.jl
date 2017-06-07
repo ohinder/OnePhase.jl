@@ -25,6 +25,8 @@ type Class_bounds
     end
 end
 
+
+
 function _i_not_fixed(m::CUTEst.CUTEstModel)
     return (1:m.meta.nvar)[m.meta.lvar .!= m.meta.uvar]
 end
@@ -37,9 +39,24 @@ type Class_CUTEst <: abstract_nlp
 
     function Class_CUTEst(nlp::CUTEst.CUTEstModel)
         ind = _i_not_fixed(nlp)
-        return new(nlp, Class_bounds(nlp.meta.lcon, nlp.meta.ucon), Class_bounds(nlp.meta.lvar[ind], nlp.meta.uvar[ind]))
+        return new(nlp, Class_bounds(nlp.meta.lcon[:], nlp.meta.ucon[:]), Class_bounds(nlp.meta.lvar[ind], nlp.meta.uvar[ind]))
     end
 end
+
+#=
+function con_info(m::Class_CUTEst, index::Int64)
+    con = false
+    if index in cons_indicies(m)
+      con = true
+      if index < length(nlp.bcon.l_i)
+        #[lb(a, m.bcon); ub(a, m.bcon); lb(x, m.bvar); ub(x, m.bvar)]
+      end
+    end
+
+
+
+    return;
+end=#
 
 function suggested_starting_point(m::Class_CUTEst)
     ind = _i_not_fixed(m.nlp)
@@ -103,8 +120,13 @@ end
 
 function _cute_x(m::Class_CUTEst, x::Array{Float64,1})
     ind = _i_not_fixed(m.nlp)
-    @assert(length(x) == length(ind))
-    cute_x = m.nlp.meta.x0 # get correct values of fixed variables
+    #@show length(ind)
+    if(length(x) != length(ind))
+      error("$(length(x)) = length(x) != length(i_not_fixed) = $(length(ind))")
+    end
+
+
+    cute_x = deepcopy(m.nlp.meta.lvar) # get correct values of fixed variables
     cute_x[ind] = x
 
     return cute_x

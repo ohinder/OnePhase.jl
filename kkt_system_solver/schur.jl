@@ -10,13 +10,18 @@ type Schur_KKT_solver <: abstract_KKT_system_solver
     rhs_norm::Float64
     pars::Class_parameters
 
+    ready::Int64
+
     # Schur_KKT_solver only
     true_diag::Array{Float64,1}
     M::SparseMatrixCSC{Float64,Int64}
     K::SparseMatrixCSC{Float64,Int64}
 
     function Schur_KKT_solver()
-      return new()
+      this = new()
+      this.ready = 0
+
+      return this
     end
 end
 
@@ -43,6 +48,8 @@ function form_system!(kkt_solver::Schur_KKT_solver, iter::Class_iterate)
     kkt_solver.M = (∇a' * Σ * ∇a) + eval_lag_hess(iter);
     kkt_solver.true_diag = diag(kkt_solver.M)
     kkt_solver.factor_it = iter;
+    kkt_solver.ready = 1
+
     pause_advanced_timer("SCHUR/form_system");
 
 end
@@ -59,13 +66,25 @@ function update_delta_vecs!(kkt_solver::Schur_KKT_solver, delta_x_vec::Array{Flo
     else
         kkt_solver.K = kkt_solver.M + spdiagm(delta_x_vec)
     end
+
+    kkt_solver.ready = 2
 end
 
 function factor!(kkt_solver::Schur_KKT_solver)
+    if kkt_solver.ready != 2
+        error("kkt solver not ready to factor!")
+    else
+        kkt_solver.ready = 3
+    end
+
     return ls_factor!(kkt_solver.ls_solver, kkt_solver.K, dim(kkt_solver.factor_it), 0)
 end
 
 function compute_direction!(kkt_solver::Schur_KKT_solver)
+    if kkt_solver.ready != 3
+        error("kkt solver not ready to compute direction!")
+    end
+
     factor_it = kkt_solver.factor_it
     ∇a_org = eval_jac(factor_it);
     H_org = eval_lag_hess(factor_it)
@@ -115,5 +134,7 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
       dir.y = ( rhs.comp_r - dir.s .* y_org ) ./ s_org # (mu_target - s_cur .* y_cur)
     end
 
+    check_for_nan(dir)
+    
     update_kkt_error!(kkt_solver, Inf)
 end

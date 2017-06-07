@@ -20,6 +20,32 @@ but desired accuracy could not be achieved.
 18: Restoration phase cannot further improve feasibility
 =#
 
+function jump_status_conversion(status::Symbol)
+  if status == :Optimal
+    return :optimal
+  elseif status == :Infeasible
+    return :primal_infeasible
+  elseif status == :Unbounded
+    return :dual_infeasible
+  #elseif status ==
+  #  return :dual_infeasible
+elseif status == :UserLimit
+    return :MAX_IT
+  elseif status == -1
+    return :MAX_TIME
+  else
+    return :ERROR
+  end
+end
+
+function convert_JuMP(results::Dict{String,problem_summary})
+    for (prb_name, info) in results
+      info.status = jump_status_conversion(info.status)
+    end
+
+    return results
+end
+
 function status_conversion(status::Int64)
     if status == 0
       return :optimal
@@ -60,6 +86,12 @@ end
 
 Infty = 99999999
 
+
+function alg_success(status::Symbol)
+    return (status == :optimal  || status == :primal_infeasible || status == :dual_infeasible)
+end
+
+
 function iteration_list(results::Dict{String, problem_summary})
   problem_list = collect(keys(results))
   its = zeros(length(problem_list))
@@ -67,7 +99,7 @@ function iteration_list(results::Dict{String, problem_summary})
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      if info.status == :optimal && info.it_count < 3000
+      if alg_success(info.status) && info.it_count < 3000
         its[i] = info.it_count
       else
         its[i] = Infty
@@ -116,7 +148,7 @@ function tot_failures(results::Dict{String, problem_summary})
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      if info.status == :optimal && info.it_count < 3000
+      if alg_success(info.status) && info.it_count <= 3000
         # optimal
       else
         tot += 1
@@ -136,7 +168,7 @@ function list_failures(results::Dict{String, Dict{String,problem_summary}})
 
       for (method_name, data) in results
         info = results[method_name][problem_name]
-        if info.status == :optimal && info.it_count < 3000
+        if alg_success(info.status) && info.it_count <= 3000
           # optimal
         else
           if first_failure
@@ -152,12 +184,12 @@ function list_failures(results::Dict{String, Dict{String,problem_summary}})
   end
 end
 
-function remove_errors(dics::Dict{String, Dict{String,problem_summary}})
+function remove_errors(dics::Dict{String, Dict{String,problem_summary}}, error_set)
     new_dic = Dict{String, Dict{String,problem_summary}}()
     for (method_name, data) in dics
       new_dic[method_name] = Dict{String,problem_summary}()
       for (problem_name, info) in data
-        if info.status != :ERROR
+        if !(info.status in error_set)
           new_dic[method_name][problem_name] = info
         end
       end
@@ -165,19 +197,77 @@ function remove_errors(dics::Dict{String, Dict{String,problem_summary}})
     return new_dic
 end
 
+function select(dics::Dict{String, Dict{String,problem_summary}}, select_set)
+    new_dic = Dict{String, Dict{String,problem_summary}}()
+    for (method_name, data) in dics
+      new_dic[method_name] = Dict{String,problem_summary}()
+      for (problem_name, info) in data
+        if (info.status in select_set)
+          new_dic[method_name][problem_name] = info
+        end
+      end
+    end
+    return new_dic
+end
+
+function union_results(dics::Dict{String, Dict{String,problem_summary}}, master::Dict{String, Dict{String,problem_summary}})
+    names_list = []
+    for (method_name, data) in dics
+      names_list = union(collect(keys(data)),names_list)
+    end
+
+    new_dic = Dict{String, Dict{String,problem_summary}}()
+    for (method_name, data) in results
+      new_dic[method_name] = Dict{String,problem_summary}()
+      for (problem_name, info) in data
+        if problem_name in names_list
+          new_dic[method_name][problem_name] = info
+        end
+      end
+    end
+    return new_dic
+end
+
+function show_results(results::Dict{String, Dict{String,problem_summary}})
+    problem_list = collect(keys(first(results)[2]))
+    for problem_name in problem_list
+      for (method_name, data) in results
+         info = data[problem_name]
+         println(method_name, " ", problem_name, " ", info.it_count, " ", info.status)
+      end
+    end
+end
 
 results = Dict{String, Dict{String,problem_summary}}()
-results["IPOPT"] = load_results("other_solver_results/ipopt-results.txt");
+#results["IPOPT"] = load_results("other_solver_results/ipopt-results.txt");
 #results["KNITRO"] = load_results("other_solver_results/knitro-results.txt");
 #results["ME1"] = load("results/test6/summary.jld", "summary")
 #results["ME1"] = load("results/test7/summary.jld", "summary")
 #results["ME2"] = load("results/mehotra_intial_point1/summary.jld", "summary")
-results["ME3"] = load("results/par1/mu_ratio-0.01/summary.jld", "summary")
-results["ME4"] = load("results/par1/mu_ratio-1.0/summary.jld", "summary")
-#results["ME5"] = load("results/par1/mu_ratio-100.0/summary.jld", "summary")
 
-error_free_results = remove_errors(results)
+results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary"))
+#results["grad scaled mu"] = load("results/inside2/summary.jld", "summary")
+
+#results["ME3"] = load("results/par1/mu_ratio-0.01/summary.jld", "summary")
+#results["ME4"] = load("results/par1/mu_ratio-1.0/summary.jld", "summary")
+#results["ME5"] = load("results/par1/mu_ratio-100.0/summary.jld", "summary")
+results["mehotra"] = load("results/par2/mehotra-no-satisfy/summary.jld", "summary")
+#results["mu 0.01"] = load("results/par2/mu_ratio-0.01/summary.jld", "summary")
+#results["mu 1.0"] = load("results/par2/mu_ratio-1.0/summary.jld", "summary")
+#results["mu 100.0"] = load("results/par2/mu_ratio-100.0/summary.jld", "summary")
+
+if true
+error_free_results = remove_errors(results, [:NaN_ERR])
 overlapping_results = overlap(error_free_results)
+elseif false
+overlapping_results = overlap(results)
+infeas_results = select(overlapping_results, [:primal_infeasible])
+overlapping_results = union_results(infeas_results, results)
+show_results(overlapping_results)
+else
+overlapping_results = overlap(results)
+end
+
 
 for (method_name, sum_data) in overlapping_results
     println(method_name, "=" ,tot_failures(sum_data), " out of ", length(sum_data))
@@ -198,8 +288,13 @@ ratios = Dict()
 y_vals = collect(1:length(best)) / length(best)
 for (method_name, val) in its
   ratios[method_name] = its[method_name] ./ best
-  semilogx(sort(ratios[method_name]), y_vals, label=method_name)
+  semilogx(sort(ratios[method_name]), y_vals, label=method_name, basex=2)
 end
 ax = gca()
-ax[:set_xlim]([1.0,1e2])
+ax[:set_xlim]([1.0,2^6.0])
+#ax[:xaxis][:ticker] = 0.5
+title("Comparsion on 45 CUTEst problems")
+xlabel("iteration ratio to best solver")
+ylabel("proportion of problems")
+
 legend()

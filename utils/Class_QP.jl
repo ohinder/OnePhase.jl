@@ -15,6 +15,10 @@ type Class_QP <: abstract_nlp
     end
 end
 
+function suggested_starting_point(nlp::Class_QP)
+    return zeros(length(nlp.c))
+end
+
 function dim(QP::Class_QP)
   return length(QP.c)
 end
@@ -35,11 +39,11 @@ function eval_jac(QP::Class_QP, x::Array{Float64,1})
     return QP.A
 end
 
-function eval_grad_lag(QP::Class_QP, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64)
+function eval_grad_lag(QP::Class_QP, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64=1.0)
     return w * (QP.c + QP.Q * x) - QP.A' * y
 end
 
-function eval_lag_hess(QP::Class_QP, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64)
+function eval_lag_hess(QP::Class_QP, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64=1.0)
     return w * QP.Q
 end
 

@@ -6,10 +6,25 @@ function comp_ratio_max(it::Class_iterate)
     return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu ./ (it.point.s .* it.point.y)))
 end
 
+type Eval_NaN_error <: Exception
+   num::Float64
+   point::Array{Float64,1}
+   place::String
+
+   function Eval_NaN_error(num::Float64,point::Array{Float64,1},place::String)
+     return new(num::Float64,point::Array{Float64,1},place::String)
+   end
+end
+
+Base.showerror(io::IO, e::Eval_NaN_error) = print(io, "$(e.num) by $(e.place) not expected!");
+
 function isbad(num::Float64)
     if isnan(num) || isinf(num)
-      my_warn("$num not expected!")
-      error("$num not expected!")
+      return true
+      #my_warn("$num not expected!")
+      #Cutest_NaN_error("$num not expected!", num, point, place)
+    else
+      return false
     end
 end
 
@@ -18,7 +33,9 @@ function eval_f(it::Class_iterate)
     fval = eval_f(it.nlp, it.point.x)
     pause_advanced_timer("eval/f")
 
-    isbad(fval)
+    if isbad(fval)
+        throw( Eval_NaN_error(fval, it.point.x, "eval_f") )
+    end
 
     return fval
 end
@@ -29,7 +46,9 @@ function eval_a(it::Class_iterate)
     pause_advanced_timer("eval/a")
 
     for i = 1:length(a)
-      isbad(a[i])
+        if isbad(a[i])
+            throw( Eval_NaN_error(a[i], it.point.x, "eval_a[$i]") )
+        end
     end
 
     return a
