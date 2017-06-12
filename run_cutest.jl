@@ -14,14 +14,6 @@ function set_cutest_info_ipopt!(info::problem_summary, ipopt_solver, nlp_raw::CU
   info.comp = maximum(ipopt_solver.mult_x_U .* min(1e16, abs(nlp_raw.meta.uvar - x_true) ) ) + maximum( ipopt_solver.mult_x_L .* min(1e16, abs(x_true - nlp_raw.meta.lvar)) )
 end
 
-function set_cutest_info_me!(info::problem_summary, hist::Array{alg_history,1})
-    info.it_count = hist[end].t
-    info.fval = hist[end].fval;
-    info.con_vio = hist[end].primal_residual;
-    info.dual_feas = hist[end].norm_grad_lag;
-    info.comp = hist[end].comp;
-end
-
 function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, solver)
     summary = Dict{String, problem_summary}()
 
@@ -110,7 +102,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
               save("results/$(test_name)/jld/$(problem_name).jld","history",history)
 
               summary[problem_name].status = status;
-              set_cutest_info_me!(summary[problem_name], history)
+              set_info_me!(summary[problem_name], history)
               #.it_count = t;
           catch(e)
               println("Uncaught error in algorithm!!!")
@@ -135,16 +127,17 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
     end
 end
 
-function run_cutest_problems_using_IPOPT(problems::Array{String,1}, test_name::String)
-
-end
+#function run_cutest_problems_using_IPOPT(problems::Array{String,1}, test_name::String)
+#
+#end
 
 #run_cutest_problems(["DISCS"], "test")
-#  correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
-#  regular = problem["derivative_order"] >= 2 && problem["regular"] == true
-#
+
 
 function filter_cutest(problem)
+    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
+    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    # small
     correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
     regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     if correct_size && regular
@@ -163,22 +156,22 @@ problem_list = ["PT", "AGG"]
 folder_name = "test_run"
 end
 
-if true
-    folder_name = "par2/mehotra-satisfy"
+if false
+    folder_name = "mehotra_intial_point3"
     if_mkdir("results/$folder_name")
     run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 
-    folder_name = "par2/mehotra-no-satisfy"
-    if_mkdir("results/$folder_name")
-    my_par.start_satisfying_bounds = false
-    run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
+    #folder_name = "par2/mehotra-no-satisfy"
+    #if_mkdir("results/$folder_name")
+    #my_par.start_satisfying_bounds = false
+    #run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
-if false
-    folder_name = "par2"
+if true
+    folder_name = "par_hess1"
     if_mkdir("results/$folder_name")
 
-    for mu_ratio in [100.0] #[0.01, 1.0]
+    for mu_ratio in [0.01, 1.0, 100.0]
         my_par.mu_primal_ratio = mu_ratio
         run_cutest_problems_using_our_solver(problem_list, "$folder_name/mu_ratio-$mu_ratio", my_par)
     end

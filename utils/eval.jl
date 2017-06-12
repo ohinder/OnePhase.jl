@@ -42,7 +42,7 @@ end
 
 function eval_a(it::Class_iterate)
     start_advanced_timer("eval/a")
-    a = eval_a(it.nlp, it.point.x)
+    a = deepcopy(eval_a(it.nlp, it.point.x))
     pause_advanced_timer("eval/a")
 
     for i = 1:length(a)
@@ -90,9 +90,13 @@ function eval_grad_lag(it::Class_iterate, w::Float64=1.0)
     return grad_lag
 end
 
-function eval_farkas(it::Class_iterate)
-    eval_farkas = eval_grad_lag(it,0.0)/norm(it.point.y,Inf)
-    return eval_farkas
+function eval_farkas(iter::Class_iterate)
+    #eval_farkas = eval_grad_lag(it,0.0)/norm(it.point.y,Inf)
+    a_neg_part = max(-eval_a(iter),0.0)
+    y = get_y(iter)
+    J = eval_jac(iter)
+
+    return norm(y' * J, Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
 end
 
 function eval_jac(it::Class_iterate)

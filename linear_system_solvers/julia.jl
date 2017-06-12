@@ -21,7 +21,7 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				 solver._factor = lufact(SparseMatrix);
 			elseif solver.sym == :definite
 				try
-					solver._factor = cholfact(Symmetric(SparseMatrix));
+					solver._factor = cholfact(Symmetric(SparseMatrix,:L));
 				catch(e)
 					if typeof(e) == Base.LinAlg.PosDefException
 							inertia_status = 0

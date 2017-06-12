@@ -1,4 +1,5 @@
 using CUTEst
+importall NLPModels
 
 type Class_bounds
     l_i::Array{Int64,1}
@@ -27,17 +28,17 @@ end
 
 
 
-function _i_not_fixed(m::CUTEst.CUTEstModel)
+function _i_not_fixed(m::AbstractNLPModel)
     return (1:m.meta.nvar)[m.meta.lvar .!= m.meta.uvar]
 end
 
 type Class_CUTEst <: abstract_nlp
-    nlp::CUTEst.CUTEstModel
+    nlp::AbstractNLPModel
 
     bcon::Class_bounds
     bvar::Class_bounds
 
-    function Class_CUTEst(nlp::CUTEst.CUTEstModel)
+    function Class_CUTEst(nlp::AbstractNLPModel)
         ind = _i_not_fixed(nlp)
         return new(nlp, Class_bounds(nlp.meta.lcon[:], nlp.meta.ucon[:]), Class_bounds(nlp.meta.lvar[ind], nlp.meta.uvar[ind]))
     end
@@ -60,9 +61,12 @@ end=#
 
 function suggested_starting_point(m::Class_CUTEst)
     ind = _i_not_fixed(m.nlp)
-    return m.nlp.meta.x0[ind]
+    return deepcopy(m.nlp.meta.x0[ind])
 end
 
+function ncon(m::Class_CUTEst)
+    return nbounds_orginal(nlp) + ncons_orginal(nlp)
+end
 
 function lb(x::Array{Float64,1}, bd::Class_bounds)
     return x[bd.l_i] - bd.l
@@ -159,6 +163,23 @@ end=#
     return m.nlp.meta.nvar
 end=#
 
+function make_symmetric(M::SparseMatrixCSC{Float64,Int32})
+    n = size(M,1)
+    new_M = spzeros(n,n)
+    rows = rowvals(M)
+    vals = nonzeros(M)
+    for col = 1:n
+      for j in nzrange(M, col)
+         row = rows[j]
+         val = vals[j]
+         # perform sparse wizardry...
+         new_M[col,row] = vals[j]
+         new_M[row,col] = vals[j]
+      end
+    end
+
+    return new_M
+end
 
 function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64)
     y_cons = zeros(m.nlp.meta.ncon)
@@ -166,7 +187,17 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     y_cons[m.bcon.u_i] += y_u_con(y, m)
 
     H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
+    #H = hess(m.nlp, _cute_x(m, x), w, y_cons);
+    #@show typeof(H)
 
     ind = _i_not_fixed(m.nlp)
-    return H[ind,ind]
+
+    H_not_fixed = H[ind,ind]
+    #H_true = sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
+    #H_true = H_not_fixed + H_not_fixed' - spdiagm(diag(H_not_fixed))
+    #convert()
+    H_true = make_symmetric(H_not_fixed)
+    #@show norm(H_true - H2,Inf)
+
+    return H_true
 end

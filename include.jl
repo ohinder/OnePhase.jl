@@ -11,5 +11,6 @@ include("IPM/display_progress.jl")
 include("IPM/one_phase.jl")
 include("IPM/init.jl")
 include("IPM/delta_strategy.jl")
+include("AbstractNLPModel/infeas.jl")
 
 my_par = Class_parameters()

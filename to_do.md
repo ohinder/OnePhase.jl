@@ -1,7 +1,13 @@
 Short term:
 
-*- netlib and show dual variable issues *
+- deal correctly with exceptions
+- add parameters for termination criterion and delta strategy
+- test unconstrained problems
+- stop repetitive function evaluation (perhaps just use a cache)
+
 *- create infeasible test set*
+*- scaled termination criterion*
+*- run full netlib test*
 
 *- mu stuff *
 

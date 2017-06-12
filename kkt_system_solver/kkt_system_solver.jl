@@ -139,9 +139,9 @@ function compute_eigenvector!(kkt_solver, iter)
     end
 
     lambda = norm(kkt_solver.dir.x,2)
-    eig_est = (1 - kkt_solver.delta * lambda) / lambda
+    eig_est = (1 - kkt_solver.delta_x_vec[1] * lambda) / lambda
 
-    shrink_direction!(kkt_solver.dir, 1.0 / lambda)
+    kkt_solver.dir = scale_direction(kkt_solver.dir, 1.0 / lambda)
 
     pause_advanced_timer("kkt/direction/eig");
 
