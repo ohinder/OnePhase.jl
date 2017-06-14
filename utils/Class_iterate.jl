@@ -1,10 +1,16 @@
+abstract abstract_nlp;
+
 type Class_cache
+    fval::Float64
+    cons::Array{Float64,1}
+    grad::Array{Float64,1}
+    J::SparseMatrixCSC{Float64,Int32}
+    H::SparseMatrixCSC{Float64,Int32}
+
     function Class_cache()
       return new()
     end
 end
-
-abstract abstract_nlp;
 
 type Class_local_info
     delta::Float64
@@ -19,13 +25,16 @@ type Class_iterate
     ncon::Int64
     nvar::Int64
 
-    function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info)
+    function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info, timer::class_advanced_timer)
       this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
       this.nvar = length(intial_point.x)
       this.ncon = length(intial_point.y)
       @assert(this.ncon == length(intial_point.y))
 
-      this.primal_residual_intial = eval_primal_residual(this);
+      update_H!(this, timer)
+      update_primal_cache!(this, timer)
+
+      this.primal_residual_intial = get_primal_res(this);
       return this
     end
 
@@ -53,6 +62,8 @@ function copy(it::Class_iterate)
    new_it.local_info = it.local_info
    new_it.nvar = it.nvar
    new_it.ncon = it.ncon
+
+   new_it.cache = it.cache
 
    return new_it
 end
@@ -107,12 +118,12 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
 end
 
 
-function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters)
+function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
     if pars.move_type == :primal_dual
-      primal_res_old = (it.point.s - eval_a(it))
       new_it = copy(it)
       new_it.point.x += dir.x * step_size
-      new_a = eval_a(new_it)
+      update_primal_cache!(new_it, timer)
+      new_a = get_cons(new_it)
 
       #nl_s = new_it.point.s + step_size * dir.s
       new_it.point.primal_scale += dir.primal_scale * step_size
@@ -142,20 +153,19 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
 
         if pars.move_primal_seperate_to_dual
             if lb1 < ub1 / 1.01
-                ∇a = eval_jac(new_it)
+                ∇a = get_jac(new_it)
                 scale = dual_scale(new_it, pars)
 
                 if lb2 < ub2
-                  q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
-                  res = [scale * eval_grad_lag(new_it); -comp(new_it)]
-                  lb = lb2
-                  ub = ub2
+                    q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
+                    res = [scale * eval_grad_lag(new_it); -comp(new_it)]
+                    lb = lb2
+                    ub = ub2
                 else
-                  q = new_it.point.s .* dir.y;
-                  res = -comp(new_it);
-                  lb = lb1
-                  ub = ub1
-                  #step_size_D = (lb1 + ub1) / 2.0
+                    q = new_it.point.s .* dir.y;
+                    res = -comp(new_it);
+                    lb = lb1
+                    ub = ub1
                 end
 
                 step_size_D = sum(res .* q) / sum(q.^2)
@@ -163,6 +173,8 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
 
 
                 new_it.point.y += dir.y * step_size_D
+
+                #update_H!(it, timer)
 
                 if !is_feasible(new_it, pars.comp_feas)
                   @show minimum(new_it.point.y), maximum(new_it.point.s)
@@ -208,30 +220,6 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
     end
 end
 
-
-function move(it::Class_iterate, dir::Class_point, pars::Class_parameters)
-    if pars.move_type == :primal_dual
-      new_it = copy(it)
-      new_it.point.mu += dir.mu
-      new_it.point.x += dir.x
-      new_a = eval_a(new_it)
-      new_it.point.s = new_a + (new_it.point.mu/it.point.mu) * (it.point.s - eval_a(it))
-      #new_it.point.s += dir.s
-      new_it.point.y += dir.y
-      #new_it.point.y = new_it.point.mu ./ new_it.point.s
-    elseif pars.move_type == :primal
-      new_it = copy(it)
-      new_it.point.mu += dir.mu
-      new_it.point.x += dir.x
-      new_a = eval_a(new_it)
-      new_it.point.s = new_a + (new_it.point.mu/it.point.mu) * (it.point.s - eval_a(it))
-      #new_it.point.s += dir.s
-      new_it.point.y = new_it.point.mu ./ new_it.point.s
-    end
-
-    return new_it;
-end
-
 function dim(it::Class_iterate)
     return length(it.point.x)
 end
@@ -263,4 +251,24 @@ end
 
 function get_mu(it::Class_iterate)
     return it.point.mu
+end
+
+
+function update_primal_cache!(it::Class_iterate, timer::class_advanced_timer)
+    nlp = it.nlp
+    old_H = it.cache.H
+    point = it.point
+
+    cache = Class_cache()
+    cache.fval = eval_f(nlp, point.x)
+    cache.cons = eval_a(nlp, point.x)
+    cache.grad = eval_grad_f(nlp, point.x)
+    cache.J = eval_jac(nlp, point.x)
+    cache.H = old_H #deepcopy(old_H)
+
+    it.cache = cache
+end
+
+function update_H!(it::Class_iterate, timer::class_advanced_timer)
+    it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
 end

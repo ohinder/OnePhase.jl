@@ -6,8 +6,8 @@ function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_it
 end
 
 function predicted_lag_change(kkt_solver::abstract_KKT_system_solver)
-    J = eval_jac(kkt_solver.factor_it)
-    H = eval_lag_hess(kkt_solver.factor_it)
+    J = get_jac(kkt_solver.factor_it)
+    H = get_lag_hess(kkt_solver.factor_it)
     dir_x = kkt_solver.dir.x
     dir_y = kkt_solver.dir.y
 
@@ -37,12 +37,11 @@ function update_kkt_error!(ss::abstract_KKT_system_solver, p::Float64)
     rhs = ss.rhs;
     dir = ss.dir;
 
-    candidate = move(factor_iter, ss.dir, ss.pars)
     dual_scaling_can = 1.0 #dual_scale(candidate)
 
 
     error_D = (predicted_lag_change(ss) - rhs.dual_r) * dual_scaling_can;
-    error_P = eval_jac(factor_iter) * dir.x - dir.s - rhs.primal_r;
+    error_P = get_jac(factor_iter) * dir.x - dir.s - rhs.primal_r;
     error_mu = get_s(factor_iter) .* dir.y + get_y(factor_iter) .* dir.s  - rhs.comp_r;
 
     #@show norm(error_D), norm(error_P), norm(error_mu)
@@ -57,9 +56,13 @@ function update_kkt_error!(ss::abstract_KKT_system_solver, p::Float64)
     ss.kkt_err_norm = Class_kkt_error(norm(error_D,p), norm(error_P,p), norm(error_mu,p), overall, rhs_norm, ratio)
 end
 
-function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, delta_s::Float64 = 0.0)
+function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, delta_s::Float64, timer::class_advanced_timer)
     update_delta!(kkt_solver, delta_x, delta_s)
-    factor!(kkt_solver)
+    factor!(kkt_solver, timer)
+end
+
+function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, timer::class_advanced_timer)
+    factor!(kkt_solver, delta_x, 0.0, timer)
 end
 
 function update_delta!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, delta_s::Float64)
@@ -78,6 +81,8 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
 
     inertia = factor!(kkt_solver, 0.0)
 
+
+    j = 1;
     if inertia == 1
       set_delta(iter, 0.0)
     else
@@ -92,7 +97,6 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
         end
       end
 
-      j = 1;
       for j = 1:max_it
         inertia = factor!(kkt_solver, get_delta(iter))
 
@@ -102,29 +106,53 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
            set_delta(iter, get_delta(iter) * 3.0 )
         end
       end
+    end
 
-      if j == max_it
-        @show get_delta(iter)
-        error("delta too large!")
-      end
+    if j == max_it
+      @show get_delta(iter)
+      error("delta too large!")
     end
 
     pause_advanced_timer("kkt/factor");
 end
 
 
-function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, eta::Class_reduction_factors)
-    start_advanced_timer("kkt/rhs");
+function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, eta::Class_reduction_factors, timer::class_advanced_timer)
+    start_advanced_timer(timer, "kkt/rhs");
 
     kkt_solver.rhs = System_rhs(iter, eta)
     kkt_solver.dir.mu = -(1.0 - eta.mu) * get_mu(iter)
     kkt_solver.dir.primal_scale = -(1.0 - eta.P) * iter.point.primal_scale
 
-    pause_advanced_timer("kkt/rhs");
+    pause_advanced_timer(timer, "kkt/rhs");
 end
 
-function compute_eigenvector!(kkt_solver, iter)
-    start_advanced_timer("kkt/direction/eig");
+function compute_direction!(kkt_solver::abstract_KKT_system_solver, timer::class_advanced_timer)
+    start_advanced_timer(timer, "kkt/iterative_refinement");
+    if kkt_solver.ready != :factored
+        error("kkt solver not ready to compute direction!")
+    end
+
+    compute_direction_implementation!(kkt_solver, timer)
+    pause_advanced_timer(timer, "kkt/iterative_refinement");
+end
+
+function factor!(kkt_solver::abstract_KKT_system_solver, timer::class_advanced_timer)
+    start_advanced_timer(timer, "kkt/factor");
+
+    if kkt_solver.ready != :delta_updated
+        error("kkt solver not ready to factor!")
+    else
+        kkt_solver.ready = :factored
+    end
+    inertia =  factor_implementation!(kkt_solver, timer)
+    pause_advanced_timer(timer, "kkt/factor");
+
+    return inertia
+end
+
+function compute_eigenvector!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, timer::class_advanced_timer)
+    start_advanced_timer(timer, "kkt/direction/eig");
 
     approx_eigvec = randn(dim(iter));
 
@@ -143,7 +171,7 @@ function compute_eigenvector!(kkt_solver, iter)
 
     kkt_solver.dir = scale_direction(kkt_solver.dir, 1.0 / lambda)
 
-    pause_advanced_timer("kkt/direction/eig");
+    pause_advanced_timer(timer, "kkt/direction/eig");
 
     return eig_est
 end

@@ -1,6 +1,6 @@
 include("include.jl")
 
-folder_name = ARGS[1]
+#folder_name = ARGS[1]
 
 function set_cutest_info_ipopt!(info::problem_summary, ipopt_solver, nlp_raw::CUTEst.CUTEstModel, x::Array{Float64})
   num_vars = length(nlp_raw.meta.lvar)
@@ -72,6 +72,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
     end
 end
 
+
 function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_name::String, par::Class_parameters)
 
     if_mkdir("results/$test_name")
@@ -79,6 +80,10 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
     if_mkdir("results/$test_name/jld")
 
     summary = Dict{String, problem_summary}()
+
+    par_file = open("results/$(test_name)/par.txt", "w")
+    write_pars(par_file, par)
+    close(par_file)
 
     for problem_name in problems
           println("RUNNING $problem_name")
@@ -135,11 +140,12 @@ end
 
 
 function filter_cutest(problem)
-    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
-    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
-    # small
-    correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
+    # medium
+    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    # small
+    #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
+    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     if correct_size && regular
         return true
     else
@@ -154,10 +160,12 @@ problem_list = convert(Array{String,1},problem_list)
 if false
 problem_list = ["PT", "AGG"]
 folder_name = "test_run"
+if_mkdir("results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
-if false
-    folder_name = "mehotra_intial_point3"
+if true
+    folder_name = "mehotra_intial_point5"
     if_mkdir("results/$folder_name")
     run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 
@@ -167,7 +175,7 @@ if false
     #run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
-if true
+if false
     folder_name = "par_hess1"
     if_mkdir("results/$folder_name")
 

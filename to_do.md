@@ -1,5 +1,9 @@
 Short term:
 
+- move compute_direction! and factor! to kkt_system_solver.jl and add in timing stuff
+- make timer display results in alphabetical order.
+- enable aggregate timing statistics for whole test set.
+
 - deal correctly with exceptions
 - add parameters for termination criterion and delta strategy
 - test unconstrained problems

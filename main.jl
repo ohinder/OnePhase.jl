@@ -14,7 +14,7 @@ include("include.jl")
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
 #nlp_raw = CUTEstModel("AGG") # 153 ITS
-#nlp_raw = CUTEstModel("KISSING") # 180 ITS
+nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw = CUTEstModel("FLETCHCR")
 #nlp_raw = CUTEstModel("GENHUMPS")
@@ -60,7 +60,7 @@ include("include.jl")
 ## HARD PROBLEMS
 #nlp_raw = CUTEstModel("ACOPP57")
 #nlp_raw = CUTEstModel("ACOPP300")
-nlp_raw = CUTEstModel("LEAKNET")
+#nlp_raw = CUTEstModel("LEAKNET")
 
 #nlp_raw = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
 #nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
@@ -70,7 +70,7 @@ nlp_raw = CUTEstModel("LEAKNET")
 #nlp_raw = CUTEstModel("QPNSTAIR")
 #nlp_raw = CUTEstModel("YORKNET")
 
-if true
+if false
 using Ipopt
 mp = NLPModels.NLPtoMPB(nlp_raw, IpoptSolver(print_level=5, tol=1e-8))
 MathProgBase.optimize!(mp)
@@ -82,18 +82,20 @@ nlp = Class_CUTEst(nlp_raw)
 
 ## FEASIBLE (probably)
 if true
-reset_advanced_timer()
-start_advanced_timer()
+timer = class_advanced_timer()
+start_advanced_timer(timer)
 #include("include.jl")
 #intial_it = initial_point_satisfy_bounds(nlp, my_par)
-intial_it = init(nlp, my_par)
+intial_it = init(nlp, my_par, timer)
 @show norm(intial_it.point.x,2)
 #intial_it = initial_point_generic(nlp, my_par, nlp_raw.meta.x0)
 
 @assert(is_feasible(intial_it, my_par.comp_feas))
-iter, status, hist, t, err = one_phase_IPM(intial_it, my_par);
-pause_advanced_timer()
-print_timer_stats()
+iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
+
+pause_advanced_timer(timer)
+
+print_timer_stats(timer)
 end
 
 ## INFEASIBLE

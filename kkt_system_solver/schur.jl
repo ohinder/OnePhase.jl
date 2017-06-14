@@ -10,7 +10,7 @@ type Schur_KKT_solver <: abstract_KKT_system_solver
     rhs_norm::Float64
     pars::Class_parameters
 
-    ready::Int64
+    ready::Symbol #
 
     # Schur_KKT_solver only
     true_diag::Array{Float64,1}
@@ -19,20 +19,20 @@ type Schur_KKT_solver <: abstract_KKT_system_solver
 
     function Schur_KKT_solver()
       this = new()
-      this.ready = 0
+      this.ready = :not_ready
 
       return this
     end
 end
 
 
-function form_system!(kkt_solver::Schur_KKT_solver, iter::Class_iterate)
-    start_advanced_timer("SCHUR/form_system");
+function form_system!(kkt_solver::Schur_KKT_solver, iter::Class_iterate, timer::class_advanced_timer)
+    start_advanced_timer(timer, "SCHUR/form_system");
     x = iter.point.x;
     y = iter.point.y
     s = iter.point.s
 
-    ∇a = eval_jac(iter)
+    ∇a = get_jac(iter)
 
     #scaling = zeros(dim(iter))
     #for i = 1:dim(iter)
@@ -45,12 +45,12 @@ function form_system!(kkt_solver::Schur_KKT_solver, iter::Class_iterate)
 
     Σ = spdiagm(iter.point.y ./ iter.point.s)
 
-    kkt_solver.M = (∇a' * Σ * ∇a) + eval_lag_hess(iter);
+    kkt_solver.M = (∇a' * Σ * ∇a) + get_lag_hess(iter);
     kkt_solver.true_diag = diag(kkt_solver.M)
     kkt_solver.factor_it = iter;
-    kkt_solver.ready = 1
+    kkt_solver.ready = :system_formed
 
-    pause_advanced_timer("SCHUR/form_system");
+    pause_advanced_timer(timer, "SCHUR/form_system");
 
 end
 
@@ -59,7 +59,7 @@ end
 function update_delta_vecs!(kkt_solver::Schur_KKT_solver, delta_x_vec::Array{Float64,1}, delta_s_vec::Array{Float64,1})
     kkt_solver.delta_x_vec = delta_x_vec
     kkt_solver.delta_s_vec = delta_s_vec
-    ∇a = ∇a = eval_jac(kkt_solver.factor_it)
+    ∇a = ∇a = get_jac(kkt_solver.factor_it)
 
     if sum(abs(delta_s_vec)) > 0.0
         kkt_solver.K = kkt_solver.M + (∇a' * spdiagm(delta_s_vec) * ∇a) + spdiagm(delta_x_vec)
@@ -67,27 +67,17 @@ function update_delta_vecs!(kkt_solver::Schur_KKT_solver, delta_x_vec::Array{Flo
         kkt_solver.K = kkt_solver.M + spdiagm(delta_x_vec)
     end
 
-    kkt_solver.ready = 2
+    kkt_solver.ready = :delta_updated
 end
 
-function factor!(kkt_solver::Schur_KKT_solver)
-    if kkt_solver.ready != 2
-        error("kkt solver not ready to factor!")
-    else
-        kkt_solver.ready = 3
-    end
-
-    return ls_factor!(kkt_solver.ls_solver, kkt_solver.K, dim(kkt_solver.factor_it), 0)
+function factor_implementation!(kkt_solver::Schur_KKT_solver, timer::class_advanced_timer)
+    return ls_factor!(kkt_solver.ls_solver, kkt_solver.K, dim(kkt_solver.factor_it), 0, timer)
 end
 
-function compute_direction!(kkt_solver::Schur_KKT_solver)
-    if kkt_solver.ready != 3
-        error("kkt solver not ready to compute direction!")
-    end
-
+function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::class_advanced_timer)
     factor_it = kkt_solver.factor_it
-    ∇a_org = eval_jac(factor_it);
-    H_org = eval_lag_hess(factor_it)
+    ∇a_org = get_jac(factor_it);
+    H_org = get_lag_hess(factor_it)
     y_org = get_y(factor_it);
     s_org = get_s(factor_it);
 
@@ -107,7 +97,10 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
     if output_level >= 4
       println("res", 0, " ", rd(norm(res_old,2)))
     end
-    dir_x = convert(Array{BigFloat,1}, zeros(length(dir.x)))
+
+    start_advanced_timer(timer, "SCHUR/iterative_refinement");
+    dir_x = zeros(length(dir.x));
+    dir_x = convert(Array{BigFloat,1}, dir_x)
 
     for i = 1:kkt_solver.pars.num_iterative_refinements
         dir_x += ls_solve(kkt_solver.ls_solver, res_old)[:];
@@ -125,6 +118,7 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
         res_old = res
     end
     dir.x = dir_x
+    pause_advanced_timer(timer, "SCHUR/iterative_refinement");
 
     if true
       dir.y = -(∇a_org * dir.x - symmetric_primal_rhs) .* Σ_vec
@@ -135,6 +129,7 @@ function compute_direction!(kkt_solver::Schur_KKT_solver)
     end
 
     check_for_nan(dir)
-    
+
     update_kkt_error!(kkt_solver, Inf)
 end
+get_jac

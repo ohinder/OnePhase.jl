@@ -28,147 +28,93 @@ function isbad(num::Float64)
     end
 end
 
-function eval_f(it::Class_iterate)
-    start_advanced_timer("eval/f")
-    fval = eval_f(it.nlp, it.point.x)
-    pause_advanced_timer("eval/f")
-
-    if isbad(fval)
-        throw( Eval_NaN_error(fval, it.point.x, "eval_f") )
-    end
-
-    return fval
+function get_fval(it::Class_iterate)
+    return it.cache.fval
 end
 
-function eval_a(it::Class_iterate)
-    start_advanced_timer("eval/a")
-    a = deepcopy(eval_a(it.nlp, it.point.x))
-    pause_advanced_timer("eval/a")
-
-    for i = 1:length(a)
-        if isbad(a[i])
-            throw( Eval_NaN_error(a[i], it.point.x, "eval_a[$i]") )
-        end
-    end
-
-    return a
+function get_cons(it::Class_iterate)
+    return it.cache.cons
 end
 
-function eval_kkt_err(it::Class_iterate, par::Class_parameters)
-    return scaled_dual_feas(it, par) + norm(comp(it), Inf)
+function get_jac(it::Class_iterate)
+    return it.cache.J
 end
 
-function eval_primal_residual(it)
-    primal_r = eval_a(it) - it.point.s
-    return primal_r
+function get_primal_res(it::Class_iterate)
+    return it.cache.cons - it.point.s
 end
 
-function eval_grad_f(it::Class_iterate)
-    start_advanced_timer("eval/grad")
-    grad = eval_grad_lag(it.nlp, it.point.x, zeros(ncon(it)), 1.0)
-    pause_advanced_timer("eval/grad")
+function get_max_vio(it::Class_iterate)
+    return -min(0.0,minimum(it.cache.cons))
+end
 
-    return grad
+function get_hess(it::Class_iterate)
+    return it.cache.H
 end
 
 function eval_phi(it::Class_iterate)
-    phi = eval_f(it) - it.point.mu * sum(log(it.point.s))
-    return phi
+    return it.cache.fval - it.point.mu * sum( log( it.point.s ) )
 end
 
 function eval_grad_phi(it::Class_iterate)
-    start_advanced_timer("eval/grad_phi")
-    grad_phi = eval_grad_lag(it.nlp, it.point.x, it.point.mu ./ it.point.s, 1.0)
-    pause_advanced_timer("eval/grad_phi")
-    return grad_phi
+    y_tilde = it.point.mu ./ it.point.s
+    return eval_grad_lag(it, y_tilde)
 end
 
-function eval_grad_lag(it::Class_iterate, w::Float64=1.0)
-    start_advanced_timer("eval/grad_lag")
-    grad_lag = eval_grad_lag(it.nlp, it.point.x, it.point.y, w)
-    pause_advanced_timer("eval/grad_lag")
-    return grad_lag
+
+function get_lag_hess(it::Class_iterate)
+    return it.cache.H
 end
 
-function eval_farkas(iter::Class_iterate)
-    #eval_farkas = eval_grad_lag(it,0.0)/norm(it.point.y,Inf)
-    a_neg_part = max(-eval_a(iter),0.0)
-    y = get_y(iter)
-    J = eval_jac(iter)
-
-    return norm(y' * J, Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
+function eval_grad_lag(it::Class_iterate, y::Array{Float64,1})
+    return it.cache.grad - it.cache.J' * y
 end
 
-function eval_jac(it::Class_iterate)
-    start_advanced_timer("eval/jac")
-    jac = eval_jac(it.nlp, it.point.x)
-    pause_advanced_timer("eval/jac")
-
-    return jac
+function eval_grad_lag(it::Class_iterate)
+    return eval_grad_lag(it, it.point.y)
 end
 
+
+function eval_farkas(it::Class_iterate, y::Array{Float64,1})
+    a_neg_part = max(-it.cache.cons,0.0)
+
+    return norm(y' * it.cache.J, Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
+end
+
+function eval_farkas(it::Class_iterate)
+    return eval_farkas(it, it.point.y)
+end
 
 function eval_merit_function(it::Class_iterate, pars::Class_parameters)
     if is_feasible(it, pars.comp_feas)
-      if length(it.point.s) > 0
-        comp_penalty = norm(comp(it),Inf)^3 / (it.point.mu)^2
-      else
-        comp_penalty = 0.0
-      end
+        if length(it.point.s) > 0
+          comp_penalty = norm(comp(it), Inf)^3 / (it.point.mu)^2
+        else
+          comp_penalty = 0.0
+        end
 
-      merit = eval_phi(it) + comp_penalty
-
-      return merit
+        return eval_phi(it) + comp_penalty
     else
-      return Inf
+        return Inf
     end
 end
 
-function eval_lag_hess(it::Class_iterate, w::Float64=1.0)
-    start_advanced_timer("eval/hess")
-    lag_hess = eval_lag_hess(it.nlp, it.point.x, it.point.y, w)
-    pause_advanced_timer("eval/hess")
+function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point)
+    H = it.cache.H
+    J = it.cache.J
 
-    return lag_hess
-end
+    v = J * dir.x
+    J_gain = dot(v.^2, it.point.y ./ it.point.s)
 
-function eval_phi_hess(it::Class_iterate, w::Float64=1.0)
-    y = it.point.mu ./ it.point.s
-    phi_hess = eval_lag_hess(it.nlp, it.point.x, y, w)
-    J = eval_jac(it)
-    D = spdiagm(y ./ it.point.s)
-    phi_hess += J' * D * J
+    #@show H
 
-    return phi_hess
-end
-
-function eval_primal_dual_hess(it::Class_iterate, w::Float64=1.0)
-    pd_hess = eval_lag_hess(it.nlp, it.point.x, it.point.y, w)
-    J = eval_jac(it)
-    D = spdiagm(it.point.y ./ it.point.s)
-    pd_hess += J' * D * J
-
-    return pd_hess
+    return dot(dir.x, eval_grad_phi(it)) + 0.5 * (dot(dir.x, H * dir.x) + J_gain)
 end
 
 function comp_predicted(it::Class_iterate, dir::Class_point)
     y = it.point.y;
     s = it.point.s;
     return s .* y + dir.y .* s + dir.s .* y - it.point.mu
-end
-
-function phi_predicted_reduction_primal(it::Class_iterate, dir::Class_point)
-    grad_phi = eval_grad_phi(it)
-    H = eval_phi_hess(it)
-
-    return dot(dir.x, grad_phi) + 0.5 * dot(dir.x, H * dir.x)
-end
-
-function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point)
-    grad_phi = eval_grad_phi(it)
-    H = eval_primal_dual_hess(it)
-
-    return dot(dir.x, grad_phi) + 0.5 * dot(dir.x, H * dir.x)
 end
 
 function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
@@ -182,8 +128,14 @@ function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
     end
     #@show comp_penalty
 
-    predict_red = phi_predicted_reduction_primal_dual(it, dir)
+    phi_red = phi_predicted_reduction_primal_dual(it, dir)
     #@show predict_red
 
-    return predict_red + comp_penalty
+    #@show comp_penalty
+
+    return phi_red + comp_penalty
+end
+
+function eval_kkt_err(it::Class_iterate, par::Class_parameters)
+    return scaled_dual_feas(it, par) + norm(comp(it), Inf)
 end

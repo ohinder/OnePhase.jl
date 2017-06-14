@@ -145,14 +145,8 @@ function eval_jac(m::Class_CUTEst, x::Array{Float64,1})
     return [J[m.bcon.l_i,:]; -J[m.bcon.u_i,:]; my_eye[m.bvar.l_i,:]; -my_eye[m.bvar.u_i,:]];
 end
 
-function eval_grad_lag(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64=1.0)
-    #y_cons = m.nlp.meta.lcon;
-    #y_vars =
-    J = eval_jac(m, x)
-    #@show size(J), length(x), length(y)
-    g = w * grad(m.nlp, _cute_x(m, x))[_i_not_fixed(m.nlp)]
-    return g - J' * y
-    #+ jprod(m, x, y_cons) + y_vars
+function eval_grad_f(m::Class_CUTEst, x::Array{Float64,1})
+    return grad(m.nlp, _cute_x(m, x))[_i_not_fixed(m.nlp)]
 end
 
 #=function ncon(m::Class_CUTEst)
