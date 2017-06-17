@@ -85,6 +85,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
     write_pars(par_file, par)
     close(par_file)
 
+    master_timer = class_advanced_timer()
+
     for problem_name in problems
           println("RUNNING $problem_name")
           ORG_STDOUT = STDOUT
@@ -97,14 +99,26 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           try
               nlp = Class_CUTEst(nlp_raw)
 
-              reset_advanced_timer()
-              start_advanced_timer()
-              intial_it = init(nlp, par)
-              iter, status, history, t = one_phase_IPM(intial_it, par);
-              pause_advanced_timer()
-              print_timer_stats()
+              timer = class_advanced_timer()
+              start_advanced_timer(timer)
+              #include("include.jl")
+              #intial_it = initial_point_satisfy_bounds(nlp, my_par)
+              start_advanced_timer(timer, "INIT")
+              intial_it = init(nlp, my_par, timer)
+              pause_advanced_timer(timer, "INIT")
 
-              save("results/$(test_name)/jld/$(problem_name).jld","history",history)
+              #intial_it = initial_point_generic(nlp, my_par, nlp_raw.meta.x0)
+
+              @assert(is_feasible(intial_it, my_par.comp_feas))
+              iter, status, history, t, err = one_phase_IPM(intial_it, my_par, timer);
+
+              pause_advanced_timer(timer)
+
+              print_timer_stats(timer)
+
+              master_timer = merge_timers(timer, master_timer)
+
+              save("results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
 
               summary[problem_name].status = status;
               set_info_me!(summary[problem_name], history)
@@ -129,6 +143,10 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           summary_file = open("results/$(test_name)/summary.txt", "w")
           write_summary(summary_file, summary)
           close(summary_file)
+
+          timer_file = open("results/$(test_name)/timer.txt", "w")
+          print_timer_stats(timer_file, master_timer)
+          close(timer_file)
     end
 end
 
@@ -165,7 +183,7 @@ run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
 if true
-    folder_name = "mehotra_intial_point5"
+    folder_name = "mehotra_intial_point6"
     if_mkdir("results/$folder_name")
     run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 

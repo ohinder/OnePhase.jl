@@ -38,10 +38,16 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 			return inertia_status; # inertia
 end
 
-function ls_solve!(solver::linear_solver_JULIA, my_rhs::Array{Float64,1}, my_sol::Array{Float64,1})
+function ls_solve!(solver::linear_solver_JULIA, my_rhs::Array{Float64,1}, my_sol::Array{Float64,1}, timer::class_advanced_timer)
+	start_advanced_timer(timer, "JULIA/ls_solve")
   my_sol[1:length(my_sol)] = solver._factor \ my_rhs; #::UmfpackLU{Float64,Int64}
+	pause_advanced_timer(timer, "JULIA/ls_solve")
 end
 
-function ls_solve(solver::linear_solver_JULIA, my_rhs::AbstractArray)
-  return solver._factor \ my_rhs;
+function ls_solve(solver::linear_solver_JULIA, my_rhs::AbstractArray, timer::class_advanced_timer)
+	start_advanced_timer(timer, "JULIA/ls_solve")
+  sol = solver._factor \ my_rhs;
+	pause_advanced_timer(timer, "JULIA/ls_solve")
+
+	return sol
 end

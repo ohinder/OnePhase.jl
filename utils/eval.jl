@@ -48,10 +48,6 @@ function get_max_vio(it::Class_iterate)
     return -min(0.0,minimum(it.cache.cons))
 end
 
-function get_hess(it::Class_iterate)
-    return it.cache.H
-end
-
 function eval_phi(it::Class_iterate)
     return it.cache.fval - it.point.mu * sum( log( it.point.s ) )
 end
@@ -66,12 +62,17 @@ function get_lag_hess(it::Class_iterate)
     return it.cache.H
 end
 
+
+function eval_grad_lag(it::Class_iterate)
+    return it.cache.grad - it.cache.J' * it.point.y
+end
+
 function eval_grad_lag(it::Class_iterate, y::Array{Float64,1})
     return it.cache.grad - it.cache.J' * y
 end
 
-function eval_grad_lag(it::Class_iterate)
-    return eval_grad_lag(it, it.point.y)
+function dynamic_eval_Jt_prod(it::Class_iterate)
+    return eval_Jt_prod(it.nlp, it.point.x, it.point.y)
 end
 
 
@@ -99,7 +100,17 @@ function eval_merit_function(it::Class_iterate, pars::Class_parameters)
     end
 end
 
-function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point)
+function vector_product(LowerTriangularMat, vector)
+    v1 = LowerTriangularMat * vector
+    v2 = LowerTriangularMat' * vector
+    return v1 + v2 - diag(LowerTriangularMat) .* vector
+end
+
+function hess_product(it::Class_iterate, vector::Array{Float64,1})
+    return vector_product(it.cache.H, vector)
+end
+
+function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point, step_size::Float64)
     H = it.cache.H
     J = it.cache.J
 
@@ -108,18 +119,20 @@ function phi_predicted_reduction_primal_dual(it::Class_iterate, dir::Class_point
 
     #@show H
 
-    return dot(dir.x, eval_grad_phi(it)) + 0.5 * (dot(dir.x, H * dir.x) + J_gain)
+    h_prod = vector_product(H, dir.x) # the hessian is lower triangular!
+
+    return step_size * dot(dir.x, eval_grad_phi(it)) + step_size^2 * 0.5 * (dot(dir.x, h_prod) + J_gain)
 end
 
-function comp_predicted(it::Class_iterate, dir::Class_point)
+function comp_predicted(it::Class_iterate, dir::Class_point, step_size::Float64)
     y = it.point.y;
     s = it.point.s;
-    return s .* y + dir.y .* s + dir.s .* y - it.point.mu
+    return s .* y + dir.y .* s * step_size + dir.s .* y * step_size - it.point.mu
 end
 
-function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
+function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point, step_size::Float64)
     C_k = norm(comp(it),Inf)
-    P_k = norm(comp_predicted(it, dir), Inf)
+    P_k = norm(comp_predicted(it, dir, step_size), Inf)
     #@show C_k, P_k
     if length(it.point.s) > 0
       comp_penalty = (P_k^3 - C_k^3) / (it.point.mu)^2
@@ -128,7 +141,7 @@ function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point)
     end
     #@show comp_penalty
 
-    phi_red = phi_predicted_reduction_primal_dual(it, dir)
+    phi_red = phi_predicted_reduction_primal_dual(it, dir, step_size)
     #@show predict_red
 
     #@show comp_penalty

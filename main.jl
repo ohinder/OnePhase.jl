@@ -1,6 +1,7 @@
 include("include.jl")
 
 # INFEASIBLE PROBLEMS
+nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("JUNKTURN")
 #nlp_raw = CUTEstModel("DRCAVTY3") # seems to be feasible, IPOPT struggles
 #nlp_raw = CUTEstModel("MODEL")
@@ -14,7 +15,7 @@ include("include.jl")
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
 #nlp_raw = CUTEstModel("AGG") # 153 ITS
-nlp_raw = CUTEstModel("KISSING") # 180 ITS
+#nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw = CUTEstModel("FLETCHCR")
 #nlp_raw = CUTEstModel("GENHUMPS")
@@ -78,16 +79,18 @@ x = MathProgBase.getsolution(mp)
 solver = MathProgBase.getrawsolver(mp)
 end
 
+begin
 nlp = Class_CUTEst(nlp_raw)
-
 ## FEASIBLE (probably)
 if true
 timer = class_advanced_timer()
 start_advanced_timer(timer)
 #include("include.jl")
 #intial_it = initial_point_satisfy_bounds(nlp, my_par)
+start_advanced_timer(timer, "INIT")
 intial_it = init(nlp, my_par, timer)
-@show norm(intial_it.point.x,2)
+pause_advanced_timer(timer, "INIT")
+
 #intial_it = initial_point_generic(nlp, my_par, nlp_raw.meta.x0)
 
 @assert(is_feasible(intial_it, my_par.comp_feas))
@@ -96,6 +99,7 @@ iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
 pause_advanced_timer(timer)
 
 print_timer_stats(timer)
+end
 end
 
 ## INFEASIBLE
@@ -125,7 +129,20 @@ solver = MathProgBase.getrawsolver(mp)
 end
 end
 
+#
+# aggressive steps do max LP step
 
+if false
+x = nlp_raw.meta.x0
+m = nlp_raw.meta.ncon
+@time for i = 1:20 obj(nlp_raw, x) end;
+@time for i = 1:20 grad(nlp_raw, x) end;
+@time for i = 1:20 cons(nlp_raw, x) end;
+@time for i = 1:20 J = jac(nlp_raw, x) end;
+@time for i = 1:20 p = jtprod(nlp_raw, x, randn(m))  end;
+@time for i = 1:20  jac_coord(nlp_raw, x) end;
+@time for i = 1:20 eval_jac(nlp, zeros(9996)) end;
+end
 
 
 finalize(nlp_raw)

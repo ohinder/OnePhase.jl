@@ -156,7 +156,7 @@ end=#
 #=function nvar(m::Class_CUTEst)
     return m.nlp.meta.nvar
 end=#
-
+#=
 function make_symmetric(M::SparseMatrixCSC{Float64,Int32})
     n = size(M,1)
     new_M = spzeros(n,n)
@@ -173,7 +173,7 @@ function make_symmetric(M::SparseMatrixCSC{Float64,Int32})
     end
 
     return new_M
-end
+end=#
 
 function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}, w::Float64)
     y_cons = zeros(m.nlp.meta.ncon)
@@ -190,8 +190,12 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     #H_true = sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
     #H_true = H_not_fixed + H_not_fixed' - spdiagm(diag(H_not_fixed))
     #convert()
-    H_true = make_symmetric(H_not_fixed)
+    #@time H_true = make_symmetric(H_not_fixed)
     #@show norm(H_true - H2,Inf)
 
-    return H_true
+    return H_not_fixed
+end
+
+function eval_Jt_prod(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1})
+    return jtprod(m.nlp, x, y)
 end

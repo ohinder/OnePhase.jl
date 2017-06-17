@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  25 MAY 2017 14:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  16 JUN 2017 18:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2026,6 +2026,9 @@ LaTeX Warning: Label `compute-directions' multiply defined.
 
 LaTeX Warning: Label `compute-directions-dx' multiply defined.
 
+
+LaTeX Warning: Label `AlgMain' multiply defined.
+
 )
 \openout1 = `notes.aux'.
 
@@ -2141,6 +2144,9 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 11.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 58.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2150,25 +2156,6 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 [1{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 ]
-
-LaTeX Warning: Reference `newton-system' on page 2 undefined on input line 136.
-
-
-
-Overfull \hbox (30.38666pt too wide) in paragraph at lines 145--146
-[]\OT1/cmr/m/n/9 ******CAREFUL WITH SIGNS i.e. should be $\OML/cmm/m/it/9 d[] \
-OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@r\OML/cmm/m/it/9 a\OT1/cmr/m/n/9 (\OML/cmm/m
-/it/9 x\OT1/cmr/m/n/9 )\OML/cmm/m/it/9 d[]$\OT1/cmr/m/n/9 , $\OML/cmm/m/it/9 d[
-] \OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@\OML/cmm/m/it/9 S[] []$ \OT1/cmr/m/n/9 **
-************* 
- []
-
-
-LaTeX Warning: Reference `newton-system' on page 2 undefined on input line 151.
-
-
-Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 171.
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2190,13 +2177,44 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [4]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 240.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 240.
+
+LaTeX Warning: Reference `newton-system' on page 5 undefined on input line 282.
+
+
+
+Overfull \hbox (30.38666pt too wide) in paragraph at lines 291--292
+[]\OT1/cmr/m/n/9 ******CAREFUL WITH SIGNS i.e. should be $\OML/cmm/m/it/9 d[] \
+OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@r\OML/cmm/m/it/9 a\OT1/cmr/m/n/9 (\OML/cmm/m
+/it/9 x\OT1/cmr/m/n/9 )\OML/cmm/m/it/9 d[]$\OT1/cmr/m/n/9 , $\OML/cmm/m/it/9 d[
+] \OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@\OML/cmm/m/it/9 S[] []$ \OT1/cmr/m/n/9 **
+************* 
+ []
+
+
+LaTeX Warning: Reference `newton-system' on page 5 undefined on input line 297.
+
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[5]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[6]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 386.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 386.
  (./notes.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 240.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 240.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 386.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 386.
 Package rerunfilecheck Info: File `notes.out' has not changed.
-(rerunfilecheck)             Checksum: AB90982DC8887AE1EBD362CA3391ECBE;155.
+(rerunfilecheck)             Checksum: 37DA922C8FCF43EA174A4BA3CA6F24F1;373.
 
 
 LaTeX Warning: There were undefined references.
@@ -2204,16 +2222,16 @@ LaTeX Warning: There were undefined references.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 240.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 386.
  ) 
 Here is how much of TeX's memory you used:
- 26282 strings out of 493089
- 491195 string characters out of 6134842
- 555926 words of memory out of 5000000
- 29298 multiletter control sequences out of 15000+600000
- 15570 words of font info for 60 fonts, out of 8000000 for 9000
+ 26313 strings out of 493089
+ 491538 string characters out of 6134842
+ 553926 words of memory out of 5000000
+ 29318 multiletter control sequences out of 15000+600000
+ 15877 words of font info for 61 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 64i,17n,66p,10402b,629s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 64i,17n,66p,10402b,627s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -2236,10 +2254,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2015/tex
 mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb>
-Output written on notes.pdf (4 pages, 245319 bytes).
+Output written on notes.pdf (6 pages, 268427 bytes).
 PDF statistics:
- 175 PDF objects out of 1000 (max. 8388607)
- 145 compressed objects within 2 object streams
- 41 named destinations out of 1000 (max. 500000)
- 37 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 206 PDF objects out of 1000 (max. 8388607)
+ 174 compressed objects within 2 object streams
+ 52 named destinations out of 1000 (max. 500000)
+ 69 words of extra memory for PDF output out of 10000 (max. 10000000)
 

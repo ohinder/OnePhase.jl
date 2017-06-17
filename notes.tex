@@ -4,17 +4,163 @@
 
 \begin{document}
 
-\title{Notes on solver}
+\title{A one phase IPM for non-convex optimization}
 \author{Oliver Hinder, Yinyu Ye}
 
 \maketitle
 
+\newcommand{\algorithmicbreak}{\textbf{break}}
+\newcommand{\obj}{f}
+\newcommand{\cons}{a}
+\newcommand{\parNumCor}{p(\#corrections)}
+\newcommand{\parComp}{\beta_{1}}
+\newcommand{\parCompAgg}{\beta_{2}}
+\newcommand{\status}{\textbf{status}}
+\newcommand{\feasible}{\textbf{feasible}}
 
 \abstract{
 Solver
 }
 
+\section{Main algorithm}
+$$
+D_{\lambda}(x,y) =  \frac{\| \nabla L(x,y) \|_{\infty}}{\sqrt{ \| y \|_{\infty} + 1 } }
+$$
+$$
+E_{\mu}(x,y,s) = \max\left\{ D(x,y), \| S y - \mu \|_{\infty}  \right\}
+$$
 
+\begin{algorithm}[H]
+\begin{algorithmic}\label{AlgMain}
+\Function{IPM}{$x, y$}
+\State $\lambda \gets ...$
+\State $f_{\lambda}(x) := f(x) + \lambda \| x \|^2$
+\For{$k = 1, ... \infty$}
+\State Form primal schur complement and factorize.
+\If{ matrix is PD }
+\State \Call{Stable-correction}{}
+\Else
+\State \Call{Stable-trust-region-step}{}
+\EndIf
+\For{$i = 1, ..., \parNumCor$}
+\If{$D_{\lambda}(x,y) \le \min\{ \mu, \theta \}$ \& $\frac{Sy}{\mu} \in [ \parCompAgg , 1/ \parCompAgg ]$ }
+\State \Call{Aggressive-correction}{}
+\State $\lambda \gets ...$
+\Else
+\State \Call{Stable-correction}{}
+%\State Compute stable direction by solving [system] with $\eta = 0$.
+%\State $(x, y) \gets \Call{Stable-line-search}{}$
+\EndIf
+\EndFor
+\EndFor
+\EndFunction
+\end{algorithmic}
+\caption{One phase primal-dual IPM}
+\end{algorithm}
+
+\subsection{Trust region}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Stable-trust-region-step}{$\obj, \cons, x, y, r$}
+\For{$j = 1, ..., \infty$}
+\State $(d_{x}, d_{y}, M^{+}) \gets  \Call{Approx-Primal-Dual-Trust-Region}{\obj, \cons, x, y, r}$
+\State $x^{+}, y^{+}, \alpha^{+} \gets \text{stable-line-search}(...)$
+\If{$\alpha^{+} > \alpha_{\min}$}
+\If{$j = 1$ \& $\alpha = 1$}
+\State $r^{+} \gets 10 r$
+\ElsIf{$\alpha^{+} < \alpha_{small}$}
+\State $r^{+} \gets r / 2$
+\Else
+\State $r^{+} \gets \| d_{x} \|_{2}$
+\EndIf
+\State \algorithmicbreak
+\EndIf
+\State $r^{+} \gets r^{+} / 8$
+\EndFor
+\State \Return{$(x^{+}, y^{+}, M^{+},  r^{+})$}
+\EndFunction
+\end{algorithmic}
+\caption{Stable-trust-region-step}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Stable-trust-region-ipopt-style}{$\obj, \cons, x, y, r$}
+\For{$j = 1, ..., \infty$}
+\State Factorize $M$ with ... $\delta$ ...
+\If{inertia is good}
+\State ...
+\EndIf
+\State $x^{+}, y^{+}, \alpha^{+} \gets \text{stable-line-search}(...)$
+\EndFor
+\State \Return{$(x^{+}, y^{+}, M^{+},  r^{+})$}
+\EndFunction
+\end{algorithmic}
+\caption{Stable-trust-region-step}
+\end{algorithm}
+
+\subsection{Line searches}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Move}{$\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}$}
+\State $x^{+} \gets x + \alpha_{P} d_{x}$
+\State $\mu^{+} \gets (1 - \eta \alpha_{P}) \mu$
+\State $\theta^{+} \gets (1 - \eta \alpha_{P}) \theta$
+\State $s^{+} \gets a(x^{+}) + \theta (  s^{1} - a(x^{1}) )$
+\State $\alpha_{D} \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+\State $y^{+} \gets y + \alpha_{D} d_{y}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Aggressive-line-search}{$\obj, \cons, x, y, d_{x}, d_{y}$}
+\State $\eta \gets 1$
+\State $\alpha_{P} \gets \Call{FractionToBoundary}{s, d_{s} }$
+\For{$i = 1, ..., \infty$}
+\State $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
+\If{$\status = \feasible$ \& Function value does not increase too much}
+\State \Return{$x^{+}, y^{+}, s^{+}$}
+\Else
+\State $\alpha_{P} \gets \alpha_{P} / 2$
+\EndIf
+\EndFor
+\EndFunction
+\end{algorithmic}
+\caption{Aggressive line search}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Stable-line-search}{$\obj, \cons, x, y, s, d_{x}, d_{y}, d_{s} \eta$}
+\State $\eta \gets 0$
+\State $\alpha_{P} \gets \Call{FractionToBoundary}{y, s, d_{y}, d_{s} }$
+\For{$i = 1, ..., \infty$}
+\State  $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
+\If{$\status = \feasible$}
+\If{\text{sufficient progress on merit function}}
+\State \Return{$x^{+}, y^{+}$}
+\Else
+\State 
+\EndIf
+\Else
+\State $\alpha_{P} \gets \alpha_{P} /2$
+\EndIf
+\State ...
+\EndFor
+\EndFunction
+\end{algorithmic}
+\caption{Stable line search}
+\end{algorithm}
+
+
+
+\section{Scrap paper}
 
 \section{Log barrier sub-problems}
 
