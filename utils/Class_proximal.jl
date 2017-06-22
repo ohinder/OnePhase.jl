@@ -25,6 +25,8 @@ function update_prox!(iter::Class_iterate, pars::Class_parameters)
     x = get_x(iter)
     #prox.lambda_vec = min(100.0, get_mu(iter)) * ones(length(x)) / (10.0 * (1.0 + norm(x, Inf) ) )
     prox.lambda_vec = min(100.0, get_mu(iter)) * ones(length(x)) ./ ( (norm(x, Inf) .* (abs(x) + 1.0) + 1.0) * 10.0)
+    #prox.lambda_vec = get_mu(iter) * ones(length(x)) ./ (norm(x, 2) * 10.0 + 100.0)
+
 end
 
 

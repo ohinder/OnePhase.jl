@@ -9,21 +9,27 @@ results = Dict{String, Dict{String,problem_summary}}()
 
 #results["One Phase"] = load("results/mehotra_intial_point3/summary.jld", "summary")
 #results["One Phase 2"] = load("results/mehotra_intial_point4/summary.jld", "summary")
-results["One Phase 3"] = load("results/mehotra_intial_point5/summary.jld", "summary")
-results["One Phase 4"] = load("results/mehotra_intial_point6/summary.jld", "summary")
+#results["One Phase 3"] = load("results/mehotra_intial_point5/summary.jld", "summary")
+#results["One Phase 4"] = load("results/mehotra_intial_point6-copy/summary.jld", "summary")
+#results["One Phase 5"] = load("results/mehotra_intial_point7/summary.jld", "summary")
+
+#results["One Phase 3"] = load("results/pars3/mu-fix/summary.jld", "summary")
+#results["One Phase 4"] = load("results/pars3/mu-test1/summary.jld", "summary")
+#results["One Phase 5"] = load("results/pars3/mu-test3/summary.jld", "summary")
+#results["One Phase 6"] = load("results/pars3/mu-awesome/summary.jld", "summary")
 
 results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary"))
+results["One Phase none"] = load("results/pars4/none/summary.jld", "summary")
+results["One Phase 5"] = load("results/pars4/test5/summary.jld", "summary")
+results["One Phase 7"] = load("results/pars4/test6/summary.jld", "summary")
+results["One Phase 8"] = load("results/pars4/test7/summary.jld", "summary")
+results["One Phase 9"] = load("results/pars4/test8/summary.jld", "summary")
+results["One Phase 10"] = load("results/pars4/test9/summary.jld", "summary")
+results["One Phase 11"] = load("results/pars4/test10/summary.jld", "summary")
+results["One Phase 12"] = load("results/pars4/test11/summary.jld", "summary")
+results["One Phase 13"] = load("results/pars4/test12/summary.jld", "summary")
 
-#results["grad scaled mu"] = load("results/inside2/summary.jld", "summary")
 
-#results["ME3"] = load("results/par1/mu_ratio-0.01/summary.jld", "summary")
-#results["ME4"] = load("results/par1/mu_ratio-1.0/summary.jld", "summary")
-#results["ME5"] = load("results/par1/mu_ratio-100.0/summary.jld", "summary")
-#results["mehotra"] = load("results/par2/mehotra-no-satisfy/summary.jld", "summary")
-#results["mehotra"] = load("results/par2/mehotra-no-satisfy/summary.jld", "summary")
-#results["mu 0.01"] = load("results/par_hess1/mu_ratio-0.01/summary.jld", "summary")
-#results["mu 1.0"] = load("results/par_hess1/mu_ratio-1.0/summary.jld", "summary")
-#results["mu 100.0"] = load("results/par_hess1/mu_ratio-100.0/summary.jld", "summary")
 
 if false
 error_free_results = remove_errors(results, [:NaN_ERR, :ERR])
@@ -48,25 +54,41 @@ end
 list_failures(overlapping_results)
 
 its = Dict{String,Array{Int64,1}}()
+println("quartiles")
 for (method_name, sum_data) in overlapping_results
     its[method_name] = iteration_list(sum_data);
+    d = its[method_name]
+    println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)))
 end
 
+times = Dict{String,Array{Float64,1}}()
+for (method_name, sum_data) in overlapping_results
+    times[method_name] = []
+    for (problem_name,info) in sum_data
+      push!(times[method_name], info.total_time);
+    end
+    println(method_name, " ", rd(mean(times[method_name])), " ", rd(median(times[method_name])))
+end
 
+best = best_its(its)
+
+ratios = Dict()
+for (method_name, val) in its
+  ratios[method_name] = its[method_name] ./ best;
+  d = ratios[method_name]
+  println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)), rd(quantile(d,0.9)))
+end
 
 ##
 ## PLOT ITERATION CURVES
 ##
-best = best_its(its)
 
 using PyPlot
 
 min_y = 1.0
 
-ratios = Dict()
 y_vals = collect(1:length(best)) / length(best)
 for (method_name, val) in its
-  ratios[method_name] = its[method_name] ./ best
   semilogx(sort(ratios[method_name]), y_vals, label=method_name, basex=2)
   min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best))
 end
@@ -109,19 +131,72 @@ legend()
 problem_list = collect(keys(first(overlapping_results)[2]))
 method_list = collect(keys(overlapping_results))
 
-for method_name in method_list
-    print(pd(method_name))
-end
-print("\n")
+winners = Dict()
+winners["tie"] = 0
+winners["fail"] = 0
+begin
+  for method_name in method_list
+      print(pd(""), pd(method_name))
+      winners[method_name] = 0
+  end
+  print("\n")
 
-for problem_name in problem_list
-    print(pd(problem_name))
-    for method_name in method_list
-      print(rd(overlapping_results[method_name][problem_name].con_vio))
-      print(rd(overlapping_results[method_name][problem_name].fval))
-    end
-    print("\n")
+  for problem_name in problem_list
+      print(pd(problem_name))
+      best = "fail"
+      fbest = 1e14
+      for method_name in method_list
+        fval = overlapping_results[method_name][problem_name].fval
+        con_vio = overlapping_results[method_name][problem_name].con_vio
+        print(rd(con_vio))
+        print(rd(fval))
+        if overlapping_results[method_name][problem_name].con_vio < 1e-5
+
+          ftol = 1e-2
+          ftol_scaled = ftol * (1.0 + abs(fbest))
+          if fval <= fbest - ftol_scaled
+            fbest = fval
+            best = method_name
+          elseif fbest - ftol_scaled < fval && fval <= fbest + ftol_scaled
+            fbest = fval
+            best = "tie"
+          end
+        end
+      end
+      winners[best] += 1
+      print(pd(best))
+      print("\n")
+  end
 end
+
+
+
+##
+## PLOT TIME CURVES
+##
+best = best_its(times)
+
+min_y = 1.0
+
+ratios = Dict()
+y_vals = collect(1:length(best)) / length(best)
+for (method_name, val) in its
+  ratios[method_name] = times[method_name] ./ best
+  semilogx(sort(ratios[method_name]), y_vals, label=method_name, basex=2)
+  min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best))
+end
+ax = gca()
+ax[:set_xlim]([1.0,2^5.0])
+ax[:set_ylim]([min_y,1.0])
+
+#ax[:xaxis][:ticker] = 0.5
+title("Comparsion on 119 CUTEst problems")
+#title("Comparsion on 45 CUTEst problems")
+xlabel("iteration ratio to best solver")
+ylabel("proportion of problems")
+
+legend()
+
 
 ##
 ## DUAL sequences

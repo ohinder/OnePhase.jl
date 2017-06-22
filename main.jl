@@ -1,7 +1,7 @@
 include("include.jl")
 
 # INFEASIBLE PROBLEMS
-nlp_raw = CUTEstModel("NCVXQP8")
+#nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("JUNKTURN")
 #nlp_raw = CUTEstModel("DRCAVTY3") # seems to be feasible, IPOPT struggles
 #nlp_raw = CUTEstModel("MODEL")
@@ -28,14 +28,17 @@ nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("AIRPORT")
 #nlp_raw = CUTEstModel("QPCSTAIR")
 
+#nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("GPP")
 #nlp_raw = CUTEstModel("ANTWERP")
-
+#nlp_raw = CUTEstModel("HYDCAR20")
 #nlp_raw = CUTEstModel("STEENBRD")
 #nlp_raw = CUTEstModel("STEENBRC")
 #nlp_raw = CUTEstModel("EXPFITC")
 #nlp_raw = CUTEstModel("LAUNCH")
+#nlp_raw = CUTEstModel("TRIMLOSS")
+
 #nlp_raw = CUTEstModel("HAIFAM")
 #nlp_raw = CUTEstModel("ACOPR118")
 #nlp_raw = CUTEstModel("LAKES")
@@ -46,9 +49,11 @@ nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("METHANL8")
 #nlp_raw = CUTEstModel("GROUPING")
 #nlp_raw = CUTEstModel("ARWHDNE")
+#nlp_raw = CUTEstModel("HYDCAR6")
 
 #HVYCRASH,
 #DISCS, EQC, HIMMELBJ,  PFIT1, PFIT3, SSEBNLN
+#nlp_raw = CUTEstModel("DISCS")
 #nlp_raw = CUTEstModel("SSEBNLN")
 
 
@@ -69,7 +74,7 @@ nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("CRESC100") # >> 100. Infinities!
 #nlp_raw = CUTEstModel("CHAIN")
 #nlp_raw = CUTEstModel("QPNSTAIR")
-#nlp_raw = CUTEstModel("YORKNET")
+nlp_raw = CUTEstModel("YORKNET")
 
 if false
 using Ipopt
@@ -101,47 +106,21 @@ pause_advanced_timer(timer)
 print_timer_stats(timer)
 end
 end
-
-## INFEASIBLE
-if false
-reset_advanced_timer()
-start_advanced_timer()
-
-c = ones(length(nlp_raw.meta.x0))
-nlp_raw_infeas = Class_infeas_NLP(nlp_raw, -2.0, c)
-nlp_infeas = Class_CUTEst(nlp_raw_infeas)
-
-intial_it = init(nlp_infeas, my_par)
-
-@assert(is_feasible(intial_it, my_par.comp_feas))
-
-
-iter, status, hist, t, err = one_phase_IPM(intial_it, my_par);
-pause_advanced_timer()
-print_timer_stats()
-
-if false
-using Ipopt
-mp = NLPModels.NLPtoMPB(nlp_raw_infeas, IpoptSolver(print_level=8))
-MathProgBase.optimize!(mp)
-x = MathProgBase.getsolution(mp)
-solver = MathProgBase.getrawsolver(mp)
-end
-end
-
 #
 # aggressive steps do max LP step
 
 if false
-x = nlp_raw.meta.x0
-m = nlp_raw.meta.ncon
+include("include.jl")
+x = nlp_raw.meta.x0;
+m = nlp_raw.meta.ncon;
 @time for i = 1:20 obj(nlp_raw, x) end;
 @time for i = 1:20 grad(nlp_raw, x) end;
 @time for i = 1:20 cons(nlp_raw, x) end;
 @time for i = 1:20 J = jac(nlp_raw, x) end;
 @time for i = 1:20 p = jtprod(nlp_raw, x, randn(m))  end;
 @time for i = 1:20  jac_coord(nlp_raw, x) end;
-@time for i = 1:20 eval_jac(nlp, zeros(9996)) end;
+nlp = Class_CUTEst(nlp_raw);
+@time for i = 1:20 eval_jac(nlp, zeros(10000)) end;
 end
 
 

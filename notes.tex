@@ -7,6 +7,10 @@
 \title{A one phase IPM for non-convex optimization}
 \author{Oliver Hinder, Yinyu Ye}
 
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
+
 \maketitle
 
 \newcommand{\algorithmicbreak}{\textbf{break}}
@@ -17,14 +21,316 @@
 \newcommand{\parCompAgg}{\beta_{2}}
 \newcommand{\status}{\textbf{status}}
 \newcommand{\feasible}{\textbf{feasible}}
+\newcommand{\TOLinf}{\epsilon_{\textbf{inf}}}
+\newcommand{\TOLmu}{\epsilon_{\textbf{mu}}}
+\newcommand{\TOL}{\epsilon}
+
+
+% alg
+\newcommand{\simpleIPM}{Simplified-One-Phase-Non-Convex-IPM}
+\newcommand{\callSimpleIPM}{\Call{Simplified-One-Phase-Non-Convex-IPM}}
 
 \abstract{
-Solver
+Based on the work of [REF] it has been assumed that infeasible start IPM developed for conic optimization [REF] cannot be adapted to non-linear optimization and converge without significant modification i.e. a two phase method or a penalty function. We show that, in fact, by careful initialization and non-linear updates on the primal variables.
 }
 
-\section{Main algorithm}
+\section{Introduction}
+
+\cite{wachter2000failure} showed that if we apply an infeasible start IPM to:
+\begin{flalign*}
+\min { x }\\
+x^2 - s_1 - 1 &= 0 \\
+x - s_2 - 1/2 &= 0 \\
+s_1, s_2 &\ge 0
+\end{flalign*}
+
+Fails to converge to either a local optimum or infeasibility certificate
+
+Modifications:
+\begin{enumerate}
+\item Two phases (IPOPT)
+%\begin{itemize}
+%\item Each phase has a different variables
+%\item Awkward convergence assumptions
+%\item Poor performance on infeasible problems
+%\end{itemize}
+\item Compute two directions (KNITRO)
+\item Penalty (or big-M) method e.g. \cite{Chen06,curtis2012penalty}
+\end{enumerate}
+
+
+\subsection{Relevant literature}
+
+Within non-convex optimization there are four papers that I think are particularly relevant to our work:
+
+\begin{enumerate}
+\item The paper \cite{wachter2000failure} shows that there are examples for which infeasible start algorithms will always fail to converge to either a optimal solution or a stationary measure of infeasibility when constraints are non-convex (irrespective of the strategy for used). This is the inspiration for the two phase algorithm of IPOPT and justifies why our one phase algorithm is necessary.
+\item The description of the IPOPT algorithm \cite{wachter2005line}. IPOPT uses a two phase method the primary phase searches simultaneously for optimality and feasibility using a classical infeasible start method and a feasibility restoration phase that minimizes infeasibility. The feasibility restoration phase is only called when the step size for the infeasible start method is small. Another distinct feature of the algorithm is the filter line search (which allows progress on either the constraints or the objective).
+\item The description of the KNITRO algorithm \cite{byrd2006knitro}. KNITRO is a trust region algorithm. The approach is quite distinct from typical infeasible start algorithms and is worth looking at (each step computes two different directions, using two different linear systems, one to reduce the objective and the other to reduce infeasibility). There is a more recent paper \cite{nocedal2014interior} that adds an feasibility restoration phase (this is theoretically unnecessary, but the practical results are good). 
+\item The paper \cite{curtis2012penalty} introduces a barrier penalty method. This paper uses a similar approach to us. The main different with our approach is we treat $\lambda$ as a dual variable, whereas in Curtis's paper $\lambda$ is replaced by a penalty parameter that is updated in an ad hoc fashion.
+\item Papers in convex optimization?
+\end{enumerate}
+
+
+
+\section{Simplified algorithm}
+
+We wish to solve the following problem:
+\begin{flalign*}
+ &  \min{f(x) } \\
+& a(x) \le 0 \\
+\end{flalign*}
+
+Assume:
+\begin{enumerate}
+\item The constraints and objective are $C^2$ - $L_{0}, L_{1}$ etc
+\item The set $a(x) \le \theta$ is bounded for any $\theta \in \mathbb{R}^{m}$
+\end{enumerate}
+
+\subsection{Infeasibility certificates}
+
+\emph{First-order  local L1-infeasibility certificate}, if $x^{*}$ is a first-order local optimum of:
+\begin{flalign*}
+\min e^T z \\
+a(x) - s + z = 0 \\
+ s, z \ge 0
+\end{flalign*}
+With $e^T z > 0$.
+
+
+\emph{First-order  local farkas infeasibility certificate}, if there exists some $w \le 0$, such that $x^{*}$ is a first-order local optimum of:
+\begin{flalign*}
+\min w^T a(x)
+\end{flalign*}
+With $w^T a(x) > 0$. Now, suppose we have found a point such that
 $$
-D_{\lambda}(x,y) =  \frac{\| \nabla L(x,y) \|_{\infty}}{\sqrt{ \| y \|_{\infty} + 1 } }
+\| w^T \nabla a(x) \|_{2} < \frac{w^T a(x)}{\| x - x^{*} \|_{2}}
+$$
+Now, if the function $w^T a(x)$ is convex then we have:
+$$
+w^T a(x^{*}) \ge w^T a(x) + w^T \nabla a(x) (x - x^{*}) > 0
+$$
+Therefore we declare a problem locally infeasible if our algorithm finds a point with:
+$$
+\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf
+$$
+Where $\TOLinf$ is the tolerance for primal feasibility.
+
+\todo{ $L_{\infty}$ ... }
+
+\subsection{Derivation of method}
+
+
+Log barrier problem:
+\begin{flalign*}
+ &  \min{f(x) - \mu^k \sum_i{ \log{(s_i)} } } \\
+& a(x) + s = 0 \\
+& s \ge 0
+\end{flalign*}
+
+Shifted log barrier problem
+\begin{flalign}\label{shifted-barrier-problem}
+ &  \min{f(x) -(1 - \eta^k) \mu^k \sum_i{ \log{s_i} } } + \frac{\delta^k}{2} \| x - x^k \|^2 \\
+& a(x) + s = (1 - \eta^k) (a(x^k) + s^k) \\
+& s \ge 0
+\end{flalign}
+
+KKT system:
+
+\begin{flalign*}
+\nabla f(x) + \delta^k (x - x^k) + {y}^T \nabla a(x) &= 0 \\
+a(x) + s &= (1 - \eta^k) (a(x^k) + s^k) \\
+s_i {y_i} &= (1 - \eta^k) \mu^k \\
+s, y &\ge 0
+\end{flalign*} 
+
+Corresponding newton system:
+
+\begin{flalign}\label{primal-dual-newton-direction}
+\begin{bmatrix}
+ \nabla^2_{x} L(x^k,y^k) + \delta^k I  & \nabla a(x^k)^T & 0  \\
+\nabla a(x^k) & 0 & I \\
+0 & S^k & Y^k
+\end{bmatrix} 
+\begin{bmatrix}
+d_x^k \\
+d_y^k \\
+d_s^k
+\end{bmatrix} 
+=
+\begin{bmatrix}
+- (\nabla f(x^k) + \nabla a(x^k)^T y^k) \\
+- \eta^k  (a(x^k) + s^k) \\
+(1 - \eta^k) \mu^k e - Y^k s^k 
+\end{bmatrix} 
+\end{flalign} 
+
+By taking the primal schur complement one can see solving system \eqref{primal-dual-newton-direction} is equivalent to solving:
+$$
+(M (x^k,y^k, s^k) + \delta I)  d_{x}^k = - \nabla f(x^k) - \nabla a(x^k)^T ((1 - \eta^k) \mu^k (S^k)^{-1} e + \eta^k Y^k ( e + (S^k)^{-1} (a(x^k) + s^k))  )
+$$
+Where:
+\begin{flalign}
+M (x,y, s) = \nabla^2 \Lag (x, y) + \nabla a(x)^T Y S^{-1} \nabla a(x) 
+\end{flalign}
+
+\begin{flalign}\label{terminate-when}
+D(x,y) \le \mu^{k}  \& \| Sy - \mu^{k} \|_{\infty} \le \mu^k / 4
+\end{flalign}
+
+\subsection{Algorithm behaviour}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{\simpleIPM}{$x, y$}
+\For{$k = 1, ... \infty$}
+\State \textbf{Stabilization step:}
+    \Indent
+\State Minimize the unconstrained problem \eqref{shifted-barrier-problem} with $\eta^k = 0$ until \eqref{terminate-when} holds
+     \EndIndent
+\If{$D(x,y) \le \epsilon$ \& $\mu^{k} \le \epsilon$}
+\State Terminate with optimal solution
+\ElsIf{$\frac{ \| \nabla a(x)^T y \|_{2} }{a(x)^T y} \le \TOL$} 
+\State Terminate at infeasible point 
+\EndIf
+\If{$D(x,y) \le \mu^k$}
+\State \textbf{Aggressive correction:}
+    \Indent
+\State Solve system \eqref{primal-dual-newton-direction} with $\delta^k = \frac{\| g^k \| L_0}{\mu^k} - \lambda_{\min}{(M^{k})}
+$ and $\eta^{k} = 1$
+\State  $x^{+}, y^{+}, s^{+}, \alpha^{+} \gets \Call{Aggressive-line-search}{\obj, \cons, x, y, d_{x}, d_{y}}$
+\If{$ \mu \alpha^{+} < \min{s_i^k} / 10$}
+\State \textbf{increase $\delta$}
+\EndIf
+\EndIndent
+\EndIf
+\EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Function{Aggressive-line-search}{$\obj, \cons, x, y, d_{x}, d_{y}$}
+\State $\eta \gets 1$
+\State $\alpha_{P} \gets \Call{FractionToBoundary}{s, d_{s} }$
+\For{$i = 1, ..., \infty$}
+\State $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
+\If{$\status = \feasible$ \& Function value does not increase too much}
+\State \Return{$x^{+}, y^{+}, s^{+}$}
+\Else
+\State $\alpha_{P} \gets \alpha_{P} / 2$
+\EndIf
+\EndFor
+\EndFunction
+\end{algorithmic}
+\caption{Aggressive line search}
+\end{algorithm}
+
+\subsection{Behavior of this algorithm on convex quadratic programs}
+
+[one stabilization step followed by one aggressive step]. [resemblance to predictor corrector]
+
+\subsection{Convergence proofs}
+
+\begin{lemma}
+Assume that $a(x^{1}) - s^{1} = -\mu e$ and $\epsilon < 1$.
+If the criterion for an aggressive step is met at iteration $k$ then we have:
+$$
+\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2}}{\TOL^2} + 3 m
+$$
+%$$
+%s^{k} \ge \frac{\mu \TOL^2}{\| \nabla c(x^{k}) \|_{2} + 1}
+%$$
+\end{lemma}
+
+\begin{proof}
+Observe that:
+$$-a(x)^T y = -(a(x) - s)^T y - s^T y \ge  \mu (e^T y - 2)$$
+Therefore:
+$$
+\frac{\| \nabla a(x)^T y \|}{-a(x)^T y} \le \frac{\mu^k \sqrt{ \| y \|_{1} + 1} + \| \nabla c(x) \|}{\mu ( \| y \|_{1} - 2 m )} 
+$$
+If:
+$$
+\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2} +  3 m}{\TOL^2} 
+$$
+Then:
+$$
+\frac{\| \nabla a(x)^T y \|}{-a(x)^T y} \le \epsilon 
+$$
+Which gives the result.
+\end{proof}
+
+\begin{proof}
+Observe that:
+$$-a(x)^T y = -(a(x) - s)^T y - s^T y \ge  \mu (e^T y - 2)$$
+Therefore:
+$$
+\frac{\| \nabla a(x)^T y \|}{-a(x)^T y} \le \frac{1+ \| \nabla c(x) \|}{\mu ( \| y \|_{1} - 2 m )} 
+$$
+If:
+$$
+\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2}}{\TOL^2} +  3 m
+$$
+Then:
+$$
+\frac{\| \nabla a(x)^T y \|}{-a(x)^T y} \le \epsilon 
+$$
+Which gives the result.
+\end{proof}
+
+
+\begin{lemma}
+Assume that $a(x^{1}) - s^{1} = -\mu e$ and $\epsilon < 1$.
+The algorithm, \callSimpleIPM{}, with any takes at most $\frac{\mu^{0} (2 \| \nabla c(x^{k}) \|_{2} + 8)}{\epsilon^2}$ aggressive steps to terminate with either a first-order stationary point or first-order farkas certificate.
+\end{lemma}
+
+\begin{proof}
+We wish to prove that for any $\delta$ with
+$$
+\delta \ge \frac{\| g^k \| L_0}{\mu^k} - \lambda_{\min}{(M^{k})}
+$$
+and $\alpha$ satisfying
+\begin{flalign}\label{assume-alpha}
+\alpha \le \frac{1}{\| y^k \|_{\infty} + 4} %\frac{\min_{i}\{s^{k}_{i}\}}{4 \mu^k}
+\end{flalign}
+the iterate $x^{+} = x^{k} + \alpha d_{x}^k$, $y^{+} = y^{k} + \alpha d_{y}^k$, $\mu^{+} = \mu (1 - \alpha )$ is feasible. Observe that this implies the result since if:
+$\alpha \ge \frac{1}{2 (\| y^k \|_{\infty} + 4)}$ %\frac{\min_{i}\{s^{k}_{i}\}}{4 \mu^k}
+then:
+ $$
+ \mu^{k+1} = (1 - \alpha) \mu^{k} = \mu^k - \frac{\mu^k}{2 \| y^k \|_{\infty} + 8} \le \mu^k - \frac{\epsilon^2}{2 \| \nabla c(x^{k}) \|_{2} + 8}.
+  $$
+We wish to show that $ s^{k+1}  \in [s^k / 2, 3 s^{k} / 2]$. Where $s^{k+1} = a(x + \alpha_{P} d_{x}) + (1 - \alpha_{P} ) \mu^k e$. Subtracting and adding $s^k = a(x^k) + \mu^k e$ yields
+$$
+s^{k+1} = s^k + ( a(x^k + \alpha_{P}^k d_{x}^k ) - a(x^k)) - \alpha_{P}^k \mu^k e
+$$
+Therefore, it remains to bound the term $a(x^{k} + \alpha_{P}^k d_{x}^{k}) - a(x^k)  - \alpha_{P}^k \mu^k e$. Applying our assumption on $\alpha^{k}$, we immediately get $0 \le \alpha_P^{k} \mu^k e \le  s^{k} / 4$. Furthermore, we know that 
+$\| d_{x}^{k} \|_{2} \le \mu^k L_0$ therefore:
+$$
+\alpha_{P}^{k} \| d_{x}^{k} \|_{2} \le \frac{\min_{i}\{ s^{k}_{i} \}}{2 L_{0}}
+$$
+Since $a(x)$ is $L_{0}$-Lipshitz we have:
+$$
+-s^k / 4 \le a(x^k) - a(x^{k} + \alpha_{P}^{k} d_{x}^{k})  \le s^k / 4
+$$
+which shows that $s^{k+1} \in [s^k/2, 2 s^k]$. Observe that $y^{k+1} = y^{k} + \alpha^k d_{y}^k \ge y^k / 2$. It remains to show that $\| y^{k+1} s^{k+1} - \mu^{k+1} \|_{\infty} \le \mu^k / 2$. Now we have:
+$$
+d_{y}  = - Y (S^{-1} d_{s} + e)
+$$
+Hence using that $\| d_{s} \| \le ...$ we get $d_{y} \in [-2y, 2y]$. It follows that $y^k + \alpha_{P} d_{y} \in [ y^{k} / 2, 3 y^{k} / 2]$. 
+
+Finally, using the fact that $s^{k+1}  \in s^{k} [3/4, 5/4]$ and $s^{k+1} \in y^{k} [3/4, 5/4]$  we have: 
+$$
+\frac{s^{k+1} y^{k+1}}{s^k y^k} \in [1/2, 3/2]
+$$
+And since $\frac{s^{k} y^{k}}{\mu^k} \in [1/2,3/2]$ we have  $\frac{s^{k+1} y^{k+1}}{\mu^k} \in [1/4,3]$ which concludes the proof.
+\end{proof}
+
+
+\section{Practical algorithm}
+$$
+D_{\gamma}(x,y) =  \frac{\| \nabla L(x,y) \|_{\infty}}{\sqrt{ \| y \|_{\infty} + 1 } }
 $$
 $$
 E_{\mu}(x,y,s) = \max\left\{ D(x,y), \| S y - \mu \|_{\infty}  \right\}
@@ -33,23 +339,21 @@ $$
 \begin{algorithm}[H]
 \begin{algorithmic}\label{AlgMain}
 \Function{IPM}{$x, y$}
-\State $\lambda \gets ...$
-\State $f_{\lambda}(x) := f(x) + \lambda \| x \|^2$
+\State $\gamma \gets ...$
+\State $f_{\gamma}(x) := f(x) + \gamma \| x \|^2$
 \For{$k = 1, ... \infty$}
-\State Form primal schur complement and factorize.
-\If{ matrix is PD }
-\State \Call{Stable-correction}{}
-\Else
-\State \Call{Stable-trust-region-step}{}
-\EndIf
+\State Form primal schur complement 
+\State Factorize using IPOPT strategy.
 \For{$i = 1, ..., \parNumCor$}
-\If{$D_{\lambda}(x,y) \le \min\{ \mu, \theta \}$ \& $\frac{Sy}{\mu} \in [ \parCompAgg , 1/ \parCompAgg ]$ }
+\If{$i > 1$ \& $D_{\gamma}(x,y) \le \min\{ \mu, \theta \}$ \& $\frac{Sy}{\mu} \in [ \parCompAgg , 1/ \parCompAgg ]$ \& $\frac{\sqrt{\lambda}}{1 + \| y \|_{\infty}} \le \mu$   }
 \State \Call{Aggressive-correction}{}
-\State $\lambda \gets ...$
+\State $\gamma \gets ...$
+\State If failure and $i = 2$ then set failure flag.
 \Else
 \State \Call{Stable-correction}{}
 %\State Compute stable direction by solving [system] with $\eta = 0$.
 %\State $(x, y) \gets \Call{Stable-line-search}{}$
+\State If failure and $i = 1$ then set failure flag.
 \EndIf
 \EndFor
 \EndFor
@@ -115,24 +419,19 @@ $$
 \end{algorithmic}
 \end{algorithm}
 
-
 \begin{algorithm}[H]
 \begin{algorithmic}
-\Function{Aggressive-line-search}{$\obj, \cons, x, y, d_{x}, d_{y}$}
-\State $\eta \gets 1$
-\State $\alpha_{P} \gets \Call{FractionToBoundary}{s, d_{s} }$
-\For{$i = 1, ..., \infty$}
-\State $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
-\If{$\status = \feasible$ \& Function value does not increase too much}
-\State \Return{$x^{+}, y^{+}, s^{+}$}
-\Else
-\State $\alpha_{P} \gets \alpha_{P} / 2$
-\EndIf
-\EndFor
+\Function{Dual-line-search}{$\obj, \cons, x^{+}, s^{+}, y, d_{y}, \alpha_{P}$}
+\State $u_{D}, \status1 \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+\State $l_{D}, \status2 \gets \arg \min_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+\State $\alpha_{D} \gets \arg \min_{ \alpha \in [l_{D}, u_{D}] }{ D_{\gamma}(x^{+}, y  + \alpha d_{y} ) }$
+\State $y^{+} \gets y + \alpha_{D} d_{y}$
 \EndFunction
 \end{algorithmic}
-\caption{Aggressive line search}
 \end{algorithm}
+
+
+
 
 
 \begin{algorithm}[H]
@@ -361,14 +660,14 @@ Our complete algorithm is summarized as follows:
 
 \begin{algorithm}[H]
 \begin{algorithmic}
-\State $\lambda_{lb} = 0$, $\lambda_{ub} = \delta_{\max} = \| H \|^2_{F}$, $\delta_{k-1}$ \Comment{lower and upper bounds on minimum eigenvalue}
+\State $\gamma_{lb} = 0$, $\gamma_{ub} = \delta_{\max} = \| H \|^2_{F}$, $\delta_{k-1}$ \Comment{lower and upper bounds on minimum eigenvalue}
 \State Try $\delta = 0$, if succeeds, trial solve with this delta. If step size is small skip to trust region step.
 \State $\delta = \delta_{k-1}$
  \If{$\delta = 0$}
 \State $\delta = \delta_{\min}$
 \EndIf
 \For{$i = 1, ..., \infty$}
-\State Break if inertia correct and update $\lambda_{lb}$ and $\lambda_{ub}$.
+\State Break if inertia correct and update $\gamma_{lb}$ and $\gamma_{ub}$.
 \State $\delta = \delta 100$
 \EndFor
 \State \text{Trust region}

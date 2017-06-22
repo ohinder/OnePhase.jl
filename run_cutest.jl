@@ -92,11 +92,19 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           ORG_STDOUT = STDOUT
           file = open("results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
-          nlp_raw = CUTEstModel(problem_name)
           summary[problem_name] = problem_summary()
           start_time = time()
 
+          nlp_raw = false
+
           try
+              try
+                nlp_raw = CUTEstModel(problem_name)
+              catch(e)
+                println("$problem_name failed to load")
+                throw(e)
+              end
+
               nlp = Class_CUTEst(nlp_raw)
 
               timer = class_advanced_timer()
@@ -157,7 +165,12 @@ end
 #run_cutest_problems(["DISCS"], "test")
 
 
+
+
 function filter_cutest(problem)
+    # large
+    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
+    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     # medium
     correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     regular = problem["derivative_order"] >= 2 && problem["regular"] == true
@@ -171,21 +184,78 @@ function filter_cutest(problem)
     end
 end
 
+function test_problems(problem_list::Array{String,1})
+    for problem_name in problem_list
+      println(problem_name)
+      nlp_raw = CUTEstModel(problem_name)
+      finalize(nlp_raw)
+    end
+end
+
+function filter_string_array(problem_list::Array{String,1}, remove_list::Array{String,1})
+    new_problem_list = Array{String,1}()
+    for problem_name in problem_list
+      if !(problem_name in remove_list)
+        push!(new_problem_list, problem_name)
+      end
+    end
+    return new_problem_list
+end
+
 #problem_list = CUTEst.select(max_var=100, max_var=1000, min_con=100, max_con=3000)
-problem_list = CUTEst.select(custom_filter=filter_cutest)
-problem_list = convert(Array{String,1},problem_list)
+problem_list = CUTEst.select(custom_filter=filter_cutest);
+problem_list = convert(Array{String,1},problem_list);
+remove_list = ["GAUSS2","GULFNE","BA-L1SP","ENSO","CHWIRUT1", "CHWIRUT2","NELSON","HAHN1","KIRBY2","MUONSINE","OSBORNE2","BENNETT5","BA-L1","GAUSS3","GAUSS1"];
+problem_list = filter_string_array(problem_list, remove_list);
+#test_problems(problem_list)
+#test_problems(problem_list[120:end])
 
 if false
-problem_list = ["PT", "AGG"]
+problem_list = ["PT"]
 folder_name = "test_run"
 if_mkdir("results/$folder_name")
-run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if false
+    main_folder_name = "pars4"
+    if_mkdir("results/$main_folder_name")
+
+    style_list = [:none, :test5, :test6, :test7, :test8, :test9, :test10, :test11, :test12]
+    for mu_style in style_list
+      path = "$main_folder_name/$mu_style"
+      if_mkdir("results/$path")
+      my_par.adaptive_mu = mu_style
+      run_cutest_problems_using_our_solver(problem_list, path, my_par)
+    end
+
+    #subfolder_name = "$folder_name/mu-fix"
+    #if_mkdir("results/$subfolder_name")
+    #my_par.adaptive_mu = :none
+    #run_cutest_problems_using_our_solver(problem_list, subfolder_name, my_par)
+
+    #folder_name = "par2/mehotra-no-satisfy"
+    #if_mkdir("results/$folder_name")
+    #my_par.start_satisfying_bounds = false
+    #run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
 if true
-    folder_name = "mehotra_intial_point6"
-    if_mkdir("results/$folder_name")
-    run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
+    main_folder_name = "pd-split"
+    if_mkdir("results/$main_folder_name")
+
+
+    for mu_style in [true; false]
+      path = "$main_folder_name/$mu_style"
+      if_mkdir("results/$path")
+      my_par.move_primal_seperate_to_dual = mu_style
+      run_cutest_problems_using_our_solver(problem_list, path, my_par)
+    end
+
+    #subfolder_name = "$folder_name/mu-fix"
+    #if_mkdir("results/$subfolder_name")
+    #my_par.adaptive_mu = :none
+    #run_cutest_problems_using_our_solver(problem_list, subfolder_name, my_par)
 
     #folder_name = "par2/mehotra-no-satisfy"
     #if_mkdir("results/$folder_name")

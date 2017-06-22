@@ -1,13 +1,9 @@
 Short term:
 
-- move compute_direction! and factor! to kkt_system_solver.jl and add in timing stuff
-- make timer display results in alphabetical order.
-- enable aggregate timing statistics for whole test set.
-
 - deal correctly with exceptions
-- add parameters for termination criterion and delta strategy
+- add parameters for termination criterion
 - test unconstrained problems
-- stop repetitive function evaluation (perhaps just use a cache)
+- improve efficiency of schur complement and eval_jac
 
 *- create infeasible test set*
 *- scaled termination criterion*

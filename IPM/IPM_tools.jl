@@ -1,9 +1,15 @@
 
 function dual_scale(iter::Class_iterate, pars::Class_parameters)
-    if pars.dual_scale_mode == :orginal
-      return 1.0 / (sqrt(norm(get_y(iter), Inf)) + pars.dual_scale_threshold)
+    if pars.dual_scale_mode == :scaled
+      return pars.dual_scale_threshold / max(norm(get_y(iter), Inf), pars.dual_scale_threshold)
     elseif pars.dual_scale_mode == :sqrt
-      return 1.0 / (norm(get_y(iter), Inf) + pars.dual_scale_threshold)
+      return pars.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf)), pars.dual_scale_threshold)
+    elseif pars.dual_scale_mode == :exact
+      return 1.0
+    elseif pars.dual_scale_mode == :primal_dual
+      return pars.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf) * norm(get_s(iter), Inf)), + pars.dual_scale_threshold)
+    else
+      throw("dual scale type does not exist")
     end
 end
 
@@ -57,7 +63,9 @@ function terminate(iter::Class_iterate, par::Class_parameters)
     #@show fark_feas1, fark_feas2, fark_feas3
     max_vio = get_max_vio(iter)
 
-    if scaled_dual_feas(iter, par) < tol && get_mu(iter) < tol && max_vio < tol && norm(comp(iter), Inf) < tol
+    comp_scaled = maximum(iter.point.s .* iter.point.y) * dual_scale(iter, par)
+
+    if scaled_dual_feas(iter, par) < tol && comp_scaled < tol && max_vio < tol
         return :optimal
     elseif fark_feas1 < tol && max_vio > tol && norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible

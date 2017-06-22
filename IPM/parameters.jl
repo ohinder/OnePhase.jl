@@ -12,6 +12,7 @@ end
 
 type Class_parameters
     output_level::Int64
+    what_to_do_with_nans::Symbol
 
     # init
     start_satisfying_bounds::Bool
@@ -30,10 +31,10 @@ type Class_parameters
     predict_reduction_factor::Float64
     predict_reduction_factor_MAX::Float64
     predict_reduction_eigenvector_threshold::Float64
+    fraction_to_boundary_predict::Float64
     fraction_to_boundary::Float64
     ls_backtracking_factor::Float64
     ls_num_backtracks::Int64
-    ls_mode_stable::Symbol
     ls_mode_agg::Symbol
     agg_protect_factor::Float64
     move_primal_seperate_to_dual::Bool
@@ -48,6 +49,8 @@ type Class_parameters
     max_it_corrections::Int64
     dual_scale_threshold::Float64
     dual_scale_mode::Symbol
+    threshold_type::Symbol
+    lag_grad_test::Bool
     comp_feas::Float64
     comp_feas_agg::Float64
     min_step_size_stable::Float64
@@ -58,6 +61,7 @@ type Class_parameters
     use_delta_s::Bool
     adaptive_mu::Symbol
     eigen_search::Bool
+    trust_region::Bool
 
 
     # SADDLE PROBLEM
@@ -80,22 +84,32 @@ type Class_parameters
         #this.init_style = :old_style # SOMETHING WRONG WITH THIS
 
 
-        this.aggressive_dual_threshold = 1e3 #1.0 #1.0
-        this.dual_scale_threshold = 1.0;
-        this.dual_scale_mode = :sqrt
-        this.inertia_test = true # true
+        this.aggressive_dual_threshold = 1.0 #1.0 #1.0
+        this.dual_scale_threshold = 100.0;
+        this.threshold_type = :mu
+        #this.threshold_type = :mu_primal
+        #this.threshold_type = :primal
+        this.lag_grad_test = true
+        this.dual_scale_mode = :scaled
+        #this.dual_scale_mode = :sqrt
+        #this.dual_scale_mode = :exact
+        #this.dual_scale_mode = :primal_dual
+        this.inertia_test = false # true
         this.max_it_corrections = 2
         this.comp_feas = 1/100.0
-        this.comp_feas_agg = 1/100.0 #1/50.0
-        this.min_step_size_stable = 1e-4
+        this.comp_feas_agg = 1/70.0 #1/50.0
+        this.min_step_size_stable = 1e-3
         this.min_step_size_correction = 1e-1
         this.use_delta_s = false
         this.adaptive_mu = :none
         #this.adaptive_mu = :test1
+        #this.adaptive_mu = :test11
         this.stb_before_agg = true
         this.eigen_search = false
+        this.trust_region = false
 
         this.output_level = 3
+        this.what_to_do_with_nans = :error
 
         this.tol = 1e-6
         this.tol_dual_abs = 1e-6
@@ -109,21 +123,22 @@ type Class_parameters
         this.predict_reduction_factor = 0.1 #1e-1
         this.predict_reduction_factor_MAX = 0.3
         this.predict_reduction_eigenvector_threshold = 1e-1
-        this.fraction_to_boundary = 0.05
+        this.fraction_to_boundary = 0.01
+        this.fraction_to_boundary_predict = 0.1
         this.ls_backtracking_factor = 0.5
         this.ls_num_backtracks = 60;
-        this.ls_mode_stable_trust = :accept_stable #:accept_aggressive #:accept_filter #:accept_aggressive #:accept_filter
+        this.ls_mode_stable_trust = :accept_filter
+        #this.ls_mode_stable_trust = :accept_stable #:accept_aggressive #:accept_filter #:accept_aggressive #:accept_filter
         this.ls_mode_stable_delta_zero = :accept_filter #:accept_filter
         this.ls_mode_stable_correction = :accept_filter
         this.ls_mode_agg = :accept_aggressive
         this.agg_protect_factor = 1e4
 
         this.move_type = :primal_dual
-        this.move_primal_seperate_to_dual = true
+        this.move_primal_seperate_to_dual = false
         this.max_step_primal_dual = false #false
         this.s_update = :careful # :careful :loose, use careful except for experimentation
         this.mu_update = :static #:dynamic #:static #:static #:static #:dynamic :dynamic_agg
-
 
         this.saddle_err_tol = Inf
         this.ItRefine_Num = 2

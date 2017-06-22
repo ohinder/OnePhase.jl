@@ -16,6 +16,12 @@ function centre_dual!(point::Class_point, buffer::Float64, pars::Class_parameter
   point.y = min( y_c / (pars.comp_feas * buffer), max(point.y, pars.comp_feas * y_c * buffer))
 end
 
+function centre_dual!(point::Class_point, comp_feas::Float64)
+  y_c = point.mu ./ point.s
+
+  point.y = min( y_c / comp_feas, max(point.y, comp_feas * y_c))
+end
+
 
 function init(nlp::Class_QP, pars::Class_parameters)
     x = suggested_starting_point(nlp)
@@ -35,7 +41,7 @@ function init(nlp::Class_QP, pars::Class_parameters)
     g = eval_grad_lag(nlp, x, y)
 
     p = Class_point(x, y, s, 1.0)
-    iter = Class_iterate(p, nlp, Class_local_info(0.0));
+    iter = Class_iterate(p, nlp, Class_local_info(0.0,NaN));
 
     kkt_solver = pick_KKT_solver(pars);
     initialize!(kkt_solver, iter)
@@ -270,7 +276,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     start_advanced_timer(timer, "INIT/construct_class")
     init_point = Class_point(x, y, s, mu)
-    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0), timer);
+    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0, NaN, :init), timer);
     pause_advanced_timer(timer, "INIT/construct_class")
 
     return init_it
@@ -345,7 +351,7 @@ function initial_point_satisfy_bounds(nlp::Class_CUTEst, pars::Class_parameters)
 
     init_point.mu = mu
 
-    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0));
+    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0, NaN));
 
     return init_it
 end
@@ -366,7 +372,7 @@ function initial_point_generic(nlp::abstract_nlp,pars::Class_parameters, x::Arra
     init_point.s = max(0, a) + infeas
     init_point.y = mu ./ init_point.s;
 
-    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0));
+    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0, NaN));
 
     # make sure
     # dual <= primal = mu

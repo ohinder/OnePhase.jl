@@ -32,6 +32,10 @@ function get_fval(it::Class_iterate)
     return it.cache.fval
 end
 
+function get_grad(it::Class_iterate)
+    return it.cache.grad
+end
+
 function get_cons(it::Class_iterate)
     return it.cache.cons
 end
@@ -77,9 +81,12 @@ end
 
 
 function eval_farkas(it::Class_iterate, y::Array{Float64,1})
-    a_neg_part = max(-it.cache.cons,0.0)
-
-    return norm(y' * it.cache.J, Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
+    feas_obj = -mean(it.cache.cons .* y)
+    if feas_obj > 0.0
+      return norm(y' * it.cache.J, Inf) /  min(norm(y, Inf), feas_obj)
+    else
+      return Inf
+    end
 end
 
 function eval_farkas(it::Class_iterate)

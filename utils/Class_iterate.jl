@@ -15,7 +15,9 @@ end
 type Class_local_info
     delta::Float64
     radius::Float64
+    prev_step::Symbol
 end
+
 
 type Class_iterate
     primal_residual_intial::Array{Float64,1}
@@ -49,6 +51,8 @@ type Class_iterate
       return new()
     end
 end
+
+
 
 function validate(it::Class_iterate)
     @assert(it.nvar == length(it.point.x))
@@ -144,6 +148,8 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       new_it.point.primal_scale += dir.primal_scale * step_size
       nl_s = new_a - new_it.point.primal_scale * it.primal_residual_intial
 
+
+
       if pars.s_update == :careful
         new_it.point.s = nl_s
       elseif pars.s_update == :loose
@@ -152,6 +158,10 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
         new_it.point.s = min(nl_s * rf, max(nl_s / rf, l_s))
       else
         error("pars.s_update option $(pars.s_update) not avaliable")
+      end
+
+      if !all(new_it.point.s .>= it.point.s * pars.fraction_to_boundary)
+          return it, false, step_size
       end
 
       if pars.mu_update == :static || (pars.mu_update == :dynamic_agg && dir.mu == 0.0)
@@ -190,16 +200,27 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                   step_size_D = ub1 #min(ub1, max(lb1, step_size_D))
                 end
 
+                theta = (1.0 - pars.fraction_to_boundary)
+                step_size_D_boundary = theta / maximum([theta; -dir.y ./ it.point.y])
+                step_size_D_max = min(step_size_D_boundary, ub1)
+                step_size_D = step_size_D_max
+                #step_size_D = min(step_size_D_max,max(lb1, sum(res .* q) / sum(q.^2)))
+                #@assert(step_size_D < 1.0)
+                #step_size_D = min(step_size_D, step_size)
 
                 new_it.point.y += dir.y * step_size_D
+
+                #if !all(new_it.point.y .>= it.point.y * pars.fraction_to_boundary)
+                #    return it, false, step_size_D
+                #end
 
                 #update_H!(it, timer)
 
                 if !is_feasible(new_it, pars.comp_feas)
-                  @show minimum(new_it.point.y), maximum(new_it.point.s)
-                  println("line=",@__LINE__, "file=",@__FILE__)
-                  my_warn("infeasibility should have been detected earlier!!!")
-                  @show (lb1, ub1), (lb2, ub2)
+                  #@show minimum(new_it.point.y), maximum(new_it.point.s)
+                  #println("line=",@__LINE__, "file=",@__FILE__)
+                  #my_warn("infeasibility should have been detected earlier!!!")
+                  #@show (lb1, ub1), (lb2, ub2)
                   return it, false, step_size_D
                 else
                   return new_it, true, step_size_D
@@ -211,7 +232,15 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
           if lb1 <= step_size && step_size <= ub1
             new_it.point.y += dir.y * step_size
 
-            return new_it, true, step_size
+            if !all(new_it.point.y .>= it.point.y * pars.fraction_to_boundary)
+                return it, false, step_size
+            end
+
+            if !is_feasible(new_it, pars.comp_feas)
+              return it, false, step_size
+            else
+              return new_it, true, step_size
+            end
           else
             return it, false, step_size
           end
@@ -358,6 +387,21 @@ function set_delta(it::Class_iterate, delta::Float64)
     it.local_info.delta = delta;
 end
 
+function get_radius(it::Class_iterate)
+    return it.local_info.radius
+end
+
+function set_prev_step(it::Class_iterate, prev_step::Symbol)
+    it.local_info.prev_step = prev_step;
+end
+
+function get_prev_step(it::Class_iterate)
+    return it.local_info.prev_step
+end
+function set_radius(it::Class_iterate, radius::Float64)
+    it.local_info.radius = radius;
+end
+
 function get_x(it::Class_iterate)
     return it.point.x
 end
@@ -394,12 +438,18 @@ end
 function update_cons!(it::Class_iterate, timer::class_advanced_timer)
     start_advanced_timer(timer, "CACHE/update_cons")
     it.cache.cons = eval_a(it.nlp, it.point.x)
+    if isbad(it.cache.cons)
+        println("NaN or Inf")
+    end
     pause_advanced_timer(timer, "CACHE/update_cons")
 end
 
 function update_obj!(it::Class_iterate, timer::class_advanced_timer)
     start_advanced_timer(timer, "CACHE/update_obj")
     it.cache.fval = eval_f(it.nlp, it.point.x)
+    if isbad(it.cache.fval)
+        println("NaN or Inf")
+    end
     pause_advanced_timer(timer, "CACHE/update_obj")
 end
 
@@ -412,6 +462,9 @@ end
 function update_grad!(it::Class_iterate, timer::class_advanced_timer)
     start_advanced_timer(timer, "CACHE/update_grad")
     it.cache.grad = eval_grad_f(it.nlp, it.point.x)
+    if isbad(it.cache.grad)
+        println("NaN or Inf")
+    end
     pause_advanced_timer(timer, "CACHE/update_grad")
 end
 
@@ -419,5 +472,8 @@ function update_J!(it::Class_iterate, timer::class_advanced_timer)
   start_advanced_timer(timer, "CACHE/update_J")
   @assert(length(it.point.x) == length(it.cache.grad))
   it.cache.J = eval_jac(it.nlp, it.point.x)
+  if isbad(nonzeros(it.cache.J))
+      println("NaN or Inf")
+  end
   pause_advanced_timer(timer, "CACHE/update_J")
 end

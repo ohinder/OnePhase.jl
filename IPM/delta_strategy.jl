@@ -1,5 +1,4 @@
 function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
-
     form_system!(kkt_solver, iter, timer)
     kkt_associate_rhs!(kkt_solver, iter, stable_reduct_factors, timer)
 
@@ -44,7 +43,7 @@ function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduc
             if status == :success
               success = true
             else
-              println("increas delta")
+              println("increase delta")
             end
           end
         end
@@ -82,188 +81,134 @@ function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduc
     return :failure, iter, Blank_ls_info()
 end
 
-#
-#
-#
-
-function optimal_stable_step!(iter::Class_iterate, stable_reduct_factors::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, ls_mode::Symbol, filter::Array{Class_filter,1}, pars::Class_parameters)
-
-    form_system!(kkt_solver, iter)
-    factor_at_approx_min_eigenvalue!(kkt_solver, iter)
-    kkt_associate_rhs!(kkt_solver, iter, stable_reduct_factors)
-    #associate_rhs!(kkt_solver, iter, stable_reduct_factors)
-
-    i = 1;
-
-    max_it = 20
-    step_info = nothing
+function solve_with_radius(iter::Class_iterate, target_radius::Float64, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters, timer::class_advanced_timer)
     new_iter = nothing
 
-    for i = 1:max_it
-        if i == 2
-          println("large delta regime")
-        end
-        compute_direction!(kkt_solver, timer)
-        status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, ls_mode, filter, pars, pars.min_step_size_stable)
+    MAX_IT = 50
+    LAMBDA_LB = 0.0
+    LAMBDA_UB = Inf
 
-        if status == :success && step_info.step_size_P > pars.min_step_size_stable
-            break
+    DELTA = 1.0
+    DELTA_LB = 0.0
+    DELTA_UB = Inf
+
+    radius = NaN
+    best_dir = nothing
+    println(pd("DELTA"), pd("DELTA_LB"), pd("DELTA_UB"), pd("RADIUS"))
+
+    for i = 1:MAX_IT
+        success = false
+
+        if pars.use_delta_s
+          inertia = factor!( kkt_solver, DELTA, DELTA, timer )
         else
-            set_delta( iter, get_delta(iter) * 2.0 )
-            factor!( kkt_solver, get_delta(iter) )
+          inertia = factor!( kkt_solver, DELTA, timer )
         end
-    end
 
-    if i > max_it
-        error("delta too big")
-    end
-
-    mode = :trust_region
-
-    if i == 1 && get_delta(iter) > 1e-4 && mode == :trust_region
-        println("trust region")
-        alpha = 0.8
-
-        old_candidate = new_iter
-        step_info_old_candidate = step_info
-        i = 1;
-        for i = 1:max_it
-          lambda = compute_eigenvector!(kkt_solver, iter)
-
-          delta_candidate = (get_delta(iter) * (1 - alpha) - lambda * alpha)
-          inertia = factor!( kkt_solver, delta_candidate )
-
-          if inertia == 1
-            compute_direction!(kkt_solver, timer)
-            @show norm(kkt_solver.dir.x)
-            status, candidate, step_info_candidate = simple_ls(iter, kkt_solver.dir, ls_mode, filter, pars, pars.min_step_size_stable)
+        if inertia == 1
+          compute_direction!(kkt_solver, timer)
+          dir = kkt_solver.dir
+          radius = norm(dir.x,2)
+          if radius < target_radius / 2.0
+            DELTA_UB = DELTA
+          elseif radius > target_radius * 2.0
+            DELTA_LB = DELTA
           else
-            my_warn("eigenvector inaccurate")
+            success = true
           end
 
-          if inertia == 0 || step_info_candidate.step_size_P < 1.0
-              iter = old_candidate
-              step_info = step_info_old_candidate
-              break
-          end
-          old_candidate = candidate
-          step_info_old_candidate = step_info_candidate
-          set_delta( iter, delta_candidate )
+          best_dir = dir
+        else
+          DELTA_LB = DELTA
+          LAMBDA_LB = DELTA
+          radius = NaN
         end
 
-        if i == max_it
-          my_warn("delta too small")
+        println(rd(DELTA), rd(DELTA_LB), rd(DELTA_UB), rd(radius))
+
+        set_delta(iter, DELTA)
+
+        if success
+          return true, best_dir
         end
-    elseif get_delta(iter) > 1e-4 && mode == :eigenvector
-        println("eigenvector")
-        iter = new_iter
-        dir_x_norm = norm(kkt_solver.dir.x,2)
-        lambda = compute_eigenvector!(kkt_solver, iter)
-        @show lambda
-        #shrink_direction!(kkt_solver.dir, norm(dir_x_norm,2) / 10.0)
-        kkt_solver.dir = scale_direction(kkt_solver.dir, norm(dir_x_norm,2) / 10.0)
-        status, iter = eigenvector_ls(iter, kkt_solver.dir, pars)
 
-        @show eigmin(full(Symmetric(kkt_solver.M)))
+        if DELTA_UB - DELTA_LB < 1e-8
+          println("close delta")
+          return false, best_dir
+        end
 
-        H = eval_phi_hess(iter)
-        @show eigmin(full(Symmetric(H)))
-    else
-        iter = new_iter
+        TRY_DELTA1 = (20.0 * DELTA_LB + 1e-8)
+        TRY_DELTA2 = (DELTA_UB + DELTA_LB) / 2.0
+
+        if TRY_DELTA1 <= TRY_DELTA2
+          DELTA = TRY_DELTA1
+        else
+          DELTA = TRY_DELTA2
+        end
     end
 
-
-
-
-    return :success, iter, step_info
-
+    println("trust region step failed!")
+    return best_dir
 end
 
 
+function trust_region_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
+    form_system!(kkt_solver, iter, timer)
+    kkt_associate_rhs!(kkt_solver, iter, Reduct_stable(), timer)
 
-function optimal_stable_step_v2!(iter::Class_iterate, stable_reduct_factors::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters)
-    form_system!(kkt_solver, iter)
-    associate_rhs!(kkt_solver, iter, stable_reduct_factors)
 
-    inertia = factor!( kkt_solver, 0.0 )
+    DELTA_ZERO = 0.0
+    inertia = factor!( kkt_solver, DELTA_ZERO, timer )
+
     if inertia == 1
-        status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, :accept_stable, pars)
+        compute_direction!(kkt_solver, timer)
+        status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, pars.ls_mode_stable_delta_zero, filter, pars, pars.min_step_size_stable, timer)
+
         if status == :success
-            set_delta(new_iter, 0.0 )
-            return status, new_iter, step_info
+          set_radius( new_iter, norm(kkt_solver.dir.x,2) * step_info.step_size_P )
+          set_prev_step( new_iter, :delta_zero )
+          set_delta(new_iter, DELTA_ZERO)
+
+          return status, new_iter, step_info
         end
     end
 
-    MAX_IT = 20
-    DELTA_MIN = 1e-8
-    DELTA_START = 100.0
+    if get_prev_step( iter ) == :init
+        set_radius(iter, 1.0)
+    end
 
-    if get_delta(iter) == 0.0
-      delta = DELTA_START
+    trust_status, dir = solve_with_radius(iter, get_radius(iter), kkt_solver, pars, timer)
+
+    status, new_iter, step_info = simple_ls(iter, dir, pars.ls_mode_stable_trust, filter, pars, pars.min_step_size_stable, timer)
+
+    if status == :success
+        @show step_info.step_size_P, step_info.step_size_D
+        if false
+          if 0.1 < step_info.gain && step_info.gain < 0.95
+
+          elseif step_info.gain >= 0.95
+              set_radius(new_iter, get_radius(iter) * 3.0)
+          elseif step_info.gain < 0.1
+              set_radius(new_iter, get_radius(iter) / 4.0)
+          end
+        end
+
+        if true
+          if step_info.step_size_P == 1.0 && trust_status == true
+            set_radius(new_iter, get_radius(iter) * 3.0)
+          elseif step_info.step_size_P < 1.0
+            set_radius(new_iter, get_radius(iter) * sqrt(step_info.step_size_P))
+          end
+        end
+
+        set_prev_step( new_iter, :trust )
+
+        @show get_radius(new_iter)
+        @show get_prev_step(new_iter)
+
+        return status, new_iter, step_info
     else
-      delta = max(get_delta(iter), DELTA_MIN)
+        set_radius(iter, get_radius(iter) * pars.min_step_size_stable )
+        return status, iter, step_info
     end
-
-    lambda_lb = 0.0
-    delta_lb = 0.0
-    delta_ub = Inf
-
-    increase_delta = false
-
-    println("")
-    println(pd("status"), pd("frac"), pd("prog"), pd("|dx|"), pd("delta"), pd("delta_lb"), pd("delta_ub"), pd("lambda_lb"))
-
-    for i = 1:MAX_IT
-        inertia = factor!( kkt_solver, delta )
-        if inertia == 1
-            compute_direction!(kkt_solver, timer)
-            status, new_iter, step_info = simple_ls(iter, kkt_solver.dir, :accept_stable, pars)
-
-            #@show
-            println(pd(status), rd(step_info.frac_progress), rd(step_info.actual_red),  rd(norm(kkt_solver.dir.x,2)), rd(delta), rd(delta_lb), rd(delta_ub), rd(lambda_lb))
-
-            if status == :success
-              if delta - lambda_lb > 1e-8 &&   pars.predict_reduction_factor_MAX < step_info.frac_progress #&& step_info.frac_progress < 1.0/pars.predict_reduction_factor_MAX
-
-                delta_ub = delta
-                increase_delta = false
-              elseif step_info.frac_progress < pars.predict_reduction_factor
-                delta_lb = delta
-                increase_delta = true
-              else
-                set_delta(new_iter, delta)
-                return status, new_iter, step_info # ACCEPT THE STEP
-              end
-            else
-              delta_lb = delta
-              increase_delta = true
-            end
-        else
-            lambda_lb = delta
-            delta_lb = delta
-            increase_delta = true
-        end
-
-        @assert(lambda_lb <= delta_lb)
-        @assert(delta_lb < delta_ub)
-
-        if (delta_ub / delta_lb) < 1.01
-          set_delta(new_iter, delta)
-          return status, new_iter, step_info # ACCEPT THE STEP
-        end
-
-        if increase_delta
-          delta *= 10.0
-        else
-          delta /= 9.0
-        end
-
-        if delta <= delta_lb || delta >= delta_ub
-            delta = (delta_ub + delta_lb) / 2.0
-        end
-
-        #@show delta_lb, delta_ub, delta
-    end
-
-    error("max it for delta algorithm reached")
 end

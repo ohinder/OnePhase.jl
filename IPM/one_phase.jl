@@ -48,13 +48,67 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  return iter, :MAX_TIME, progress, t, false
                end
 
-               #inertia_good = get_delta(iter) < max(get_mu(iter), 1.0)
                primal_inf = norm(iter.primal_residual_intial, Inf) * iter.point.primal_scale
-               #min(primal_inf, get_mu(iter))
-               threshold = pars.aggressive_dual_threshold * min(get_mu(iter),norm(get_primal_res(iter),Inf))
-               dual_progress = scaled_dual_feas(iter, pars) < threshold && is_feasible(iter, pars.comp_feas_agg)
+
+               if pars.threshold_type == :mu
+                 threshold = pars.aggressive_dual_threshold * get_mu(iter)
+               elseif pars.threshold_type == :mu_primal
+                  threshold = pars.aggressive_dual_threshold * min(get_mu(iter),norm(get_primal_res(iter),Inf))
+               elseif pars.threshold_type == :primal
+                   threshold = pars.aggressive_dual_threshold * norm(get_primal_res(iter),Inf)
+               else
+                 error("threshold_type not known")
+               end
+
+               is_feas = is_feasible(iter, pars.comp_feas_agg)
+               #dual_progress = scaled_dual_feas(iter, pars) < threshold
+
+               feas_obj = max(0.0,-mean(iter.point.y .* iter.cache.cons))
+               if pars.adaptive_mu == :none
+                 mu_est = iter.point.mu
+               elseif pars.adaptive_mu == :test5
+                 mu_est = mean( (iter.point.y + 0.1) .* - get_primal_res(iter)) / 2.0
+               elseif pars.adaptive_mu == :test6
+                 mu_est = mean(iter.point.y .* iter.point.s) * 0.5 + feas_obj * 0.5
+               elseif pars.adaptive_mu == :test7
+                 mu_avg_guarded = min(iter.point.mu, mean(iter.point.y .* iter.point.s))
+                 mu_est = max(mu_avg_guarded, min(10.0 * iter.point.mu, feas_obj)) + norm(get_primal_res(iter),Inf) * 0.01
+               elseif pars.adaptive_mu == :test8
+                 mu_est = mean(iter.point.y .* iter.point.s) / 10.0 + feas_obj + norm(get_primal_res(iter),Inf) * 0.01
+               elseif pars.adaptive_mu == :test9
+                 mu_est = mean(iter.point.y .* iter.point.s) + mean( (iter.point.y + 0.1) .* - get_primal_res(iter))
+               elseif pars.adaptive_mu == :test10
+                 mu_est = dot(iter.point.y, iter.point.s - get_primal_res(iter)) / (2.0 * length(iter.point.y))
+               elseif pars.adaptive_mu == :test11
+                 mu_est = mean(iter.point.y .* iter.point.s)
+               elseif pars.adaptive_mu == :test12
+                 mu_est = mean(iter.point.y .* iter.point.s) + feas_obj
+               end
+
+               #mu_est = iter.point.mu
+               #mu_est = mean(iter.point.y .* iter.point.s) * 0.5 + feas_obj * 0.5
+               #mu_est = max(min(100.0 * norm(get_primal_res(iter),Inf), iter.point.mu, mean(iter.point.y .* iter.point.s) ), feas_obj) + norm(get_primal_res(iter),Inf) * 0.01
+               #mu_est = mean(iter.point.y .* iter.point.s)
+               #mu_est = (mean(iter.point.y .* iter.point.s) + mean(-iter.point.y .* get_primal_res(iter))) / 4.0
+               mu_ub = (mean(iter.point.y) + 1.0) * mean(-get_primal_res(iter))
+               #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
+               dual_avg = scaled_dual_feas(iter, pars)
+
+               #* (1.0 + norm(iter.point.x,2))
+               #dual_progress = norm(eval_grad_lag(iter),2) < dot(iter.point.s - get_primal_res(iter), iter.point.y)
+               #dual_progress = dual_avg < mu_est #+ sqrt(norm(get_primal_res(iter),Inf))
+               dual_progress = dual_avg < norm(get_primal_res(iter), Inf) * 10.0
+               #dual_progress = dual_avg < mu_ub * 10.0
                delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
-               be_aggressive = dual_progress && (delta_small || !pars.inertia_test)
+               lag_grad = norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
+
+               be_aggressive = is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
+               #@show norm(get_grad(iter),Inf)
+               #=if false
+                   else
+                  mu = get_mu(iter)
+                  be_aggressive = is_feas && scaled_dual_feas(iter, pars) < mu && norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) / 2 && (delta_small || !pars.inertia_test)
+               end=#
 
                if i == 1
                    step_type = "stb"
@@ -64,7 +118,11 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                    start_advanced_timer(timer, "STEP/first-stable")
                    #success, new_iter, ls_info = optimal_stable_step!(iter, reduct_factors, kkt_solver, pars.ls_mode_stable, filter, pars)
-                   success, new_iter, ls_info = ipopt_strategy!(iter, reduct_factors, kkt_solver, filter, pars, timer)
+                   if pars.trust_region
+                     success, new_iter, ls_info = trust_region_strategy!(iter,kkt_solver, filter, pars, timer)
+                   else
+                     success, new_iter, ls_info = ipopt_strategy!(iter, reduct_factors, kkt_solver, filter, pars, timer)
+                   end
                    pause_advanced_timer(timer, "STEP/first-stable")
 
 
@@ -104,11 +162,33 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                        #reduct_factors = Reduct_affine()
                     #mode = :no_change
+
+                    #norm(get_grad(iter),Inf) /
+
+                    if true
+                     prm_tol_ratio = pars.tol / norm(get_primal_res(iter),Inf)
+                     if prm_tol_ratio >= 1.0 && false
+                        step_type = "mu"
+                        reduct_factors = Class_reduction_factors(0.8, 0.0, 1e-1)
+                     elseif false  #10.0 * mu_P_ratio^(7/4)
+                       step_type = "prm"
+                       reduct_factors = Class_reduction_factors(1e-1, 0.0, 0.8)
+                     else
+                        step_type = "agg"
+                        reduct_factors = Reduct_affine() #
+                        #reduct_factors = Class_reduction_factors(prm_tol_ratio, 0.0, 0.0 )
+                     end
+                   end
+
+                    mu_P_ratio = iter.point.mu / primal_inf
+                    seems_to_be_infeasible = false
+                    feas_with_big_mu = false
+
                     if pars.adaptive_mu == :test1
-                       mu_P_ratio = iter.point.mu / primal_inf
                        #
-                       seems_to_be_infeasible = mu_P_ratio < 1e5 && norm(iter.point.y, Inf) > 10.0 * mu_P_ratio^(3/2) # 10.0 * ((5.0 + norm(g,Inf)) *
-                       feas_with_big_mu = norm(iter.point.y, Inf) < 0.1 * mu_P_ratio^(1/2)
+                       prm_to_dl = (1.0 + mean(iter.point.y)) / (mean(iter.point.s) + 1.0) #(norm(iter.point.y, Inf) + 1.0) / (norm(iter.point.x, Inf) + 1.0)
+                       seems_to_be_infeasible = prm_to_dl > 20.0 * mu_P_ratio^(3/2) # 10.0 * ((5.0 + norm(g,Inf)) *
+                       feas_with_big_mu = prm_to_dl < 0.1 * mu_P_ratio^(1/2)
                      elseif pars.adaptive_mu == :test2
                        feas = norm(iter.point.primal_scale * iter.primal_residual_intial, Inf)
                        #g = eval_grad_lag(iter.nlp, iter.point.x, zeros(length(iter.point.y)))
@@ -116,33 +196,30 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        p_scale = iter.point.primal_scale
                        seems_to_be_infeasible = norm(eval_farkas(iter),Inf) < 10.0 * p_scale^(3/2)
                        feas_with_big_mu = false  #norm(eval_farkas(iter),Inf) > 0.1 * p_scale^(3/2) && norm(iter.point.y, Inf) > 1.0 / min(0.01, sqrt(mu))
-                     elseif pars.adaptive_mu == :none
-                       seems_to_be_infeasible = false
-                       feas_with_big_mu = false
+                     elseif pars.adaptive_mu == :test3
+                       #prm_to_dl = mean(iter.point.y) + mean(iter.point.s) #norm(iter.point.y, Inf) + norm(iter.point.s, Inf) #+ 1.0) / (norm(iter.point.s, Inf) + 1.0)
+                       prm_to_dl = mean(iter.point.y) # mean([iter.point.y; iter.point.s])
+                       #prm_to_dl = median(iter.point.y) / median(iter.point.s)
+                       #prm_to_dl = median(iter.point.y) / 2 + median(iter.point.s) / 2
+                       @show norm(get_grad(iter),Inf)
+                       seems_to_be_infeasible = prm_to_dl > 100.0 * mu_P_ratio^(5/4) # 10.0 * ((5.0 + norm(g,Inf)) *
+                       feas_with_big_mu = prm_to_dl < 0.1 * (mu_P_ratio)^(3/4)
+                     elseif pars.adaptive_mu == :test4
+                       seems_to_be_infeasible = iter.point.mu < 0.1 * mu_est # 10.0 * ((5.0 + norm(g,Inf)) *
+                       feas_with_big_mu = iter.point.mu > 10.0 * mu_est
                      end
 
 
-                      if true
-                       if norm(get_primal_res(iter),Inf) < pars.tol
-                          step_type = "mu"
-                          reduct_factors = Class_reduction_factors(0.8, 0.0, 1e-1)
-                       elseif false  #10.0 * mu_P_ratio^(7/4)
-                         step_type = "prm"
-                         reduct_factors = Class_reduction_factors(1e-1, 0.0, 0.8)
-                       else
-                          step_type = "agg"
-                          #reduct_factors = Reduct_affine() #
-                          reduct_factors = Class_reduction_factors(0.5, 0.5, 0.5) #Reduct_affine()
+                       if be_aggressive
+                         #iter.point.mu = dot(iter.point.y, iter.point.s - get_primal_res(iter)) / (2.0 * length(iter.point.y))
+                         #@show mean(iter.point.y .* -get_primal_res(iter)), mean(iter.point.y) * mean(abs(get_primal_res(iter)))
+
+                         iter.point.mu = mu_est
+                         #mean(iter.point.y) * mean(abs(get_primal_res(iter))) / 10.0
+                         centre_dual!(iter.point, pars.comp_feas_agg)
+
+                         #record_progress!(t,  "Δmu", iter, kkt_solver, ls_info, reduct_factors, progress, pars)
                        end
-                     end
-
-                     if feas_with_big_mu #|| norm(get_primal_res(iter),Inf) < pars.tol
-                        iter.point.y *= 0.5
-                        iter.point.mu *= 0.5
-                     elseif seems_to_be_infeasible  #10.0 * mu_P_ratio^(7/4)
-                       iter.point.y *= 2.0
-                       iter.point.mu *= 2.0
-                     end
 
                        #step_type = "agg"
                        #reduct_factors = Reduct_affine()
@@ -168,6 +245,26 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                    if step_type == "agg"
                      dir_size_agg = norm(kkt_solver.dir.x, 2)
                      update_prox!(iter, pars)
+
+
+                    #println("mu_est = ",)
+                    #mu_est =  mean(iter.point.s .* iter.point.y)
+                    #iter.point.y = iter.point.y * (mu_est / iter.point.mu)
+                    #iter.point.mu = mu_est
+                    if false
+                      if feas_with_big_mu #|| norm(get_primal_res(iter),Inf) < pars.tol
+                          record_progress!(t,  "dmu", iter, kkt_solver, ls_info, reduct_factors, progress, pars)
+                          iter.point.y *= 1/4.0
+                          iter.point.mu *= 1/4.0
+                       elseif seems_to_be_infeasible  #10.0 * mu_P_ratio^(7/4)
+
+                         #println("increase mu")
+                         iter.point.y *= 4.0
+                         iter.point.mu *= 4.0
+
+                         record_progress!(t,  "imu", iter, kkt_solver, ls_info, reduct_factors, progress, pars)
+                       end
+                     end
                    end
 
                    pause_advanced_timer(timer, "STEP/correction")

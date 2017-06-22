@@ -3,7 +3,7 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #set a job name
-#SBATCH --job-name=CUTEst
+#SBATCH --job-name=CUTEst-IPM
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=results/screen/log.%j.out

@@ -138,15 +138,29 @@ end
 
 function eval_jac(m::Class_CUTEst, x::Array{Float64,1})
     cute_x = _cute_x(m, x)
-
-    J = jac(m.nlp, cute_x)[:, _i_not_fixed(m.nlp)];
-
+    J_full_T = jac(m.nlp, cute_x)'
+    J_T = J_full_T[_i_not_fixed(m.nlp),:];
     my_eye = speye(length(x))
-    return [J[m.bcon.l_i,:]; -J[m.bcon.u_i,:]; my_eye[m.bvar.l_i,:]; -my_eye[m.bvar.u_i,:]];
+    Q_T = [J_T[:,m.bcon.l_i] -J_T[:,m.bcon.u_i] my_eye[:,m.bvar.l_i] -my_eye[:,m.bvar.u_i]];
+    return Q_T'
+
+    #return @time [J[m.bcon.l_i,:]; -J[m.bcon.u_i,:]; my_eye[m.bvar.l_i,:]; -my_eye[m.bvar.u_i,:]];
 end
 
 function eval_grad_f(m::Class_CUTEst, x::Array{Float64,1})
     return grad(m.nlp, _cute_x(m, x))[_i_not_fixed(m.nlp)]
+end
+
+function y_cons_net(m::Class_CUTEst, y::Array{Float64,1})
+    return;
+end
+
+function eval_jtprod(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1})
+    return jtprod(nlp_raw, x, y)
+end
+
+function eval_schur_and_jtprod(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}, s::Array{Float64,1})
+
 end
 
 #=function ncon(m::Class_CUTEst)

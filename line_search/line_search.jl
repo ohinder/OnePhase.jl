@@ -99,6 +99,8 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
 
             status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
             pause_advanced_timer(timer,"SIMPLE_LS/accept?")
+        else
+          status = :infeasible
         end
 
         if pars.output_level >= 5
