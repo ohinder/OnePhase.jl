@@ -168,15 +168,16 @@ end
 
 
 function filter_cutest(problem)
+  regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     # large
     #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
-    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    # medium lrg
+    #10 <= problem["variables"]["number"] + problem["constraints"]["number"] &&
+    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
     # medium
-    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
-    regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 1000 && problem["constraints"]["number"] <= 1000
     # small
     #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
-    #regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     if correct_size && regular
         return true
     else
@@ -184,10 +185,12 @@ function filter_cutest(problem)
     end
 end
 
-function test_problems(problem_list::Array{String,1})
-    for problem_name in problem_list
+function test_problems(problem_list::Array{String,1}, start::Int64)
+    for i = start:length(problem_list)
+      problem_name = problem_list[i]
       println(problem_name)
       nlp_raw = CUTEstModel(problem_name)
+      println(i)
       finalize(nlp_raw)
     end
 end
@@ -205,16 +208,39 @@ end
 #problem_list = CUTEst.select(max_var=100, max_var=1000, min_con=100, max_con=3000)
 problem_list = CUTEst.select(custom_filter=filter_cutest);
 problem_list = convert(Array{String,1},problem_list);
-remove_list = ["GAUSS2","GULFNE","BA-L1SP","ENSO","CHWIRUT1", "CHWIRUT2","NELSON","HAHN1","KIRBY2","MUONSINE","OSBORNE2","BENNETT5","BA-L1","GAUSS3","GAUSS1"];
+remove_list = ["MISRA1D","OSBORNE1","LANCZOS2","MEYER3NE","ROSZMAN1","INTEQNE","MGH10",
+"ECKERLE4","RAT43","MISRA1A","KOWOSBNE","MOREBVNE",
+"JENSMPNE","MISRA1C","VARDIMNE","SANTA","BARDNE","MGH10S",
+"THURBER","MGH17S","BOX3NE","PENLT1NE","GAUSS2","GULFNE","BA-L1SP","ENSO","CHWIRUT1", "CHWIRUT2","NELSON","HAHN1","KIRBY2","MUONSINE","OSBORNE2","BENNETT5","BA-L1","GAUSS3",
+"GAUSS1","LANCZOS3","BIGGS6NE","LANCZOS1","VANDANIUMS","MISRA1B","MGH09","MGH17","WATSONNE",
+"DMN37142LS","VESUVIOU","PENLT2NE", "DMN37143LS","INTEQNELS","BROYDN3DLS","DMN15332LS",
+"DMN15102LS","BROYDNBDLS","VESUVIA","BA-L1SPLS","BA-L1SPLS","SANTALS","VESUVIO","DMN15333LS","ARGTRIGLS","RAT42","SSINE","LSC1","LSC2","BOXBOD","POWELLSE","FREURONE","DANWOOD","HELIXNE"];
 problem_list = filter_string_array(problem_list, remove_list);
-#test_problems(problem_list)
-#test_problems(problem_list[120:end])
+test_problems(problem_list,1)
+#CUTEstModel("GAUSS2")
 
 if false
 problem_list = ["PT"]
 folder_name = "test_run"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if false
+    folder_name = "stable_first"
+    if_mkdir("results/$folder_name")
+
+    subfolder_name = "$folder_name/true"
+    if_mkdir("results/$subfolder_name")
+    my_par.stb_before_agg = true
+    my_par.max_it_corrections = 2
+    run_cutest_problems_using_our_solver(problem_list, subfolder_name, my_par)
+
+    subfolder_name = "$folder_name/false"
+    if_mkdir("results/$subfolder_name")
+    my_par.stb_before_agg = false
+    my_par.max_it_corrections = 3
+    run_cutest_problems_using_our_solver(problem_list, subfolder_name, my_par)
 end
 
 if false
@@ -241,14 +267,29 @@ if false
 end
 
 if true
-    main_folder_name = "pd-split"
+  main_folder_name = "ls"
+  if_mkdir("results/$main_folder_name")
+
+  #for mu_style in [true; false]
+  path = "$main_folder_name/ls_true3"
+  if_mkdir("results/$path")
+  my_par.move_primal_seperate_to_dual = true #mu_style
+  my_par.dual_ls = true
+  run_cutest_problems_using_our_solver(problem_list, path, my_par)
+  #end
+end
+
+
+
+if false
+    main_folder_name = "inertia_test"
     if_mkdir("results/$main_folder_name")
 
 
     for mu_style in [true; false]
       path = "$main_folder_name/$mu_style"
       if_mkdir("results/$path")
-      my_par.move_primal_seperate_to_dual = mu_style
+      my_par.inertia_test = mu_style
       run_cutest_problems_using_our_solver(problem_list, path, my_par)
     end
 

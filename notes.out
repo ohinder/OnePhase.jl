@@ -1,15 +1,17 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [2][-]{subsection.1.1}{Relevant literature}{section.1}% 2
-\BOOKMARK [1][-]{section.2}{Simplified algorithm}{}% 3
+\BOOKMARK [1][-]{section.2}{Motivation and derivation of algorithm}{}% 3
 \BOOKMARK [2][-]{subsection.2.1}{Infeasibility certificates}{section.2}% 4
 \BOOKMARK [2][-]{subsection.2.2}{Derivation of method}{section.2}% 5
-\BOOKMARK [2][-]{subsection.2.3}{Algorithm behaviour}{section.2}% 6
-\BOOKMARK [2][-]{subsection.2.4}{Behavior of this algorithm on convex quadratic programs}{section.2}% 7
-\BOOKMARK [2][-]{subsection.2.5}{Convergence proofs}{section.2}% 8
-\BOOKMARK [1][-]{section.3}{Practical algorithm}{}% 9
-\BOOKMARK [2][-]{subsection.3.1}{Trust region}{section.3}% 10
-\BOOKMARK [2][-]{subsection.3.2}{Line searches}{section.3}% 11
-\BOOKMARK [1][-]{section.4}{Scrap paper}{}% 12
-\BOOKMARK [1][-]{section.5}{Log barrier sub-problems}{}% 13
-\BOOKMARK [1][-]{section.6}{Algorithm}{}% 14
-\BOOKMARK [1][-]{section.7}{Delta computation}{}% 15
+\BOOKMARK [2][-]{subsection.2.3}{Behavior of this algorithm on convex quadratic programs}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{Practical algorithm}{}% 7
+\BOOKMARK [2][-]{subsection.3.1}{Updating the iterates}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.2}{Aggressive search directions}{section.3}% 9
+\BOOKMARK [2][-]{subsection.3.3}{Stablization search directions}{section.3}% 10
+\BOOKMARK [1][-]{section.4}{Convergence proofs}{}% 11
+\BOOKMARK [2][-]{subsection.4.1}{Trust region}{section.4}% 12
+\BOOKMARK [2][-]{subsection.4.2}{Line searches}{section.4}% 13
+\BOOKMARK [1][-]{section.5}{Scrap paper}{}% 14
+\BOOKMARK [1][-]{section.6}{Log barrier sub-problems}{}% 15
+\BOOKMARK [1][-]{section.7}{Algorithm}{}% 16
+\BOOKMARK [1][-]{section.8}{Delta computation}{}% 17

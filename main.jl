@@ -1,7 +1,7 @@
 include("include.jl")
 
 # INFEASIBLE PROBLEMS
-#nlp_raw = CUTEstModel("NCVXQP8")
+nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("JUNKTURN")
 #nlp_raw = CUTEstModel("DRCAVTY3") # seems to be feasible, IPOPT struggles
 #nlp_raw = CUTEstModel("MODEL")
@@ -54,6 +54,7 @@ include("include.jl")
 #HVYCRASH,
 #DISCS, EQC, HIMMELBJ,  PFIT1, PFIT3, SSEBNLN
 #nlp_raw = CUTEstModel("DISCS")
+#nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("SSEBNLN")
 
 
@@ -72,9 +73,9 @@ include("include.jl")
 #nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("A4X12") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("CRESC100") # >> 100. Infinities!
-#nlp_raw = CUTEstModel("CHAIN")
+#nlp_raw = CUTEstModel("AVION2")
 #nlp_raw = CUTEstModel("QPNSTAIR")
-nlp_raw = CUTEstModel("YORKNET")
+#nlp_raw = CUTEstModel("YORKNET")
 
 if false
 using Ipopt
@@ -87,7 +88,6 @@ end
 begin
 nlp = Class_CUTEst(nlp_raw)
 ## FEASIBLE (probably)
-if true
 timer = class_advanced_timer()
 start_advanced_timer(timer)
 #include("include.jl")
@@ -104,7 +104,8 @@ iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
 pause_advanced_timer(timer)
 
 print_timer_stats(timer)
-end
+
+finalize(nlp_raw)
 end
 #
 # aggressive steps do max LP step
@@ -122,6 +123,3 @@ m = nlp_raw.meta.ncon;
 nlp = Class_CUTEst(nlp_raw);
 @time for i = 1:20 eval_jac(nlp, zeros(10000)) end;
 end
-
-
-finalize(nlp_raw)

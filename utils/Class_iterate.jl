@@ -178,35 +178,21 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
 
         if pars.move_primal_seperate_to_dual
             if lb1 < ub1 / 1.01
-                if lb2 < ub2 && false
-                    scale = dual_scale(new_it, pars)
-                    ∇a = get_jac(new_it)
-                    q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
-                    res = [scale * eval_grad_lag(new_it); -comp(new_it)]
-                    lb = lb2
-                    ub = ub2
-                else
-                  q = new_it.point.s .* dir.y;
-                  res = -comp(new_it);
-                  lb = lb1
-                  ub = ub1
-                end
-
-
-                if lb2 < ub2 && false
-                  step_size_D = ub2
-                else
-                  step_size_D = sum(res .* q) / sum(q.^2)
-                  step_size_D = ub1 #min(ub1, max(lb1, step_size_D))
-                end
-
                 theta = (1.0 - pars.fraction_to_boundary)
                 step_size_D_boundary = theta / maximum([theta; -dir.y ./ it.point.y])
                 step_size_D_max = min(step_size_D_boundary, ub1)
-                step_size_D = step_size_D_max
-                #step_size_D = min(step_size_D_max,max(lb1, sum(res .* q) / sum(q.^2)))
-                #@assert(step_size_D < 1.0)
-                #step_size_D = min(step_size_D, step_size)
+
+                if pars.dual_ls
+                  scale = dual_scale(new_it, pars)
+                  ∇a = get_jac(new_it)
+                  q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
+                  predicted_dual_res = step_size * (hess_product(it, dir.x) + get_delta(it) * dir.x) + eval_grad_lag(it)
+                  res = [scale * predicted_dual_res; -comp(new_it)]
+                  step_size_D = sum(res .* q) / sum(q.^2)
+                  step_size_D = max(lb1,min(step_size_D,step_size_D_max))
+                else
+                  step_size_D = step_size_D_max
+                end
 
                 new_it.point.y += dir.y * step_size_D
 

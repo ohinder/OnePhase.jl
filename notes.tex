@@ -1,6 +1,7 @@
 \documentclass{article}
 
 \input{preamble.tex}
+\usepackage{enumitem}
 
 \begin{document}
 
@@ -13,18 +14,34 @@
 
 \maketitle
 
+
 \newcommand{\algorithmicbreak}{\textbf{break}}
 \newcommand{\obj}{f}
 \newcommand{\cons}{a}
-\newcommand{\parNumCor}{p(\#corrections)}
+\newcommand{\parNumCor}{c_{\max}}
 \newcommand{\parComp}{\beta_{1}}
 \newcommand{\parCompAgg}{\beta_{2}}
-\newcommand{\status}{\textbf{status}}
-\newcommand{\feasible}{\textbf{feasible}}
+\newcommand{\parFracBoundary}{\beta_{3}}
+\newcommand{\parMinStableStepSize}{\beta_{4}}
+\newcommand{\parKKTReductFactor}{\beta_{5}}
+\newcommand{\parObjReductFactor}{\beta_{6}}
+
+%\newcommand{\Filter}{\mathbb{F}}
+\newcommand{\History}{\mathbb{H}}
+
+
+
 \newcommand{\TOLinf}{\epsilon_{\textbf{inf}}}
 \newcommand{\TOLmu}{\epsilon_{\textbf{mu}}}
 \newcommand{\TOL}{\epsilon}
 
+\newcommand{\status}{\textbf{status}}
+\newcommand{\success}{\textsc{success}}
+\newcommand{\failure}{\textsc{failure}}
+
+\newcommand{\feasible}{\textbf{feasible}}
+
+\newcommand{\meritKKT}{\mathbb{K}}
 
 % alg
 \newcommand{\simpleIPM}{Simplified-One-Phase-Non-Convex-IPM}
@@ -71,9 +88,7 @@ Within non-convex optimization there are four papers that I think are particular
 \item Papers in convex optimization?
 \end{enumerate}
 
-
-
-\section{Simplified algorithm}
+\section{Motivation and derivation of algorithm}
 
 We wish to solve the following problem:
 \begin{flalign*}
@@ -178,60 +193,182 @@ M (x,y, s) = \nabla^2 \Lag (x, y) + \nabla a(x)^T Y S^{-1} \nabla a(x)
 D(x,y) \le \mu^{k}  \& \| Sy - \mu^{k} \|_{\infty} \le \mu^k / 4
 \end{flalign}
 
-\subsection{Algorithm behaviour}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{\simpleIPM}{$x, y$}
-\For{$k = 1, ... \infty$}
-\State \textbf{Stabilization step:}
-    \Indent
-\State Minimize the unconstrained problem \eqref{shifted-barrier-problem} with $\eta^k = 0$ until \eqref{terminate-when} holds
-     \EndIndent
-\If{$D(x,y) \le \epsilon$ \& $\mu^{k} \le \epsilon$}
-\State Terminate with optimal solution
-\ElsIf{$\frac{ \| \nabla a(x)^T y \|_{2} }{a(x)^T y} \le \TOL$} 
-\State Terminate at infeasible point 
-\EndIf
-\If{$D(x,y) \le \mu^k$}
-\State \textbf{Aggressive correction:}
-    \Indent
-\State Solve system \eqref{primal-dual-newton-direction} with $\delta^k = \frac{\| g^k \| L_0}{\mu^k} - \lambda_{\min}{(M^{k})}
-$ and $\eta^{k} = 1$
-\State  $x^{+}, y^{+}, s^{+}, \alpha^{+} \gets \Call{Aggressive-line-search}{\obj, \cons, x, y, d_{x}, d_{y}}$
-\If{$ \mu \alpha^{+} < \min{s_i^k} / 10$}
-\State \textbf{increase $\delta$}
-\EndIf
-\EndIndent
-\EndIf
-\EndFor
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Aggressive-line-search}{$\obj, \cons, x, y, d_{x}, d_{y}$}
-\State $\eta \gets 1$
-\State $\alpha_{P} \gets \Call{FractionToBoundary}{s, d_{s} }$
-\For{$i = 1, ..., \infty$}
-\State $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
-\If{$\status = \feasible$ \& Function value does not increase too much}
-\State \Return{$x^{+}, y^{+}, s^{+}$}
-\Else
-\State $\alpha_{P} \gets \alpha_{P} / 2$
-\EndIf
-\EndFor
-\EndFunction
-\end{algorithmic}
-\caption{Aggressive line search}
-\end{algorithm}
-
 \subsection{Behavior of this algorithm on convex quadratic programs}
 
 [one stabilization step followed by one aggressive step]. [resemblance to predictor corrector]
 
-\subsection{Convergence proofs}
+\section{Practical algorithm}
+
+
+$$
+\sigma (y) = \frac{100}{\max\{ 100, \| y \|_{\infty} \}}
+$$
+
+
+
+Scaled KKT termination criterion: 
+\begin{subequations}\label{terminate-kkt}
+\begin{flalign}
+\sigma (y) \| \nabla L_{\gamma}(x, y) \|_{\infty} &\le  \epsilon  \\
+\sigma (y) \| S y \|_{\infty} &\le \epsilon  \\
+\| a(x) + s \|_{\infty} &\le \epsilon 
+\end{flalign}
+\end{subequations}
+Local primal infeasibility termination criterion:
+\begin{subequations}\label{terminate-primal-infeasible}
+\begin{flalign}
+\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf \\
+\frac{\| w^T \nabla a(x) \|_{\infty}}{\| w \|_{\infty}} \le \TOLinf
+\end{flalign}
+\end{subequations}
+
+Local dual infeasibility termination criteron
+\begin{subequations}\label{terminate-dual-infeasible}
+\begin{flalign}
+\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf \\
+\frac{\| w^T \nabla a(x) \|_{\infty}}{\| w \|_{\infty}} \le \TOLinf
+\end{flalign}
+\end{subequations}
+
+Aggressive step criterion:
+\begin{subequations}\label{agg-criteron}
+\begin{flalign}
+\| \nabla L_{\gamma}(x, y) \|_{\infty} &\le \min\left\{ \frac{\| a(x) + s \|_{\infty}}{\sigma (y)  } , 1 + \| \nabla f_{\gamma}(x) \|_{\infty} \right\} \\
+ \frac{S y}{\mu} &\in [ e \parCompAgg, e / \parCompAgg ] 
+\end{flalign}
+\end{subequations}
+
+
+\begin{algorithm}[H]
+\textbf{Input:} Some initial point $x_{0}, y_{0}, s_{0}, \mu$ 
+\vspace{0.2 cm} \\
+\emph{For each iteration $i = 1, ..., i_{\max}$ perform the following steps:}
+\begin{enumerate}[label*=A.{\arabic*}]
+\item \label{step-1}  \emph{Update hessian and jacobian. 
+\item Check the termination criterion given in \eqref{terminate-kkt}, \eqref{terminate-primal-infeasible} and \eqref{terminate-dual-infeasible}.
+\item Form primal schur complement at the point $x$, $y$}
+\item \emph{Factorize the matrix using IPOPT strategy}
+\item \label{take-steps}  \emph{Perform corrections steps for $k \in \{ 1, ..., \parNumCor \}$}
+\begin{enumerate}[label*=.{\arabic*}]
+\item \emph{Perform corrections}
+\begin{enumerate}[label=-Case-{\Roman*}]
+\item If equation~\eqref{agg-criteron} is satisfied then go to the aggressive search direction algorithm (Algorithm~\ref{alg:aggressive}).
+\item Otherwise go to the stablization search direction algorithm (Algorithm~\ref{alg:stable}).
+\end{enumerate}
+\item \emph{Deal with failures}. If correction succeeds set $x, y, s \gets x^{+}, y^{+}, s^{+}$. If correction failed and $k = 1$ go to \eqref{increase-delta-for-failure}. Otherwise if the correction failed with $k > 1$ go to step~\eqref{step-1}.
+\end{enumerate}
+\item Go to \eqref{step-1}
+\item \label{increase-delta-for-failure} \emph{Increase delta to address failure}. Set $\delta = \max\{10 \delta, \delta_{\min} \}$ and factorize the matrix. Go to step \eqref{take-steps}.
+\end{enumerate}
+\caption{High level description of one phase IPM}
+\end{algorithm}
+
+\subsection{Updating the iterates}
+
+Given a primal step size $\alpha_{P}$ we update the primal iterates as follows:
+\begin{subequations}
+\begin{flalign}\label{eq:iterate-update}
+x^{+} &\gets x + \alpha_{P} d_{x} \\
+\mu^{+} &\gets (1 - \eta \alpha_{P}) \mu \\
+\theta^{+} &\gets (1 - \eta \alpha_{P}) \theta \\
+s^{+} &\gets a(x^{+}) + \theta (  s^{1} - a(x^{1}) )
+\end{flalign}
+\end{subequations}
+Fraction to the boundary:
+\begin{flalign}
+s + \alpha_{P} d_{s} \ge s \parFracBoundary
+\end{flalign}
+Given some candidate primal iterate $x^{+}$, $s^{+}$, we define $B( s^{+}, d_{y} )$ set of feasible dual step sizes. In particular, let it be the largest interval such that if $\alpha_{D} \in B( s^{+}, d_{y} )$ then
+\begin{flalign}
+ \frac{S^{+} y + \alpha_{D} d_{y}}{\mu} \in [\parComp, 1/\parComp ]
+\end{flalign}
+If no such interval exists we set $B( s^{+}, d_{y} )$ to the empty set and the step will be rejected. We compute the dual step size as follows:
+\begin{flalign}
+\alpha_{D} = \arg \min_{\alpha_{D} \in B( s^{+}, d_{y} )} \| S^{+} y + \alpha_{D} S^{+} d_{y} \|^2_{2} +  \sigma(y) \| \nabla L(x, y)  + (\nabla^2 L(x, y) + \delta I) d_{x} + \alpha_{D}  \nabla a(x)^T d_{y} \|^{2}_{2}
+\end{flalign}
+This reduces to a one dimensional least squares problem in $\alpha_{D}$ which has a closed form expression.
+
+\subsection{Aggressive search directions}
+
+\begin{algorithm}[H]
+\textbf{Input:} Some point $x, y, s, \mu$ \\
+\textbf{Output:} A new point $x^{+}, y^{+}, s^{+}, \mu^{+}$ and a $\status$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item Compute a direction $d$ from the system~\eqref{primal-dual-newton-direction} with $\eta = 1$
+\item Estimate the largest primal step size $\alpha^{\max}_{P}$
+\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha \in \{\alpha^{\max}_{P}, \beta \alpha^{\max}_{P}, ... \}$ and terminate with $\status = \success$ the first time all of the following conditions hold:
+\begin{enumerate}[label=({\roman*})] 
+\item The fraction to the boundary rule \eqref{} is satisfied 
+\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
+\item Lagragian???
+\end{enumerate}
+Terminate with $\status = \failure$ if the line search trials a point with
+ $$
+\alpha_{P} \le \textbf{some constant} \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} }
+$$
+\end{enumerate}
+\caption{High level description of aggressive correction}\label{alg:aggressive}
+\end{algorithm}
+
+\subsection{Stablization search directions}
+
+
+Let:
+\begin{flalign}
+\meritKKT ( x, y, s )  = \sigma( y ) \max\{ \| \nabla L(x, y ) \|_{\infty},  \| S y - \mu \|_{\infty} \}
+\end{flalign}
+During the stabilization search we accept iterates that sufficiently reduce the merit function:
+\begin{flalign}
+\phi(x^{+}, y^{+}, s^{+}) \le \phi(x, y, s) + \parObjReductFactor \tilde{\Delta}_{(x,y,s)}^{\phi}  ( d_{x}, d_{y} )
+\end{flalign}
+Or sufficient progress is made on a KKT merit function relative to the historic iterates. In particular, for every $(\hat{x}, \hat{y}, \hat{s}) \in \History$ one of the following two equations holds:
+\begin{subequations}\label{eq:filter}
+\begin{flalign}
+\meritKKT (x^{+}, y^{+}, s^{+}) &\le (1 - \parKKTReductFactor \alpha_{P} ) \meritKKT (\hat{x}, \hat{y}, \hat{s}) \\
+\phi(x^{+}, y^{+}, s^{+}) &\le \phi(\hat{x}, \hat{y}, \hat{s}) - \parKKTReductFactor \alpha_{P} \meritKKT (\hat{x}, \hat{y}, \hat{s}).
+\end{flalign}
+\end{subequations}
+This filter accepts large steps that significantly reduce the KKT error. The motivation for this choice is that, even on non-convex problems, the optimization trajectory often passes through regions where the primal schur complement is positive definite. For example, this naturally occurs near points satisfying the sufficient conditions for local optimality. In these situation often the KKT error is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility.
+
+\begin{algorithm}[H]
+\textbf{Input:} Some point $x, y, s, \mu$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item Compute a direction $d$ from the system~\eqref{} with $\eta = 0$
+\item Estimate the largest primal step size $\alpha^{\max}_{P}$
+\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Start with $\alpha_{P} = \alpha^{\max}_{P}$. Set $\status = \success$ and move to step~\eqref{filter-update} if all of the following conditions hold:
+\begin{enumerate}[label=({\roman*})] 
+\item The fraction to the boundary rule \eqref{} is satisfied 
+\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
+\item The filter i.e. one of equations~\eqref{eq:filter} is satisfied.
+\end{enumerate}
+Return the original iterates and $\status = \failure$ if the line search trials a point with $\alpha_{P} \le \parMinStableStepSize$
+\item \label{filter-update} Augment the histories $\History$ with the new iterate $(x^{+}, y^{+}, s^{+})$.
+\end{enumerate}
+\caption{High level description of stabilization corrections}\label{alg:stable}
+\end{algorithm}
+
+\begin{table}[H]
+\begin{tabular}{ |c| p{7cm}|c|c| } 
+ \hline
+Parameter & Description & Possible values & Chosen value  \\ 
+ \hline
+$\parNumCor$ & Maximum number of corrections per iteration. See \eqref{}.  & Any natural number & $3$  \\ 
+ \hline
+  $\parComp$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$. See \eqref{}.  & The interval $(0,1)$ & 0.01 \\ 
+ \hline
+   $\parCompAgg$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$ in order for the aggressive criterion to be met. See \eqref{}.  & The interval  $(0, \parComp)$ &  \\ 
+    \hline
+   $\parMinStableStepSize$ & Minimum step size for stable line searches. See \eqref{}.  & The interval $(0,1)$ &  \\ 
+   \hline
+      $\parKKTReductFactor$ & Acceptable reduction factor for the scaled KKT error $\meritKKT$ during stabilization steps. See \eqref{}.  & The interval $(0,1)$ &  \\ 
+      \hline
+            $\parObjReductFactor$ & Acceptable reduction factor for the merit function $\phi$ during stabilization steps. See \eqref{}.  & The interval $(0,1)$ &  \\
+\hline
+\end{tabular}
+\caption{Parameters values and descriptions}
+\end{table}
+
+\section{Convergence proofs}
 
 \begin{lemma}
 Assume that $a(x^{1}) - s^{1} = -\mu e$ and $\epsilon < 1$.
@@ -328,39 +465,6 @@ And since $\frac{s^{k} y^{k}}{\mu^k} \in [1/2,3/2]$ we have  $\frac{s^{k+1} y^{k
 \end{proof}
 
 
-\section{Practical algorithm}
-$$
-D_{\gamma}(x,y) =  \frac{\| \nabla L(x,y) \|_{\infty}}{\sqrt{ \| y \|_{\infty} + 1 } }
-$$
-$$
-E_{\mu}(x,y,s) = \max\left\{ D(x,y), \| S y - \mu \|_{\infty}  \right\}
-$$
-
-\begin{algorithm}[H]
-\begin{algorithmic}\label{AlgMain}
-\Function{IPM}{$x, y$}
-\State $\gamma \gets ...$
-\State $f_{\gamma}(x) := f(x) + \gamma \| x \|^2$
-\For{$k = 1, ... \infty$}
-\State Form primal schur complement 
-\State Factorize using IPOPT strategy.
-\For{$i = 1, ..., \parNumCor$}
-\If{$i > 1$ \& $D_{\gamma}(x,y) \le \min\{ \mu, \theta \}$ \& $\frac{Sy}{\mu} \in [ \parCompAgg , 1/ \parCompAgg ]$ \& $\frac{\sqrt{\lambda}}{1 + \| y \|_{\infty}} \le \mu$   }
-\State \Call{Aggressive-correction}{}
-\State $\gamma \gets ...$
-\State If failure and $i = 2$ then set failure flag.
-\Else
-\State \Call{Stable-correction}{}
-%\State Compute stable direction by solving [system] with $\eta = 0$.
-%\State $(x, y) \gets \Call{Stable-line-search}{}$
-\State If failure and $i = 1$ then set failure flag.
-\EndIf
-\EndFor
-\EndFor
-\EndFunction
-\end{algorithmic}
-\caption{One phase primal-dual IPM}
-\end{algorithm}
 
 \subsection{Trust region}
 

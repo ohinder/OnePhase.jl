@@ -38,6 +38,7 @@ type Class_parameters
     ls_mode_agg::Symbol
     agg_protect_factor::Float64
     move_primal_seperate_to_dual::Bool
+    dual_ls::Bool
     max_step_primal_dual::Bool
     s_update::Symbol
     stb_before_agg::Bool
@@ -52,6 +53,7 @@ type Class_parameters
     threshold_type::Symbol
     lag_grad_test::Bool
     comp_feas::Float64
+    comp_feas_agg_inf::Float64
     comp_feas_agg::Float64
     min_step_size_stable::Float64
     min_step_size_correction::Float64
@@ -95,16 +97,16 @@ type Class_parameters
         #this.dual_scale_mode = :exact
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
-        this.max_it_corrections = 2
+        this.max_it_corrections = 3 ######
         this.comp_feas = 1/100.0
-        this.comp_feas_agg = 1/70.0 #1/50.0
+        this.comp_feas_agg_inf = 0.99
+        this.comp_feas_agg = 1/10.0 #1/70.0 #1/50.0
         this.min_step_size_stable = 1e-3
-        this.min_step_size_correction = 1e-1
+        this.min_step_size_correction = 1e-3
         this.use_delta_s = false
         this.adaptive_mu = :none
-        #this.adaptive_mu = :test1
-        #this.adaptive_mu = :test11
-        this.stb_before_agg = true
+        #this.adaptive_mu = :test7
+        this.stb_before_agg = false
         this.eigen_search = false
         this.trust_region = false
 
@@ -116,7 +118,7 @@ type Class_parameters
         this.tol_infeas = 1e-12 # ????
         this.max_it = 3000;
         #this.MAX_TIME = 30.0
-        this.MAX_TIME = 60.0 * 60 # 60 minutes max time
+        this.MAX_TIME = 10.0 * 60 # 10 minutes max time
 
         # LINE SEARCH
         this.kkt_reduction_factor = 0.5
@@ -135,7 +137,8 @@ type Class_parameters
         this.agg_protect_factor = 1e4
 
         this.move_type = :primal_dual
-        this.move_primal_seperate_to_dual = false
+        this.move_primal_seperate_to_dual = true
+        this.dual_ls = true
         this.max_step_primal_dual = false #false
         this.s_update = :careful # :careful :loose, use careful except for experimentation
         this.mu_update = :static #:dynamic #:static #:static #:static #:dynamic :dynamic_agg

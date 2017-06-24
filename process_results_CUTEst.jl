@@ -18,18 +18,31 @@ results = Dict{String, Dict{String,problem_summary}}()
 #results["One Phase 5"] = load("results/pars3/mu-test3/summary.jld", "summary")
 #results["One Phase 6"] = load("results/pars3/mu-awesome/summary.jld", "summary")
 
+
+#results["no inertia test"] = load("results/inertia_test/true/summary.jld", "summary")
+#results["inertia test"] = load("results/inertia_test/false/summary.jld", "summary")
+
+
+#results["One Phase 5"] = load("results/pars4/test5/summary.jld", "summary")
+#results["One Phase 6"] = load("results/pars4/test6/summary.jld", "summary")
+#results["One Phase 7"] = load("results/pars4/test7/summary.jld", "summary")
+#results["One Phase 8"] = load("results/pars4/test8/summary.jld", "summary")
+#results["One Phase 9"] = load("results/pars4/test9/summary.jld", "summary")
+#results["One Phase 10"] = load("results/pars4/test10/summary.jld", "summary")
+#results["One Phase 11"] = load("results/pars4/test11/summary.jld", "summary")
+#results["One Phase 12"] = load("results/pars4/test12/summary.jld", "summary")
 results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary"))
-results["One Phase none"] = load("results/pars4/none/summary.jld", "summary")
-results["One Phase 5"] = load("results/pars4/test5/summary.jld", "summary")
-results["One Phase 7"] = load("results/pars4/test6/summary.jld", "summary")
-results["One Phase 8"] = load("results/pars4/test7/summary.jld", "summary")
-results["One Phase 9"] = load("results/pars4/test8/summary.jld", "summary")
-results["One Phase 10"] = load("results/pars4/test9/summary.jld", "summary")
-results["One Phase 11"] = load("results/pars4/test10/summary.jld", "summary")
-results["One Phase 12"] = load("results/pars4/test11/summary.jld", "summary")
-results["One Phase 13"] = load("results/pars4/test12/summary.jld", "summary")
+#results["One Phase none"] = load("results/pars4/none/summary.jld", "summary")
+#results["One Phase true"] = load("results/pd-split/true/summary.jld", "summary")
+#results["One Phase false"] = load("results/pd-split/false/summary.jld", "summary")
+results["One Phase ls3"] = load("results/ls/ls_true3/summary.jld", "summary")
+#results["One Phase ls2"] = load("results/ls/ls_true2/summary.jld", "summary")
+#results["One Phase ls1"] = load("results/ls/ls_true/summary.jld", "summary")
+#results["One Phase ls false"] = load("results/ls/ls_false/summary.jld", "summary")
 
 
+#results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")
+#results["stable_first/true"] = load("results/stable_first/true/summary.jld", "summary")
 
 if false
 error_free_results = remove_errors(results, [:NaN_ERR, :ERR])
@@ -75,12 +88,15 @@ best = best_its(its)
 ratios = Dict()
 for (method_name, val) in its
   ratios[method_name] = its[method_name] ./ best;
+  lrg = its[method_name] .>= Infty
+  ratios[method_name][lrg] = Inf
+
   d = ratios[method_name]
   println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)), rd(quantile(d,0.9)))
 end
 
 ##
-## PLOT ITERATION CURVES
+## PLOT ITERATION RATIO CURVES
 ##
 
 using PyPlot

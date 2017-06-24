@@ -1,5 +1,7 @@
 Short term:
 
+- check triangular!!!!!
+
 - deal correctly with exceptions
 - add parameters for termination criterion
 - test unconstrained problems

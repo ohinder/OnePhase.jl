@@ -26,9 +26,12 @@ squeue -u $USER
 #julia
 sbatch install_ipopt.sbatch
 
-
+ln -s /Users/Oliver/Documents/IPM-results/ results
 
 Pkg.add("Ipopt")
 Pkg.add("JuMP")
 Pkg.add("JLD")
+Pkg.add("CUTEst")
+Pkg.add("Calculus")
+Pkg.clone("https://github.com/ohinder/advanced_timer.jl.git")
 #Pkg.add("...")

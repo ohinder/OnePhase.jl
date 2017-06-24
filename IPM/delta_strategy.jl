@@ -1,4 +1,4 @@
-function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
+function ipopt_strategy_stable!(iter::Class_iterate, stable_reduct_factors::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
     form_system!(kkt_solver, iter, timer)
     kkt_associate_rhs!(kkt_solver, iter, stable_reduct_factors, timer)
 
@@ -56,6 +56,64 @@ function ipopt_strategy!(iter::Class_iterate, stable_reduct_factors::Class_reduc
           #((step_info.step_size_P > 1e-2 && KKT_THRESHOLD <= delta) || (step_info.step_size_P > 1e-4 && delta < KKT_THRESHOLD ))
             set_delta(new_iter, delta)
             return status, new_iter, step_info
+        elseif i == 1
+          if get_delta(iter) != 0.0
+            delta = max(DELTA_MIN, get_delta(iter) / pi)
+          else
+            delta = DELTA_START
+          end
+        else
+            delta = delta * 8.0
+        end
+
+        if DELTA_MAX < delta
+          break
+        end
+    end
+
+    dx = norm(kkt_solver.dir.x,Inf)
+    dy = norm(kkt_solver.dir.y,Inf)
+    ds = norm(kkt_solver.dir.s,Inf)
+
+    my_warn("ipopt_strategy failed with delta_max=$DELTA_MAX, delta=$delta, inertia=$inertia, status=$status, dir_x=$dx, dir_y=$dx, dir_s=$ds")
+
+    error("ipopt_strategy failed with to big a delta")
+    return :failure, iter, Blank_ls_info()
+end
+
+function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters, timer::class_advanced_timer)
+    form_system!(kkt_solver, iter, timer)
+
+    step_info = Blank_ls_info()
+
+    MAX_IT = 50
+    DELTA_START = 1e-6
+    DELTA_ZERO = 0.0 #get_mu(iter) / ((1e2 + norm(get_x(iter),Inf)) * 1e2)
+    DELTA_MIN = 1e-12
+    DELTA_MAX = 1e50 #DELTA_MAX = 10.0 * norm(eval_lag_hess(iter), 1)
+
+    delta = DELTA_ZERO
+
+    if pars.output_level >= 4
+        println(pd("delta"), pd("inertia"))
+    end
+    inertia = 0
+    status = :none
+
+    for i = 1:MAX_IT
+        if pars.use_delta_s
+          inertia = factor!( kkt_solver, delta , delta, timer )
+        else
+          inertia = factor!( kkt_solver, delta, timer )
+        end
+
+        if pars.output_level >= 4
+          println(rd(delta), pd(inertia))
+        end
+
+        if inertia == 1
+          set_delta(iter, delta)
+          return :success
         elseif i == 1
           if get_delta(iter) != 0.0
             delta = max(DELTA_MIN, get_delta(iter) / pi)
