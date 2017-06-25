@@ -173,9 +173,9 @@ function filter_cutest(problem)
     #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
     # medium lrg
     #10 <= problem["variables"]["number"] + problem["constraints"]["number"] &&
-    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
+    #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
     # medium
-    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 1000 && problem["constraints"]["number"] <= 1000
+    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 1000 && problem["constraints"]["number"] <= 1000
     # small
     #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
     if correct_size && regular
@@ -216,12 +216,18 @@ remove_list = ["MISRA1D","OSBORNE1","LANCZOS2","MEYER3NE","ROSZMAN1","INTEQNE","
 "DMN37142LS","VESUVIOU","PENLT2NE", "DMN37143LS","INTEQNELS","BROYDN3DLS","DMN15332LS",
 "DMN15102LS","BROYDNBDLS","VESUVIA","BA-L1SPLS","BA-L1SPLS","SANTALS","VESUVIO","DMN15333LS","ARGTRIGLS","RAT42","SSINE","LSC1","LSC2","BOXBOD","POWELLSE","FREURONE","DANWOOD","HELIXNE"];
 problem_list = filter_string_array(problem_list, remove_list);
-test_problems(problem_list,1)
+#test_problems(problem_list,1)
 #CUTEstModel("GAUSS2")
 
 if false
 problem_list = ["PT"]
 folder_name = "test_run"
+if_mkdir("results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if true
+folder_name = "new_approach"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
@@ -266,7 +272,7 @@ if false
     #run_cutest_problems_using_our_solver(problem_list, "$folder_name", my_par)
 end
 
-if true
+if false
   main_folder_name = "ls"
   if_mkdir("results/$main_folder_name")
 

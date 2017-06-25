@@ -39,6 +39,7 @@ results["One Phase ls3"] = load("results/ls/ls_true3/summary.jld", "summary")
 #results["One Phase ls2"] = load("results/ls/ls_true2/summary.jld", "summary")
 #results["One Phase ls1"] = load("results/ls/ls_true/summary.jld", "summary")
 #results["One Phase ls false"] = load("results/ls/ls_false/summary.jld", "summary")
+results["new approach"] = load("results/new_approach/summary.jld", "summary")
 
 
 #results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")

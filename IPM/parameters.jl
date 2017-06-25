@@ -56,15 +56,16 @@ type Class_parameters
     comp_feas_agg_inf::Float64
     comp_feas_agg::Float64
     min_step_size_stable::Float64
-    min_step_size_correction::Float64
+    min_step_size_agg_ratio::Float64
     ls_mode_stable_trust::Symbol
     ls_mode_stable_delta_zero::Symbol
     ls_mode_stable_correction::Symbol
     use_delta_s::Bool
     adaptive_mu::Symbol
+    pause_primal::Bool
     eigen_search::Bool
     trust_region::Bool
-
+    proximal_style::Symbol
 
     # SADDLE PROBLEM
     ItRefine_BigFloat::Bool
@@ -99,13 +100,14 @@ type Class_parameters
         this.inertia_test = false # true
         this.max_it_corrections = 3 ######
         this.comp_feas = 1/100.0
-        this.comp_feas_agg_inf = 0.99
-        this.comp_feas_agg = 1/10.0 #1/70.0 #1/50.0
+        this.comp_feas_agg_inf = Inf
+        this.comp_feas_agg = 1/70.0 #1/70.0 #1/50.0
         this.min_step_size_stable = 1e-3
-        this.min_step_size_correction = 1e-3
+        this.min_step_size_agg_ratio = 1e-2
         this.use_delta_s = false
-        this.adaptive_mu = :none
-        #this.adaptive_mu = :test7
+        #this.adaptive_mu = :none
+        this.adaptive_mu = :test7
+        this.pause_primal = false
         this.stb_before_agg = false
         this.eigen_search = false
         this.trust_region = false
@@ -125,7 +127,7 @@ type Class_parameters
         this.predict_reduction_factor = 0.1 #1e-1
         this.predict_reduction_factor_MAX = 0.3
         this.predict_reduction_eigenvector_threshold = 1e-1
-        this.fraction_to_boundary = 0.01
+        this.fraction_to_boundary = 0.05
         this.fraction_to_boundary_predict = 0.1
         this.ls_backtracking_factor = 0.5
         this.ls_num_backtracks = 60;
@@ -134,7 +136,7 @@ type Class_parameters
         this.ls_mode_stable_delta_zero = :accept_filter #:accept_filter
         this.ls_mode_stable_correction = :accept_filter
         this.ls_mode_agg = :accept_aggressive
-        this.agg_protect_factor = 1e4
+        this.agg_protect_factor = 1e4 #1e4
 
         this.move_type = :primal_dual
         this.move_primal_seperate_to_dual = true
@@ -146,6 +148,7 @@ type Class_parameters
         this.saddle_err_tol = Inf
         this.ItRefine_Num = 2
         this.ItRefine_BigFloat = false
+        this.proximal_style = :test1
 
         if true
           this.kkt_solver_type = :schur

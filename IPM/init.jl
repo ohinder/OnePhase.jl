@@ -204,10 +204,14 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     m = length(a)
     J = eval_jac(nlp, x)
     g = eval_grad_f(nlp, x)
-    @assert(!isbad(J[:]))
+
+    if length(nonzeros(J)) > 0
+      @assert(!isbad(nonzeros(J)))
+      @assert(!isbad(a))
+    end
     @assert(!isbad(g))
-    @assert(!isbad(a))
     pause_advanced_timer(timer, "INIT/evals")
+
 
     #@show sum(g)
 
@@ -218,7 +222,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     pause_advanced_timer(timer, "INIT/estimate_y_tilde")
 
     start_advanced_timer(timer, "INIT/mehortra_guarding")
-    threshold = 1e-4 * (max(-minimum(a), 0) + norm(g, Inf))
+    threshold = 1e-4 * (max(-minimum([a; 0.0]), 0) + norm(g, Inf))
     @show threshold
 
     ais = cons_indicies(nlp)
@@ -227,8 +231,8 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
 
-    s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
 
+    s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
 
     #if (norm(y,Inf) < 1e-1 || norm(y,Inf) > 1e3)
     #  y = ones(m) * 100.0

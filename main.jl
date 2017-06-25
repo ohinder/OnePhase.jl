@@ -1,7 +1,7 @@
 include("include.jl")
 
 # INFEASIBLE PROBLEMS
-nlp_raw = CUTEstModel("NCVXQP8")
+#nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("JUNKTURN")
 #nlp_raw = CUTEstModel("DRCAVTY3") # seems to be feasible, IPOPT struggles
 #nlp_raw = CUTEstModel("MODEL")
@@ -15,7 +15,7 @@ nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
 #nlp_raw = CUTEstModel("AGG") # 153 ITS
-#nlp_raw = CUTEstModel("KISSING") # 180 ITS
+nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw = CUTEstModel("FLETCHCR")
 #nlp_raw = CUTEstModel("GENHUMPS")
@@ -56,7 +56,7 @@ nlp_raw = CUTEstModel("NCVXQP8")
 #nlp_raw = CUTEstModel("DISCS")
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("SSEBNLN")
-
+#nlp_raw = CUTEstModel("BATCH")
 
 #nlp_raw = CUTEstModel("GPP")
 #mean(abs(grad(nlp_raw, nlp_raw.meta.x0))) #, maximum(abs(jac(nlp_raw, nlp_raw.meta.x0)))

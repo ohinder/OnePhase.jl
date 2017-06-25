@@ -24,9 +24,17 @@ function update_prox!(iter::Class_iterate, pars::Class_parameters)
     prox = iter.nlp::Class_proximal
     x = get_x(iter)
     #prox.lambda_vec = min(100.0, get_mu(iter)) * ones(length(x)) / (10.0 * (1.0 + norm(x, Inf) ) )
-    prox.lambda_vec = min(100.0, get_mu(iter)) * ones(length(x)) ./ ( (norm(x, Inf) .* (abs(x) + 1.0) + 1.0) * 10.0)
     #prox.lambda_vec = get_mu(iter) * ones(length(x)) ./ (norm(x, 2) * 10.0 + 100.0)
-
+    if pars.proximal_style == :none
+      lambda = 0.0
+    elseif pars.proximal_style == :test1
+      lambda = min(100.0, get_mu(iter)) / ((norm(x, Inf)^2 + 1.0) * 10.0)
+    elseif pars.proximal_style == :test2
+      lambda = min(100.0, get_mu(iter)) / ((norm(x, Inf) + 1.0) * 10.0)
+    elseif pars.proximal_style == :test3
+      lambda = min(1.0, get_mu(iter)) / ((norm(x, Inf) + 1.0) * 10.0)
+    end
+    prox.lambda_vec = lambda * ones(length(x))
 end
 
 

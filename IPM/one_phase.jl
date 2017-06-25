@@ -28,7 +28,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
              @assert(is_feasible(iter, pars.comp_feas))
 
-             for i = 1:(pars.max_it_corrections+1)
+             for i = 1:pars.max_it_corrections
                status = terminate(iter, pars)
                if status != false
                  println("Terminated with ", status)
@@ -52,8 +52,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  error("threshold_type not known")
                end=#
 
-               is_feas = is_feasible(iter, pars.comp_feas_agg)
-               is_feas = norm(comp(iter),Inf) < pars.comp_feas_agg_inf
+               is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
                #dual_progress = scaled_dual_feas(iter, pars) < threshold
 
                feas_obj = max(0.0,-mean(iter.point.y .* iter.cache.cons))
@@ -89,7 +88,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
                # * 10.0
                #dual_progress = dual_avg < mu_ub * 10.0
-               delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
+               delta_small = get_delta(iter) < get_mu(iter) * (1.0 + norm(get_y(iter),Inf))
                lag_grad = norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
 
                be_aggressive = is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
@@ -105,12 +104,17 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        reduct_factors = Class_reduction_factors(1e-1, 0.0, 0.8)
                      else
                      end=#
-                     step_type = "agg"
-                     reduct_factors = Reduct_affine() #
+                     if norm(get_primal_res(iter),Inf) > pars.tol || !pars.pause_primal
+                       step_type = "agg"
+                       reduct_factors = Reduct_affine()
+                     else
+                       reduct_factors = Class_reduction_factors(1.0, 0.0, 0.0)
+                       step_type = "mu"
+                     end
                      #reduct_factors = Class_reduction_factors(0.5, 0.5, 0.5)
                      ls_mode = pars.ls_mode_agg;
 
-                     q = 0.01 * min(1.0, 1.0 / maximum(- get_primal_res(iter) ./ iter.point.s))
+                     q = pars.min_step_size_agg_ratio * min(1.0, 1.0 / maximum(- get_primal_res(iter) ./ iter.point.s))
                      actual_min_step_size = q
                      #@show q
                      iter.point.mu = mu_est
@@ -136,12 +140,13 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        iter = new_iter
                        break
                      elseif i < 100
-                       set_delta(iter, max(get_delta(iter) * 10.0, 1e-8))
+                       set_delta(iter, max(get_delta(iter) * 8.0, 1e-8))
                        factor!(kkt_solver, get_delta(iter), timer)
                      else
                        pause_advanced_timer(timer, "STEP/first")
                        println("Terminated due to max delta")
                        println("delta=$(get_delta(iter)), step_type=$step_type, min_step_size=$actual_min_step_size")
+                       @show ls_info
                        return iter, :MAX_DELTA, progress, t, false
                      end
                    end
@@ -154,10 +159,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      end
 
                      start_advanced_timer(timer, "STEP/correction")
-                     success, iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
-                     if step_type == "agg"
-                       dir_size_agg = norm(kkt_solver.dir.x, 2)
-                       update_prox!(iter, pars)
+                     success, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+
+                     if success == :success
+                       iter = new_iter
+                       if step_type == "agg"
+                         dir_size_agg = norm(kkt_solver.dir.x, 2)
+                         update_prox!(iter, pars)
+                       end
                      end
 
                      pause_advanced_timer(timer, "STEP/correction")
@@ -166,7 +175,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                add!(filter, iter, pars)
                record_progress!(t,  step_type, iter, kkt_solver, ls_info, reduct_factors, progress, pars)
 
-               if i > 1 && ls_info.step_size_P < pars.min_step_size_correction || success != :success
+               if success != :success
                  break
                end
              end

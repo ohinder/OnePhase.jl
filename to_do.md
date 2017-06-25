@@ -1,5 +1,11 @@
 Short term:
 
+- how to protect aggressive steps??
+(i) if α > 0.9 or step is close to the boundary then insist on gradient of lag_grad not increasing too much
+(ii) insist that s^{+} > s * min{(1 - η^{1 / 2}),0.95}
+
+- check for violation of complementarity from dual iterates (and maybe figure out a more numerically stable calculation!)
+
 - check triangular!!!!!
 
 - deal correctly with exceptions
