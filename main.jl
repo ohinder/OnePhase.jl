@@ -28,11 +28,14 @@ include("include.jl")
 #nlp_raw = CUTEstModel("AIRPORT")
 #nlp_raw = CUTEstModel("QPCSTAIR")
 #nlp_raw = CUTEstModel("QPNBOEI2")
-nlp_raw = CUTEstModel("READING6")
+#nlp_raw = CUTEstModel("READING6")
+#nlp_raw = CUTEstModel("YORKNET")
+
+
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("GPP")
-#nlp_raw = CUTEstModel("ANTWERP")
+nlp_raw = CUTEstModel("ANTWERP")
 #nlp_raw = CUTEstModel("HYDCAR20")
 #nlp_raw = CUTEstModel("STEENBRD")
 #nlp_raw = CUTEstModel("STEENBRC")
@@ -55,6 +58,7 @@ nlp_raw = CUTEstModel("READING6")
 
 #HVYCRASH,
 #DISCS, EQC, HIMMELBJ,  PFIT1, PFIT3, SSEBNLN
+#nlp_raw = CUTEstModel("ACOPR57")
 #nlp_raw = CUTEstModel("DISCS")
 #nlp_raw = CUTEstModel("HYDCAR6")
 #nlp_raw = CUTEstModel("DISC2")

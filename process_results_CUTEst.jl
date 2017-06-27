@@ -46,7 +46,8 @@ results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary
 #results["new approach lrg dual"] = load("results/new_approach_no_prox/summary.jld", "summary")
 #results["new approach"] = load("results/new_approach_latest/summary.jld", "summary")
 #results["new approach 2"] = load("results/new_approach_latest/summary.jld", "summary")
-results["new approach 2"] = load("results/new_approach_latest2/summary.jld", "summary")
+#results["new approach 2"] = load("results/new_approach_latest_working/summary.jld", "summary")
+results["new approach 3"] = load("results/new_approach_latest2/summary.jld", "summary")
 
 
 #results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")
@@ -137,7 +138,7 @@ for (method_name, val) in its
   min_y = min(min_y,sum(its[method_name] .== 1.0) / length(best))
 end
 ax = gca()
-ax[:set_xlim]([10.0,10^4.0])
+ax[:set_xlim]([10.0,my_par.max_it])
 ax[:set_ylim]([min_y,1.0])
 
 #ax[:xaxis][:ticker] = 0.5

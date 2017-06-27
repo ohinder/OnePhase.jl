@@ -30,7 +30,11 @@ type Class_filter
     function Class_filter(iter::Class_iterate, pars::Class_parameters)
       this = new()
       this.fval = eval_merit_function(iter, pars)
-      kkt_err =  scaled_dual_feas(iter, pars) #norm(eval_grad_lag(iter),Inf)
+
+      kkt_err = norm(eval_grad_lag(iter),Inf)
+      if pars.kkt_include_comp
+         kkt_err += norm(comp(iter),Inf)
+      end
       this.scaled_kkt_err = kkt_err * dual_scale(iter, pars) #eval_kkt_err(iter, pars)
       this.mu = iter.point.primal_scale
 
@@ -52,12 +56,16 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
         kkt_reduction = (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
         fval_reduction = p.fval < ar[i].fval - (p.scaled_kkt_err)^2
         fval_no_increase = p.fval < ar[i].fval + p.scaled_kkt_err
+        net_reduction = p.scaled_kkt_err + p.fval < ar[i].fval + ar[i].scaled_kkt_err - (p.scaled_kkt_err)^2
+
         if pars.filter_type == :default
             accept = !(p.mu < ar[i].mu || kkt_reduction)
         elseif pars.filter_type == :test1
             accept = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
-          elseif pars.filter_type == :test2
-              accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase) || fval_reduction)
+        elseif pars.filter_type == :test2
+            accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase) || fval_reduction)
+        elseif pars.filter_type == :test3
+            accept = !(p.mu < ar[i].mu || net_reduction)
         else
             error("unknown filter type!!!")
         end

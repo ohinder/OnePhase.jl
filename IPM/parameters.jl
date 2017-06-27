@@ -69,6 +69,7 @@ type Class_parameters
     trust_region::Bool
     proximal_style::Symbol
     use_prox::Bool
+    kkt_include_comp::Bool
 
     # SADDLE PROBLEM
     ItRefine_BigFloat::Bool
@@ -102,14 +103,17 @@ type Class_parameters
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
         this.max_it_corrections = 3 ######
-        this.comp_feas = 1/100.0
         this.comp_feas_agg_inf = Inf
+        this.comp_feas = 1/100.0
         this.comp_feas_agg = 1/70.0 #1/70.0 #1/50.0
+        #this.comp_feas = 1/20.0
+        #this.comp_feas_agg = 1/10.0 #1/70.0 #1/70.0 #1/50.0
         this.min_step_size_stable = 1e-3
         this.min_step_size_agg_ratio = 1e-2
         this.use_delta_s = false
         #this.adaptive_mu = :none
         this.adaptive_mu = :test7
+        #this.adaptive_mu = :test6
         this.pause_primal = false
         this.stb_before_agg = false
         this.eigen_search = false
@@ -143,8 +147,9 @@ type Class_parameters
         this.ls_mode_agg = :accept_aggressive
         this.agg_protect_factor = Inf
         #this.protect_factor_boundary_threshold = ...
+        #this.filter_type = :default
         this.filter_type = :default
-        this.kkt_include_comp = false
+        this.kkt_include_comp = true
 
         this.move_type = :primal_dual
         this.move_primal_seperate_to_dual = true

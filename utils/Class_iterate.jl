@@ -235,12 +235,13 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                 step_size_D_max = min(step_size_D_boundary, ub1)
 
                 if pars.dual_ls
-                  scale = dual_scale(new_it, pars)
+                  scale_D = dual_scale(new_it, pars)
+                  scale_mu = dual_scale(new_it, pars)
                   #scale = 1.0;
                   ∇a = get_jac(new_it)
-                  q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
+                  q = [scale_D * ∇a' * dir.y; scale_mu * new_it.point.s .* dir.y];
                   predicted_dual_res = step_size * (hess_product(it, dir.x) + get_delta(it) * dir.x) + eval_grad_lag(it)
-                  res = [scale * predicted_dual_res; -comp(new_it)]
+                  res = [scale_D * predicted_dual_res; -scale_mu * comp(new_it)]
                   step_size_D = sum(res .* q) / sum(q.^2)
                   step_size_D = max(lb1,min(step_size_D,step_size_D_max))
                   #=@show sum(q.^2)

@@ -176,12 +176,11 @@ end
 function filter_cutest(problem)
   regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     # large
-    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
+    #correct_size = 10 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
     # medium lrg
-    #10 <= problem["variables"]["number"] + problem["constraints"]["number"] &&
-    #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
+    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
     # medium
-    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
+    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     # small
     #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
     if correct_size && regular
@@ -233,7 +232,7 @@ run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if true
-folder_name = "new_approach_latest2"
+folder_name = "new_approach_latest3"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 
@@ -340,5 +339,5 @@ end
 if false
   using Ipopt
   my_solver = IpoptSolver(print_level=3)
-  run_cutest_problems_on_solver(problem_list, "ipopt_test2", my_solver)
+  run_cutest_problems_on_solver(problem_list, "ipopt_test3", my_solver)
 end

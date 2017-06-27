@@ -89,8 +89,8 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                # * 10.0
                #dual_progress = dual_avg < mu_ub * 10.0
                delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
-               #get_mu(iter) +
-               lag_grad = norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
+               #
+               lag_grad = norm(eval_grad_lag(iter),Inf) < get_mu(iter) + norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
                #@show norm(get_grad(iter),Inf)
 
                no_stall = true #(ls_info == false || ls_info.step_size_P > 0.1)
