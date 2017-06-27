@@ -1,4 +1,11 @@
-
+function primal_update_of_dual!(iter, pars)
+    D1 = norm(eval_grad_lag(iter, iter.point.y), 2)
+    y_primal = iter.point.mu ./ iter.point.s
+    D2 = norm(eval_grad_lag(iter, y_primal), 2)
+    if D2 < D1
+      iter.point.y = y_primal
+    end
+end
 
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
   t = 0;
@@ -82,7 +89,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                # * 10.0
                #dual_progress = dual_avg < mu_ub * 10.0
                delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
+               #get_mu(iter) +
                lag_grad = norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
+               #@show norm(get_grad(iter),Inf)
 
                no_stall = true #(ls_info == false || ls_info.step_size_P > 0.1)
                be_aggressive = no_stall && is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
@@ -111,6 +120,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  end
 
                if i == 1
+                   #primal_update_of_dual!(iter, pars)
                    update_H!(iter, timer, pars)
                    @assert(is_updated(iter.cache))
 
@@ -136,7 +146,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
 
                      if pars.output_level >= 6
-                       println(pd("**"), pd(status), rd(get_delta(iter)), rd(ls_info.step_size_P))
+                       println(pd("**"), pd(status), rd(get_delta(iter)), rd(ls_info.step_size_P), rd(norm(kkt_solver.dir.x,Inf)), rd(norm(kkt_solver.dir.y,Inf)), rd(norm(kkt_solver.dir.s,Inf)))
                      end
 
                      if status == :success

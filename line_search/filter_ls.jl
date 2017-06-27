@@ -49,9 +49,24 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
         #tol = 1e-3 * max(1.0, p.scaled_kkt_err)
         expected_reduction = pars.kkt_reduction_factor
         #
-        if !( p.fval < ar[i].fval - (p.scaled_kkt_err)^2 || p.mu < ar[i].mu || (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size) && p.fval < ar[i].fval + (p.scaled_kkt_err) ))
+        kkt_reduction = (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
+        fval_reduction = p.fval < ar[i].fval - (p.scaled_kkt_err)^2
+        fval_no_increase = p.fval < ar[i].fval + p.scaled_kkt_err
+        if pars.filter_type == :default
+            accept = !(p.mu < ar[i].mu || kkt_reduction)
+        elseif pars.filter_type == :test1
+            accept = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
+          elseif pars.filter_type == :test2
+              accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase) || fval_reduction)
+        else
+            error("unknown filter type!!!")
+        end
+
+
+        if accept #&& p.fval < ar[i].fval + (p.scaled_kkt_err) ))
           # && p.fval < ar[i].fval + (p.scaled_kkt_err)))
             #println(p.scaled_kkt_err / ar[i].scaled_kkt_err)
+            # p.fval < ar[i].fval - (p.scaled_kkt_err)^2 ||
             return false
         end
     end

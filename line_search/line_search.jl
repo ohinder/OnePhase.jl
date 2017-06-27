@@ -71,7 +71,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
     end
 
     if pars.output_level >= 5
-      println(pd("α_P"), pd("α_D"), pd("is_feas"), pd("merit_diff"), pd("comp_diff"), pd("phi_diff"), pd("kkt_diff"), pd("dx"), pd("dy"), pd("ds"), pd("status"))
+      println(pd("α_P"), pd("α_D"), pd("merit_diff"), pd("comp_diff"), pd("phi_diff"), pd("kkt_diff"), pd("dx"), pd("dy"), pd("ds"), pd("status"))
     end
 
     for i = 1:pars.ls_num_backtracks
@@ -79,7 +79,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
 
       if step_size_P >= min_step_size
         start_advanced_timer(timer,"SIMPLE_LS/move")
-        candidate, is_feas, step_size_D = move(iter, orginal_dir, step_size_P, pars, timer)
+        candidate, move_status, step_size_D = move(iter, orginal_dir, step_size_P, pars, timer)
         pause_advanced_timer(timer,"SIMPLE_LS/move")
 
         #start_advanced_timer(timer,"SIMPLE_LS/move/dual")
@@ -91,7 +91,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
         accept_obj.num_steps = i
 
 
-        if is_feas
+        if move_status == :success
             start_advanced_timer(timer,"SIMPLE_LS/accept?")
             update_grad!(candidate, timer, pars)
             update_obj!(candidate, timer, pars)
@@ -100,7 +100,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
             status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
             pause_advanced_timer(timer,"SIMPLE_LS/accept?")
         else
-          status = :infeasible
+          status = move_status
         end
 
         @assert(is_updated_correction(iter.cache))
@@ -122,18 +122,18 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
           phi_diff = eval_phi(candidate) - eval_phi(iter)
 
           dx = norm(candidate.point.x - iter.point.x,2); dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
-          kkt_diff = norm(eval_grad_lag(candidate),Inf) / norm(eval_grad_lag(iter),Inf) 
-          println(rd(step_size_P), rd(step_size_D), pd(is_feas), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
+          kkt_diff = norm(eval_grad_lag(candidate),Inf) / norm(eval_grad_lag(iter),Inf)
+          println(rd(step_size_P), rd(step_size_D), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
         end
 
         #if is_feas
         #  pause_advanced_timer(timer,"SIMPLE_LS/feas")
         #end
 
-        if is_feas && status == :success
+        if status == :success
           pause_advanced_timer(timer,"SIMPLE_LS")
           return :success, candidate, accept_obj
-        elseif is_feas && status == :predict_red_non_negative
+        elseif status == :predict_red_non_negative
           pause_advanced_timer(timer, "SIMPLE_LS")
           return status, iter, accept_obj
         end

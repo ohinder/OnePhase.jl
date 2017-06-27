@@ -233,12 +233,11 @@ run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if true
-my_par.proximal_style = :none
-
-folder_name = "new_approach4"
+folder_name = "new_approach_latest2"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 
+#=
 folder_name = "new_approach"
 #my_par.aggressive_dual_threshold = 10.0
 if_mkdir("results/$folder_name")
@@ -247,7 +246,7 @@ run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 folder_name = "new_approach_no_prox"
 my_par.proximal_style = :none
 if_mkdir("results/$folder_name")
-run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)=#
 end
 
 if false

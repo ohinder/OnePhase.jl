@@ -114,11 +114,15 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         s = it.point.s[i]
         @assert(s > 0.0)
 
-        safety_factor = 1.001
-        safety_add = 1e-6
+        safety_factor = 1.01
+        safety_add = 0.0
 
-        ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
-        lb_dyi = (mu * comp_feas / s - y[i]) / dy[i]
+        #ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
+        #lb_dyi = (mu * comp_feas / s - y[i]) / dy[i]
+        #@show mu * comp_feas / s, y[i]
+
+        ub_dyi = (mu / (comp_feas * s * dy[i]) - y[i] / dy[i])
+        lb_dyi = (mu * comp_feas / (s * dy[i]) - y[i]  / dy[i])
 
         if dy[i] > 0.0
           lb = max( lb_dyi * safety_factor + safety_add, lb)
@@ -209,7 +213,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       end
 
       if !all(new_it.point.s .>= it.point.s * pars.fraction_to_boundary)
-          return it, false, step_size
+          return it, :s_bound, step_size
       end
 
       if pars.mu_update == :static || (pars.mu_update == :dynamic_agg && dir.mu == 0.0)
@@ -263,12 +267,12 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                   my_warn("infeasibility should have been detected earlier!!!")
                   @show step_size, step_size_D
                   @show (lb1, ub1), (lb2, ub2)
-                  return it, false, step_size_D
+                  return it, :dual_infeasible, step_size_D
                 else
-                  return new_it, true, step_size_D
+                  return new_it, :success, step_size_D
                 end
             else
-              return it, false, step_size
+              return it, :dual_infeasible, step_size
             end
         else
           if lb1 <= step_size && step_size <= ub1

@@ -40,17 +40,20 @@ results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary
 #results["One Phase ls1"] = load("results/ls/ls_true/summary.jld", "summary")
 #results["One Phase ls false"] = load("results/ls/ls_false/summary.jld", "summary")
 #results["new approach"] = load("results/new_approach/summary.jld", "summary")
-results["new approach 2"] = load("results/new_approach2/summary.jld", "summary")
+#results["new approach 2"] = load("results/new_approach2/summary.jld", "summary")
 #results["new approach 3"] = load("results/new_approach3/summary.jld", "summary")
 #results["new approach no prox"] = load("results/new_approach_no_prox/summary.jld", "summary")
 #results["new approach lrg dual"] = load("results/new_approach_no_prox/summary.jld", "summary")
+#results["new approach"] = load("results/new_approach_latest/summary.jld", "summary")
+#results["new approach 2"] = load("results/new_approach_latest/summary.jld", "summary")
+results["new approach 2"] = load("results/new_approach_latest2/summary.jld", "summary")
 
 
 #results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")
 #results["stable_first/true"] = load("results/stable_first/true/summary.jld", "summary")
 
-if false
-error_free_results = remove_errors(results, [:NaN_ERR, :ERR])
+if true
+error_free_results = remove_errors(results, [:NaN_ERR])#, :ERR])
 overlapping_results = overlap(error_free_results)
 elseif false
 overlapping_results = overlap(results)

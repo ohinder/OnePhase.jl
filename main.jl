@@ -27,7 +27,8 @@ include("include.jl")
 #nlp_raw = CUTEstModel("HYDROELM")
 #nlp_raw = CUTEstModel("AIRPORT")
 #nlp_raw = CUTEstModel("QPCSTAIR")
-
+#nlp_raw = CUTEstModel("QPNBOEI2")
+nlp_raw = CUTEstModel("READING6")
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("GPP")
@@ -50,6 +51,7 @@ include("include.jl")
 #nlp_raw = CUTEstModel("GROUPING")
 #nlp_raw = CUTEstModel("ARWHDNE")
 #nlp_raw = CUTEstModel("HYDCAR6")
+#nlp_raw = CUTEstModel("EXPFITC")
 
 #HVYCRASH,
 #DISCS, EQC, HIMMELBJ,  PFIT1, PFIT3, SSEBNLN
@@ -72,7 +74,7 @@ include("include.jl")
 #nlp_raw = CUTEstModel("LEAKNET")
 #nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
-nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
+#nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("A4X12") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("CRESC100") # >> 100. Infinities!
 #nlp_raw = CUTEstModel("AVION2")

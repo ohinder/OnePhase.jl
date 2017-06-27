@@ -61,6 +61,7 @@ type Class_parameters
     ls_mode_stable_trust::Symbol
     ls_mode_stable_delta_zero::Symbol
     ls_mode_stable_correction::Symbol
+    filter_type::Symbol
     use_delta_s::Bool
     adaptive_mu::Symbol
     pause_primal::Bool
@@ -142,6 +143,8 @@ type Class_parameters
         this.ls_mode_agg = :accept_aggressive
         this.agg_protect_factor = Inf
         #this.protect_factor_boundary_threshold = ...
+        this.filter_type = :default
+        this.kkt_include_comp = false
 
         this.move_type = :primal_dual
         this.move_primal_seperate_to_dual = true
