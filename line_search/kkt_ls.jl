@@ -9,7 +9,7 @@ type Class_kkt_ls <: abstract_ls_info
 
     function Class_kkt_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
         this = new()
-        this.predict_red = merit_function_predicted_reduction(iter, dir);
+        this.predict_red = merit_function_predicted_reduction(iter, dir, 1.0);
         this.cur_merit = eval_merit_function(iter, pars)
 
         return this
@@ -33,5 +33,5 @@ end
 
 
 function accept_func!(accept::Class_kkt_ls, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
-    return accept_func_kkt!(accept, iter, candidate, filter, pars)
+    return accept_func_kkt!(accept, iter, candidate, dir, step_size, filter, pars, timer)
 end

@@ -1,3 +1,9 @@
+function centre_dual!(point::Class_point, comp_feas::Float64)
+  y_c = point.mu ./ point.s
+
+  point.y = min( y_c / comp_feas, max(point.y, comp_feas * y_c))
+end
+
 
 function dual_scale(iter::Class_iterate, pars::Class_parameters)
     if pars.dual_scale_mode == :scaled
@@ -23,6 +29,7 @@ function check_for_nan(point::Class_point)
   end
 
   if isbad(point.y)
+    #@show point.y, point.s
     error("NaN in y")
   end
 

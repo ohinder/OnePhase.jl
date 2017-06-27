@@ -71,7 +71,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
     end
 
     if pars.output_level >= 5
-      println(pd("α_P"), pd("α_D"), pd("is_feas"), pd("status"))
+      println(pd("α_P"), pd("α_D"), pd("is_feas"), pd("merit_diff"), pd("comp_diff"), pd("phi_diff"), pd("kkt_diff"), pd("dx"), pd("dy"), pd("ds"), pd("status"))
     end
 
     for i = 1:pars.ls_num_backtracks
@@ -93,9 +93,9 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
 
         if is_feas
             start_advanced_timer(timer,"SIMPLE_LS/accept?")
-            update_grad!(candidate, timer)
-            update_obj!(candidate, timer)
-            update_J!(candidate, timer)
+            update_grad!(candidate, timer, pars)
+            update_obj!(candidate, timer, pars)
+            update_J!(candidate, timer, pars)
 
             status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
             pause_advanced_timer(timer,"SIMPLE_LS/accept?")
@@ -103,8 +103,27 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
           status = :infeasible
         end
 
+        @assert(is_updated_correction(iter.cache))
+
+        # SOME DEBUGGING CODE
+        if pars.debug_mode >= 1
+          obj = copy(get_fval(iter))
+          update_obj!(iter, timer, pars)
+          #@show get_fval(iter), obj, get_fval(candidate)
+          if(obj != get_fval(iter))
+              error("this shouldn't happen!!!")
+          end
+        end
+
+        # OUTPUT INFORMATION ABOUT LINE SEARCH
         if pars.output_level >= 5
-          println(rd(step_size_P), rd(step_size_D), pd(is_feas), pd(status))
+          diff = eval_merit_function(candidate, pars) - eval_merit_function(iter, pars)
+          comp_diff = norm(comp(candidate),Inf) - norm(comp(iter), Inf)
+          phi_diff = eval_phi(candidate) - eval_phi(iter)
+
+          dx = norm(candidate.point.x - iter.point.x,2); dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
+          kkt_diff = norm(eval_grad_lag(candidate),Inf) / norm(eval_grad_lag(iter),Inf) 
+          println(rd(step_size_P), rd(step_size_D), pd(is_feas), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
         end
 
         #if is_feas

@@ -145,6 +145,7 @@ function compute_direction!(kkt_solver::abstract_KKT_system_solver, timer::class
     end
 
     compute_direction_implementation!(kkt_solver, timer)
+    check_for_nan(kkt_solver.dir)
     pause_advanced_timer(timer, "KKT/compute_direction");
 end
 

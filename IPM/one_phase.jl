@@ -6,7 +6,10 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
   filter = Array{Class_filter,1}();
 
   #try
-      convert_to_prox!(iter, pars);
+      if pars.use_prox
+        convert_to_prox!(iter, pars);
+      end
+      update!(iter, timer, pars)
 
       kkt_solver = pick_KKT_solver(pars);
       initialize!(kkt_solver, iter)
@@ -16,10 +19,11 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       record_progress_first_it!(iter, kkt_solver, progress, pars)
 
       init_step_size = 1.0
-      success = :success
+      status = :success
       agg_next_step = false;
       dir_size_agg = Inf
       dir_size_stable = 0.0
+      ls_info = false
 
       start_time = time()
 
@@ -41,19 +45,6 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                end
 
                primal_inf = norm(iter.primal_residual_intial, Inf) * iter.point.primal_scale
-
-               #=if pars.threshold_type == :mu
-                 threshold = pars.aggressive_dual_threshold * get_mu(iter)
-               elseif pars.threshold_type == :mu_primal
-                  threshold = pars.aggressive_dual_threshold * min(get_mu(iter),norm(get_primal_res(iter),Inf))
-               elseif pars.threshold_type == :primal
-                   threshold = pars.aggressive_dual_threshold * norm(get_primal_res(iter),Inf)
-               else
-                 error("threshold_type not known")
-               end=#
-
-               is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
-               #dual_progress = scaled_dual_feas(iter, pars) < threshold
 
                feas_obj = max(0.0,-mean(iter.point.y .* iter.cache.cons))
                if pars.adaptive_mu == :none
@@ -77,6 +68,8 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  mu_est = mean(iter.point.y .* iter.point.s) + feas_obj
                end
 
+               is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
+               #dual_progress = scaled_dual_feas(iter, pars) < threshold
                #mu_est = iter.point.mu
                #mu_est = mean(iter.point.y .* iter.point.s) * 0.5 + feas_obj * 0.5
                #mu_est = max(min(100.0 * norm(get_primal_res(iter),Inf), iter.point.mu, mean(iter.point.y .* iter.point.s) ), feas_obj) + norm(get_primal_res(iter),Inf) * 0.01
@@ -88,22 +81,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
                # * 10.0
                #dual_progress = dual_avg < mu_ub * 10.0
-               delta_small = get_delta(iter) < get_mu(iter) * (1.0 + norm(get_y(iter),Inf))
+               delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
                lag_grad = norm(eval_grad_lag(iter),Inf) < norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
 
-               be_aggressive = is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
+               no_stall = true #(ls_info == false || ls_info.step_size_P > 0.1)
+               be_aggressive = no_stall && is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
 
 
-               if be_aggressive
-                     #=prm_tol_ratio = pars.tol / norm(get_primal_res(iter),Inf)
-                     if prm_tol_ratio >= 1.0 && false
-                        step_type = "mu"
-                        reduct_factors = Class_reduction_factors(0.8, 0.0, 1e-1)
-                     elseif false  #10.0 * mu_P_ratio^(7/4)
-                       step_type = "prm"
-                       reduct_factors = Class_reduction_factors(1e-1, 0.0, 0.8)
-                     else
-                     end=#
+                 if be_aggressive
                      if norm(get_primal_res(iter),Inf) > pars.tol || !pars.pause_primal
                        step_type = "agg"
                        reduct_factors = Reduct_affine()
@@ -112,7 +97,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        step_type = "mu"
                      end
                      #reduct_factors = Class_reduction_factors(0.5, 0.5, 0.5)
-                     ls_mode = pars.ls_mode_agg;
+                     #ls_mode = pars.ls_mode_agg;
 
                      q = pars.min_step_size_agg_ratio * min(1.0, 1.0 / maximum(- get_primal_res(iter) ./ iter.point.s))
                      actual_min_step_size = q
@@ -122,22 +107,40 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  else
                       reduct_factors = Reduct_stable()
                       step_type = "stb"
-                      ls_mode = pars.ls_mode_stable_correction;
                       actual_min_step_size = pars.min_step_size_stable
                  end
 
                if i == 1
-                   update_H!(iter, timer)
+                   update_H!(iter, timer, pars)
+                   @assert(is_updated(iter.cache))
 
                    ipopt_strategy!(iter, kkt_solver, pars, timer)
 
                    start_advanced_timer(timer, "STEP/first")
 
-                   for i = 1:100
-                     success, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+                   if pars.output_level >= 5
+                     println(pd("**"), pd("status"), pd("delta"), pd("step"))
+                   end
 
-                     if success == :success
-                       iter = new_iter
+                   for i = 1:100
+                     if be_aggressive
+                       ls_mode = pars.ls_mode_agg;
+                     elseif get_delta(iter) == 0.0
+                       ls_mode = pars.ls_mode_stable_delta_zero
+                       #pars.ls_mode_stable_correction;
+                       #;
+                     else
+                       ls_mode = pars.ls_mode_stable_correction;
+                     end
+
+                     status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+
+                     if pars.output_level >= 6
+                       println(pd("**"), pd(status), rd(get_delta(iter)), rd(ls_info.step_size_P))
+                     end
+
+                     if status == :success
+                       #@assert(norm(iter.point.x - new_iter.point.x) > 0)
                        break
                      elseif i < 100
                        set_delta(iter, max(get_delta(iter) * 8.0, 1e-8))
@@ -145,7 +148,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      else
                        pause_advanced_timer(timer, "STEP/first")
                        println("Terminated due to max delta")
-                       println("delta=$(get_delta(iter)), step_type=$step_type, min_step_size=$actual_min_step_size")
+                       println("delta=$(get_delta(iter)), step_type=$step_type, min_step_size=$actual_min_step_size, status=$status")
+                       println("dx = $(norm(kkt_solver.dir.x,2)), dy = $(norm(kkt_solver.dir.y,2)), ds = $(norm(kkt_solver.dir.s,2))")
+                       @show reduct_factors, ls_mode
                        @show ls_info
                        return iter, :MAX_DELTA, progress, t, false
                      end
@@ -153,35 +158,44 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                    pause_advanced_timer(timer, "STEP/first")
                else
-                     if be_aggressive
-                       iter.point.mu = mu_est
-                       centre_dual!(iter.point, pars.comp_feas_agg)
-                     end
+                   start_advanced_timer(timer, "STEP/correction")
+                   if be_aggressive
+                     ls_mode = pars.ls_mode_agg;
+                   elseif get_delta(iter) == 0.0
+                     #ls_mode = pars.ls_mode_stable_correction;
+                     ls_mode = pars.ls_mode_stable_delta_zero;
+                   else
+                     ls_mode = pars.ls_mode_stable_correction;
+                   end
 
-                     start_advanced_timer(timer, "STEP/correction")
-                     success, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+                   status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
 
-                     if success == :success
-                       iter = new_iter
-                       if step_type == "agg"
-                         dir_size_agg = norm(kkt_solver.dir.x, 2)
-                         update_prox!(iter, pars)
-                       end
-                     end
+                   pause_advanced_timer(timer, "STEP/correction")
+               end
 
-                     pause_advanced_timer(timer, "STEP/correction")
+               if status == :success
+                 iter = new_iter
+                 if step_type == "agg"
+                   dir_size_agg = norm(kkt_solver.dir.x, 2)
+                   if pars.use_prox
+                     update_prox!(iter, pars)
+                     update!(iter, timer, pars)
+                   end
+                 end
                end
 
                add!(filter, iter, pars)
                record_progress!(t,  step_type, iter, kkt_solver, ls_info, reduct_factors, progress, pars)
+               @assert(is_updated_correction(iter.cache))
+               check_for_nan(iter.point)
 
-               if success != :success
+               if status != :success
                  break
                end
              end
       end
-
-    #=catch(e)
+    #=
+    catch(e)
       if isa(e, Eval_NaN_error)
         println("Terminated with Eval_NaN_error")
         return iter, :NaN_ERR, progress, t, e

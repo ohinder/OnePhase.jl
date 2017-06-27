@@ -134,8 +134,14 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           catch(e)
               println("Uncaught error in algorithm!!!")
               @show e;
-              summary[problem_name].status = :ERR
-              summary[problem_name].it_count = -1;
+
+              if isa(e, Eval_NaN_error)
+                summary[problem_name].status = :NaN_ERR
+                summary[problem_name].it_count = -1;
+              else
+                summary[problem_name].status = :ERR
+                summary[problem_name].it_count = -1;
+              end
           end
           summary[problem_name].total_time = time() - start_time;
 
@@ -175,7 +181,7 @@ function filter_cutest(problem)
     #10 <= problem["variables"]["number"] + problem["constraints"]["number"] &&
     #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
     # medium
-    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 1000 && problem["constraints"]["number"] <= 1000
+    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     # small
     #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
     if correct_size && regular
@@ -227,7 +233,19 @@ run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if true
+my_par.proximal_style = :none
+
+folder_name = "new_approach4"
+if_mkdir("results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
 folder_name = "new_approach"
+#my_par.aggressive_dual_threshold = 10.0
+if_mkdir("results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+folder_name = "new_approach_no_prox"
+my_par.proximal_style = :none
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

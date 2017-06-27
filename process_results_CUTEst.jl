@@ -35,11 +35,15 @@ results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary
 #results["One Phase none"] = load("results/pars4/none/summary.jld", "summary")
 #results["One Phase true"] = load("results/pd-split/true/summary.jld", "summary")
 #results["One Phase false"] = load("results/pd-split/false/summary.jld", "summary")
-results["One Phase ls3"] = load("results/ls/ls_true3/summary.jld", "summary")
+#results["One Phase ls3"] = load("results/ls/ls_true3/summary.jld", "summary")
 #results["One Phase ls2"] = load("results/ls/ls_true2/summary.jld", "summary")
 #results["One Phase ls1"] = load("results/ls/ls_true/summary.jld", "summary")
 #results["One Phase ls false"] = load("results/ls/ls_false/summary.jld", "summary")
-results["new approach"] = load("results/new_approach/summary.jld", "summary")
+#results["new approach"] = load("results/new_approach/summary.jld", "summary")
+results["new approach 2"] = load("results/new_approach2/summary.jld", "summary")
+#results["new approach 3"] = load("results/new_approach3/summary.jld", "summary")
+#results["new approach no prox"] = load("results/new_approach_no_prox/summary.jld", "summary")
+#results["new approach lrg dual"] = load("results/new_approach_no_prox/summary.jld", "summary")
 
 
 #results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")

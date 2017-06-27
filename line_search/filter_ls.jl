@@ -29,10 +29,10 @@ type Class_filter
 
     function Class_filter(iter::Class_iterate, pars::Class_parameters)
       this = new()
-      this.fval = eval_phi(iter)
-      kkt_err =  norm(eval_grad_lag(iter),Inf)
+      this.fval = eval_merit_function(iter, pars)
+      kkt_err =  scaled_dual_feas(iter, pars) #norm(eval_grad_lag(iter),Inf)
       this.scaled_kkt_err = kkt_err * dual_scale(iter, pars) #eval_kkt_err(iter, pars)
-      this.mu = iter.point.mu
+      this.mu = iter.point.primal_scale
 
       return this
     end
@@ -48,8 +48,10 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
     for i = 1:length(ar)
         #tol = 1e-3 * max(1.0, p.scaled_kkt_err)
         expected_reduction = pars.kkt_reduction_factor
-        #p.fval < ar[i].fval - (p.scaled_kkt_err)^2 ||
-        if !( p.mu < ar[i].mu || p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
+        #
+        if !( p.fval < ar[i].fval - (p.scaled_kkt_err)^2 || p.mu < ar[i].mu || (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size) && p.fval < ar[i].fval + (p.scaled_kkt_err) ))
+          # && p.fval < ar[i].fval + (p.scaled_kkt_err)))
+            #println(p.scaled_kkt_err / ar[i].scaled_kkt_err)
             return false
         end
     end

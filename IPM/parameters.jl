@@ -12,6 +12,7 @@ end
 
 type Class_parameters
     output_level::Int64
+    debug_mode::Int64
     what_to_do_with_nans::Symbol
 
     # init
@@ -66,6 +67,7 @@ type Class_parameters
     eigen_search::Bool
     trust_region::Bool
     proximal_style::Symbol
+    use_prox::Bool
 
     # SADDLE PROBLEM
     ItRefine_BigFloat::Bool
@@ -113,6 +115,7 @@ type Class_parameters
         this.trust_region = false
 
         this.output_level = 3
+        this.debug_mode = 1
         this.what_to_do_with_nans = :error
 
         this.tol = 1e-6
@@ -127,16 +130,18 @@ type Class_parameters
         this.predict_reduction_factor = 0.1 #1e-1
         this.predict_reduction_factor_MAX = 0.3
         this.predict_reduction_eigenvector_threshold = 1e-1
-        this.fraction_to_boundary = 0.05
+        this.fraction_to_boundary = 0.01
         this.fraction_to_boundary_predict = 0.1
         this.ls_backtracking_factor = 0.5
         this.ls_num_backtracks = 60;
         this.ls_mode_stable_trust = :accept_filter
         #this.ls_mode_stable_trust = :accept_stable #:accept_aggressive #:accept_filter #:accept_aggressive #:accept_filter
-        this.ls_mode_stable_delta_zero = :accept_filter #:accept_filter
+        #this.ls_mode_stable_delta_zero = :accept_filter #:accept_filter
+        this.ls_mode_stable_delta_zero = :accept_filter
         this.ls_mode_stable_correction = :accept_filter
         this.ls_mode_agg = :accept_aggressive
-        this.agg_protect_factor = 1e4 #1e4
+        this.agg_protect_factor = Inf
+        #this.protect_factor_boundary_threshold = ...
 
         this.move_type = :primal_dual
         this.move_primal_seperate_to_dual = true
@@ -148,7 +153,8 @@ type Class_parameters
         this.saddle_err_tol = Inf
         this.ItRefine_Num = 2
         this.ItRefine_BigFloat = false
-        this.proximal_style = :test1
+        this.use_prox = true
+        this.proximal_style = :none
 
         if true
           this.kkt_solver_type = :schur

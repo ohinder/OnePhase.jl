@@ -15,7 +15,7 @@ include("include.jl")
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
 #nlp_raw = CUTEstModel("AGG") # 153 ITS
-nlp_raw = CUTEstModel("KISSING") # 180 ITS
+#nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw = CUTEstModel("FLETCHCR")
 #nlp_raw = CUTEstModel("GENHUMPS")
@@ -54,9 +54,11 @@ nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #HVYCRASH,
 #DISCS, EQC, HIMMELBJ,  PFIT1, PFIT3, SSEBNLN
 #nlp_raw = CUTEstModel("DISCS")
+#nlp_raw = CUTEstModel("HYDCAR6")
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("SSEBNLN")
 #nlp_raw = CUTEstModel("BATCH")
+#nlp_raw = CUTEstModel("SAWPATH")
 
 #nlp_raw = CUTEstModel("GPP")
 #mean(abs(grad(nlp_raw, nlp_raw.meta.x0))) #, maximum(abs(jac(nlp_raw, nlp_raw.meta.x0)))
@@ -68,9 +70,9 @@ nlp_raw = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw = CUTEstModel("ACOPP57")
 #nlp_raw = CUTEstModel("ACOPP300")
 #nlp_raw = CUTEstModel("LEAKNET")
-
+#nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
-#nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
+nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("A4X12") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("CRESC100") # >> 100. Infinities!
 #nlp_raw = CUTEstModel("AVION2")

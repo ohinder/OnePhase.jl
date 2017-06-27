@@ -6,10 +6,23 @@ type Class_cache
     grad::Array{Float64,1}
     J::SparseMatrixCSC{Float64,Int32}
     H::SparseMatrixCSC{Float64,Int32}
+    fval_updated::Bool
+    cons_updated::Bool
+    grad_updated::Bool
+    J_updated::Bool
+    H_updated::Bool
 
     function Class_cache()
       return new()
     end
+end
+
+function is_updated(c::Class_cache)
+    return c.fval_updated && c.cons_updated && c.grad_updated && c.J_updated && c.H_updated
+end
+
+function is_updated_correction(c::Class_cache)
+    return c.fval_updated && c.cons_updated && c.grad_updated && c.J_updated
 end
 
 type Class_local_info
@@ -28,18 +41,18 @@ type Class_iterate
     ncon::Int64
     nvar::Int64
 
-    function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info, timer::class_advanced_timer)
+    function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info, timer::class_advanced_timer, pars::Class_parameters)
       this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
       this.nvar = length(intial_point.x)
       this.ncon = length(intial_point.y)
       @assert(this.ncon == length(intial_point.y))
 
       this.cache = Class_cache()
-      update_grad!(this, timer)
-      update_cons!(this, timer)
-      update_obj!(this, timer)
-      update_H!(this, timer)
-      update_J!(this, timer)
+      update_grad!(this, timer, pars)
+      update_cons!(this, timer, pars)
+      update_obj!(this, timer, pars)
+      update_H!(this, timer, pars)
+      update_J!(this, timer, pars)
 
       #update_primal_cache!(this, timer)
 
@@ -101,20 +114,23 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         s = it.point.s[i]
         @assert(s > 0.0)
 
-        ub_dyi = mu / (comp_feas * s) - y[i]
-        lb_dyi = mu * comp_feas / s - y[i]
+        safety_factor = 1.001
+        safety_add = 1e-6
+
+        ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
+        lb_dyi = (mu * comp_feas / s - y[i]) / dy[i]
 
         if dy[i] > 0.0
-          lb = max( lb_dyi / dy[i], lb)
-          ub = min( ub_dyi / dy[i], ub)
+          lb = max( lb_dyi * safety_factor + safety_add, lb)
+          ub = min( ub_dyi / safety_factor - safety_add, ub)
 
           #if lb < ub
           #  @assert( y[i] + ub * dy[i] <= mu / (comp_feas * s) )
           #  @assert( y[i] + lb * dy[i] >= comp_feas * mu / s )
           #end
         elseif dy[i] < 0.0
-          lb = max(ub_dyi / dy[i], lb)
-          ub = min(lb_dyi / dy[i], ub)
+          lb = max(ub_dyi * safety_factor + safety_add, lb)
+          ub = min(lb_dyi / safety_factor - safety_add, ub)
 
           #if lb < ub
           #  @assert( y[i] + lb * dy[i] <= mu / (comp_feas * s) )
@@ -124,6 +140,38 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
           lb = 0.0
           ub = -1.0
         end
+
+        if lb < ub
+          mu_lb = (y[i] + lb * dy[i]) * s
+          mu_ub = (y[i] + ub * dy[i]) * s
+
+          if mu_lb > mu / comp_feas
+              println("HERE1")
+          end
+
+          if mu_ub > mu / comp_feas
+            println("HERE2")
+          end
+
+          if mu_ub < mu * comp_feas
+            println("HERE3")
+          end
+
+          if mu_lb < mu * comp_feas
+            println("HERE4")
+          end
+        end
+
+        #|| mu_lb < mu * comp_feas
+          #@show mu_lb, mu_ub
+          #@show comp_feas * mu, mu / comp_feas
+          #@show lb
+          #@show mu, dy[i]
+          #@assert(mu_lb <= mu / comp_feas)
+          #@assert(mu_ub <= mu / comp_feas)
+          #@assert(mu_lb >= comp_feas * mu)
+          #@assert(mu_ub >= comp_feas * mu)
+        #end
     end
 
     return lb, ub
@@ -140,7 +188,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
     if pars.move_type == :primal_dual
       new_it = copy(it, timer)
       new_it.point.x += dir.x * step_size
-      update_cons!(new_it, timer)
+      update_cons!(new_it, timer, pars)
 
       new_a = get_cons(new_it)
 
@@ -173,28 +221,35 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
       end
 
       if minimum(new_it.point.s) > 0.0
-        lb1, ub1 = dual_bounds(it, new_it.point.y, dir.y, pars.comp_feas)
-        lb2, ub2 = dual_bounds(it, new_it.point.y, dir.y, pars.comp_feas_agg)
+        lb1, ub1 = dual_bounds(new_it, new_it.point.y, dir.y, pars.comp_feas)
+        lb2, ub2 = dual_bounds(new_it, new_it.point.y, dir.y, pars.comp_feas_agg)
 
         if pars.move_primal_seperate_to_dual
-            if lb1 < ub1 / 1.01
+            if lb1 < ub1
                 theta = (1.0 - pars.fraction_to_boundary)
                 step_size_D_boundary = theta / maximum([theta; -dir.y ./ it.point.y])
                 step_size_D_max = min(step_size_D_boundary, ub1)
 
                 if pars.dual_ls
                   scale = dual_scale(new_it, pars)
+                  #scale = 1.0;
                   ∇a = get_jac(new_it)
                   q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
                   predicted_dual_res = step_size * (hess_product(it, dir.x) + get_delta(it) * dir.x) + eval_grad_lag(it)
                   res = [scale * predicted_dual_res; -comp(new_it)]
                   step_size_D = sum(res .* q) / sum(q.^2)
                   step_size_D = max(lb1,min(step_size_D,step_size_D_max))
+                  #=@show sum(q.^2)
+                  @show norm(dir.x, 2)
+                  @show get_delta(it),  norm(eval_grad_lag(it)), norm(new_it.point.s,2)=#
                 else
                   step_size_D = step_size_D_max
                 end
 
                 new_it.point.y += dir.y * step_size_D
+
+                #@show dir.y
+                #@show step_size_D
 
                 #if !all(new_it.point.y .>= it.point.y * pars.fraction_to_boundary)
                 #    return it, false, step_size_D
@@ -203,10 +258,11 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                 #update_H!(it, timer)
 
                 if !is_feasible(new_it, pars.comp_feas)
-                  #@show minimum(new_it.point.y), maximum(new_it.point.s)
-                  #println("line=",@__LINE__, "file=",@__FILE__)
-                  #my_warn("infeasibility should have been detected earlier!!!")
-                  #@show (lb1, ub1), (lb2, ub2)
+                  @show minimum(new_it.point.y), maximum(new_it.point.s)
+                  println("line=",@__LINE__, "file=",@__FILE__)
+                  my_warn("infeasibility should have been detected earlier!!!")
+                  @show step_size, step_size_D
+                  @show (lb1, ub1), (lb2, ub2)
                   return it, false, step_size_D
                 else
                   return new_it, true, step_size_D
@@ -410,56 +466,95 @@ function copy_cache!(it::Class_iterate, timer::class_advanced_timer)
     cache = it.cache
 
     new_cache = Class_cache()
-    new_cache.J = cache.J
-    new_cache.H = cache.H
-    new_cache.cons = cache.cons
-    new_cache.fval = cache.fval
-    new_cache.grad = cache.grad
+    new_cache.J = copy(cache.J)
+    new_cache.J_updated = false
+    new_cache.H = copy(cache.H)
+    new_cache.H_updated = false
+    new_cache.cons = copy(cache.cons)
+    new_cache.cons_updated = false
+    new_cache.fval = copy(cache.fval)
+    new_cache.fval_updated = false
+    new_cache.grad = copy(cache.grad)
+    new_cache.grad_updated = false
+
 
     it.cache = new_cache
 
     pause_advanced_timer(timer, "CACHE/copy")
 end
 
-function update_cons!(it::Class_iterate, timer::class_advanced_timer)
+function update!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    update_cons!(it, timer, pars)
+    update_obj!(it, timer, pars)
+    update_H!(it, timer, pars)
+    update_grad!(it, timer, pars)
+    update_J!(it, timer, pars)
+end
+
+function getbad(something::Array{Float64,1})
+    for val in something
+      if isbad(val)
+        return val
+      end
+    end
+
+    return 0.0
+end
+
+function update_cons!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
     start_advanced_timer(timer, "CACHE/update_cons")
     it.cache.cons = eval_a(it.nlp, it.point.x)
+    it.cache.cons_updated = true
     if isbad(it.cache.cons)
         println("NaN or Inf")
+        throw(Eval_NaN_error(getbad(it.cache.cons), it.point.x,"cons"))
     end
     pause_advanced_timer(timer, "CACHE/update_cons")
 end
 
-function update_obj!(it::Class_iterate, timer::class_advanced_timer)
+function update_obj!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
     start_advanced_timer(timer, "CACHE/update_obj")
     it.cache.fval = eval_f(it.nlp, it.point.x)
+    it.cache.fval_updated = true
     if isbad(it.cache.fval)
         println("NaN or Inf")
+        throw(Eval_NaN_error(it.cache.fval, it.point.x, "obj"))
     end
     pause_advanced_timer(timer, "CACHE/update_obj")
 end
 
-function update_H!(it::Class_iterate, timer::class_advanced_timer)
+function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
     start_advanced_timer(timer, "CACHE/update_H")
     it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
+    it.cache.H_updated = true
+
+    nzH = nonzeros(it.cache.H)
+    if isbad(nzH)
+        println("NaN or Inf")
+        throw(Eval_NaN_error(getbad(nzH), it.point.x, "H"))
+    end
     pause_advanced_timer(timer, "CACHE/update_H")
 end
 
-function update_grad!(it::Class_iterate, timer::class_advanced_timer)
+function update_grad!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
     start_advanced_timer(timer, "CACHE/update_grad")
     it.cache.grad = eval_grad_f(it.nlp, it.point.x)
+    it.cache.grad_updated = true
     if isbad(it.cache.grad)
         println("NaN or Inf")
+        throw(Eval_NaN_error(getbad(it.cache.grad), it.point.x, "grad"))
     end
     pause_advanced_timer(timer, "CACHE/update_grad")
 end
 
-function update_J!(it::Class_iterate, timer::class_advanced_timer)
+function update_J!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
   start_advanced_timer(timer, "CACHE/update_J")
   @assert(length(it.point.x) == length(it.cache.grad))
   it.cache.J = eval_jac(it.nlp, it.point.x)
+  it.cache.J_updated = true
   if isbad(nonzeros(it.cache.J))
       println("NaN or Inf")
+      throw(Eval_NaN_error(getbad(it.cache.J), it.point.x, "J"))
   end
   pause_advanced_timer(timer, "CACHE/update_J")
 end
