@@ -12,6 +12,7 @@ type alg_history <: abstract_alg_history
     dual_scaled::Float64
     norm_grad_lag::Float64
     primal_residual::Float64
+    con_vio::Float64
     comp::Float64
     comp_ratio::Float64
     dot_sy::Float64
@@ -34,15 +35,16 @@ type ipopt_alg_history <: abstract_alg_history
   fval::Float64
   #dual_scaled::Float64
   norm_grad_lag::Float64
-  primal_residual::Float64
   comp::Float64
   #comp_ratio::Float64
   #dot_sy::Float64
+  #primal_residual::Float64
   #farkas::Float64
   #delta::Float64
   #eval_merit_function::Float64
   #eval_phi::Float64
   #eval_grad_phi::Float64
+  con_vio::Float64
   y_norm::Float64
   x_norm::Float64
 
@@ -75,6 +77,7 @@ function record_progress!(t::Int64, step_type::String, iter::Class_iterate, kss:
     hist.norm_grad_lag = norm(eval_grad_lag(iter),Inf)
     hist.dual_scaled = scaled_dual_feas(iter, par)
     hist.primal_residual = norm(get_primal_res(iter),Inf)
+    hist.con_vio = get_max_vio(iter)
     hist.comp = norm(comp(iter),Inf)
     hist.comp_ratio = comp_ratio_max(iter) * par.comp_feas_agg #norm(comp(iter),Inf)
     hist.farkas = eval_farkas(iter)

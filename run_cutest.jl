@@ -176,9 +176,10 @@ end
 function filter_cutest(problem)
   regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     # large
-    #correct_size = 10 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 2000
+    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 10000
     # medium lrg
-    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
+    #correct_size = problem["variables"]["number"] + problem["constraints"]["number"] >= 100 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
+    #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
     # medium
     #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     # small
@@ -219,9 +220,11 @@ remove_list = ["MISRA1D","OSBORNE1","LANCZOS2","MEYER3NE","ROSZMAN1","INTEQNE","
 "THURBER","MGH17S","BOX3NE","PENLT1NE","GAUSS2","GULFNE","BA-L1SP","ENSO","CHWIRUT1", "CHWIRUT2","NELSON","HAHN1","KIRBY2","MUONSINE","OSBORNE2","BENNETT5","BA-L1","GAUSS3",
 "GAUSS1","LANCZOS3","BIGGS6NE","LANCZOS1","VANDANIUMS","MISRA1B","MGH09","MGH17","WATSONNE",
 "DMN37142LS","VESUVIOU","PENLT2NE", "DMN37143LS","INTEQNELS","BROYDN3DLS","DMN15332LS",
-"DMN15102LS","BROYDNBDLS","VESUVIA","BA-L1SPLS","BA-L1SPLS","SANTALS","VESUVIO","DMN15333LS","ARGTRIGLS","RAT42","SSINE","LSC1","LSC2","BOXBOD","POWELLSE","FREURONE","DANWOOD","HELIXNE"];
+"DMN15102LS","BROYDNBDLS","VESUVIA","BA-L1SPLS","BA-L1SPLS","SANTALS","VESUVIO","DMN15333LS",
+"ARGTRIGLS","RAT42","SSINE","LSC1","LSC2","BOXBOD","POWELLSE","FREURONE","DANWOOD","HELIXNE",
+"DMN37142","DMN37143","DMN15102","DMN15333","DMN15332","DMN15103"];
 problem_list = filter_string_array(problem_list, remove_list);
-#test_problems(problem_list,1)
+test_problems(problem_list, 1)
 #CUTEstModel("GAUSS2")
 
 if false
@@ -231,8 +234,8 @@ if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
-if true
-folder_name = "new_approach_latest3"
+if false
+folder_name = "big_run"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 
@@ -336,8 +339,18 @@ if false
     end
 end
 
-if false
+if true
   using Ipopt
-  my_solver = IpoptSolver(print_level=3)
-  run_cutest_problems_on_solver(problem_list, "ipopt_test3", my_solver)
+  folder_name = "ipopt_big_run"
+  if_mkdir("results/$folder_name")
+  my_solver = IpoptSolver(print_level=3, tol=1e-6, max_cpu_time=60.0 * 5.0)
+  run_cutest_problems_on_solver(problem_list, folder_name, my_solver)
+end
+
+if true
+  using Ipopt
+  folder_name = "ipopt_big_run_no_relax"
+  if_mkdir("results/$folder_name")
+  my_solver = IpoptSolver(print_level=3, tol=1e-6, max_cpu_time=60.0 * 5.0, bound_relax_factor=0.0)
+  run_cutest_problems_on_solver(problem_list, folder_name, my_solver)
 end

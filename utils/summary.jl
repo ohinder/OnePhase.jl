@@ -45,7 +45,7 @@ end
 function set_info_me!(info::problem_summary, hist)
     info.it_count = hist[end].t
     info.fval = hist[end].fval;
-    info.con_vio = hist[end].primal_residual;
+    info.con_vio = hist[end].con_vio;
     info.dual_feas = hist[end].norm_grad_lag;
     info.comp = hist[end].comp;
 end

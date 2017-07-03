@@ -11,6 +11,9 @@ include("include.jl")
 #nlp_raw = CUTEstModel("CHNRSBNE")
 #nlp_raw = CUTEstModel("KTMODEL")
 #nlp_raw = CUTEstModel("CONT6-QQ")
+#nlp_raw = CUTEstModel("WACHBIEG")
+#nlp_raw = CUTEstModel("SPANHYD")
+#nlp_raw = CUTEstModel("HS12")
 
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
@@ -29,13 +32,13 @@ include("include.jl")
 #nlp_raw = CUTEstModel("QPCSTAIR")
 #nlp_raw = CUTEstModel("QPNBOEI2")
 #nlp_raw = CUTEstModel("READING6")
-#nlp_raw = CUTEstModel("YORKNET")
+nlp_raw = CUTEstModel("YORKNET")
 
 
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("TFI1")
 #nlp_raw = CUTEstModel("GPP")
-nlp_raw = CUTEstModel("ANTWERP")
+#nlp_raw = CUTEstModel("ANTWERP")
 #nlp_raw = CUTEstModel("HYDCAR20")
 #nlp_raw = CUTEstModel("STEENBRD")
 #nlp_raw = CUTEstModel("STEENBRC")
@@ -85,12 +88,13 @@ nlp_raw = CUTEstModel("ANTWERP")
 #nlp_raw = CUTEstModel("QPNSTAIR")
 #nlp_raw = CUTEstModel("YORKNET")
 
-if false
+if true
 using Ipopt
-mp = NLPModels.NLPtoMPB(nlp_raw, IpoptSolver(print_level=5, tol=1e-8))
+mp = NLPModels.NLPtoMPB(nlp_raw, IpoptSolver(print_level=5, tol=1e-8, bound_relax_factor=1e-6))
 MathProgBase.optimize!(mp)
 x = MathProgBase.getsolution(mp)
 solver = MathProgBase.getrawsolver(mp)
+#finalize(nlp_raw)
 end
 
 begin

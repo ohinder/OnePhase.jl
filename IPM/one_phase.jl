@@ -100,7 +100,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  if be_aggressive
                      if norm(get_primal_res(iter),Inf) > pars.tol || !pars.pause_primal
                        step_type = "agg"
-                       reduct_factors = Reduct_affine()
+                       reduct_factors = pars.aggressive_reduct_factors #Reduct_affine()
                      else
                        reduct_factors = Class_reduction_factors(1.0, 0.0, 0.0)
                        step_type = "mu"
@@ -112,9 +112,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      actual_min_step_size = q
                      #@show q
                      iter.point.mu = mu_est
-                     centre_dual!(iter.point, pars.comp_feas_agg)
+                     centre_dual!(iter.point, pars.comp_feas_agg) # ??????
                  else
-                      reduct_factors = Reduct_stable()
+                      reduct_factors = pars.stable_reduct_factors #Reduct_stable()
                       step_type = "stb"
                       actual_min_step_size = pars.min_step_size_stable
                  end

@@ -10,6 +10,8 @@ type Class_termination_parameters
 
 end
 
+abstract abstract_reduct_factors;
+
 type Class_parameters
     output_level::Int64
     debug_mode::Int64
@@ -80,6 +82,9 @@ type Class_parameters
     linear_solver_safe_mode::Bool
     move_type::Symbol
 
+    stable_reduct_factors::abstract_reduct_factors
+    aggressive_reduct_factors::abstract_reduct_factors
+
     function Class_parameters()
         this = new()
 
@@ -111,9 +116,9 @@ type Class_parameters
         this.min_step_size_stable = 1e-3
         this.min_step_size_agg_ratio = 1e-2
         this.use_delta_s = false
-        #this.adaptive_mu = :none
-        this.adaptive_mu = :test7
-        #this.adaptive_mu = :test6
+        this.adaptive_mu = :none
+        #this.adaptive_mu = :test7 # DEFAULT
+        #this.adaptive_mu = :test11
         this.pause_primal = false
         this.stb_before_agg = false
         this.eigen_search = false
@@ -163,6 +168,10 @@ type Class_parameters
         this.ItRefine_BigFloat = false
         this.use_prox = true
         this.proximal_style = :none
+
+        # Don't change these parameters except for experimentation
+        this.stable_reduct_factors = Reduct_stable()
+        this.aggressive_reduct_factors = Reduct_affine()
 
         if true
           this.kkt_solver_type = :schur

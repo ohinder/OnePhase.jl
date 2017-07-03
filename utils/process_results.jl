@@ -235,3 +235,114 @@ function show_results(results::Dict{String, Dict{String,problem_summary}})
       end
     end
 end
+
+
+function compute_its_etc(overlapping_results)
+    its = Dict{String,Array{Int64,1}}()
+    println("quartiles")
+    for (method_name, sum_data) in overlapping_results
+        its[method_name] = iteration_list(sum_data);
+        d = its[method_name]
+        println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)))
+    end
+
+    times = Dict{String,Array{Float64,1}}()
+    for (method_name, sum_data) in overlapping_results
+        times[method_name] = []
+        for (problem_name,info) in sum_data
+          push!(times[method_name], info.total_time);
+        end
+        println(method_name, " ", rd(mean(times[method_name])), " ", rd(median(times[method_name])))
+    end
+
+    best = best_its(its)
+
+    ratios = Dict()
+    for (method_name, val) in its
+      ratios[method_name] = its[method_name] ./ best;
+      lrg = its[method_name] .>= Infty
+      ratios[method_name][lrg] = Inf
+
+      d = ratios[method_name]
+      println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)), rd(quantile(d,0.9)))
+    end
+    return its, best, ratios, times
+end
+####################################################################################################
+####################################################################################################
+#############################       DUAL VARIABLE STUFF                #############################
+####################################################################################################
+####################################################################################################
+
+
+function compute_dual_hist(results)
+    dual_hist = Array{Float64,1}()
+    t = 0
+    for it_hist in results
+      if it_hist.t > t
+        push!( dual_hist, it_hist.y_norm )
+        t += 1
+      end
+    end
+    #dual_maxes[folder_name][problem_name] = maximum(dual_hist)
+
+    return dual_hist
+end
+
+function get_lists(summary)
+    problem_list = collect(keys(first(summary)[2]))
+    method_list = keys(summary)
+
+    return problem_list, method_list
+end
+
+function get_all_optimal(summary, problem_list) # get all problems where all solvers get the optimal solution
+    remove_these = Array{String,1}()
+
+    for problem_name in problem_list
+      for (method_name, sum_data) in summary_netlib
+          if sum_data[problem_name].status != :optimal
+            push!(remove_these, problem_name)
+          end
+      end
+    end
+
+    all_optimal = Array{String,1}()
+
+    for problem_name in problem_list
+        if !(problem_name in remove_these)
+          push!(all_optimal, problem_name)
+        end
+    end
+
+    return all_optimal
+end
+
+function summarize_by_iteration(hist)
+    sum_hist = Array{abstract_alg_history,1}()
+    for i = 2:length(hist)
+      if hist[i].t > hist[i-1].t
+        push!(sum_hist, hist[i-1])
+      end
+    end
+    push!(sum_hist, hist[end])
+
+    return sum_hist
+end
+
+
+function aggregate_summary_by_it_for_plots(sh, field_list::Dict{String,Symbol})
+    data_us = Dict()
+
+    for (label, field) in field_list
+        data_us[field] = zeros(length(sh));
+    end
+
+    for i = 1:length(sh)
+        for (label, field) in field_list
+          data_us[field][i] = getfield(sh[i],field);
+        end
+    end
+
+    return data_us
+end

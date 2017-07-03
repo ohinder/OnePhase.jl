@@ -1,4 +1,4 @@
-type Class_reduction_factors
+type Class_reduction_factors <: abstract_reduct_factors
     P::Float64
     D::Float64
     mu::Float64

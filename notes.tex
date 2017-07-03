@@ -25,6 +25,7 @@
 \newcommand{\parMinStableStepSize}{\beta_{4}}
 \newcommand{\parKKTReductFactor}{\beta_{5}}
 \newcommand{\parObjReductFactor}{\beta_{6}}
+\newcommand{\parBacktracking}{\beta_{7}}
 
 %\newcommand{\Filter}{\mathbb{F}}
 \newcommand{\History}{\mathbb{H}}
@@ -132,6 +133,55 @@ $$
 Where $\TOLinf$ is the tolerance for primal feasibility.
 
 \todo{ $L_{\infty}$ ... }
+
+
+Second order stationary point of.
+\begin{flalign*}
+\min w^T a(x) \\
+\text{s.t. } a(x) \le a(x^{*}) + s^{*}
+\end{flalign*}
+
+
+\subsection{Stationary point of $L_{\infty}$ constraint violation}
+
+Consider the following optimization problem:
+\begin{flalign*}
+\min \theta \\
+\text{s.t. } a(x) + s = \theta e \\
+s, \theta \ge 0
+\end{flalign*}
+
+The KKT conditions for this problem are:
+\begin{flalign*}
+u \theta \le \epsilon  \\
+\tilde{y}^T s \le \epsilon \\
+\nabla a(x)^T \tilde{y}  = 0 \\
+e^T \tilde{y}  + u = 1 \\
+u, \theta \ge 0
+\end{flalign*}
+
+\subsection{Discussion of Watcher and Biegler's example}
+
+Key differences:
+\begin{enumerate}
+\item Non-linear updates
+\item Initialization of slack variables violates their assumptions
+\end{enumerate}
+
+\begin{flalign}
+x_{1}^2 + a \ge 0 \\
+x_{1} \ge b
+\end{flalign}
+
+\begin{flalign}
+\min{ -\theta (x_{1}^2 + a) - (x_{1} - b) } \\
+w \ge 0
+\end{flalign}
+At 
+$$
+\theta = 1 / (2 x_{1})
+$$
+
 
 \subsection{Derivation of method}
 
@@ -284,7 +334,7 @@ Given some candidate primal iterate $x^{+}$, $s^{+}$, we define $B( s^{+}, d_{y}
 \end{flalign}
 If no such interval exists we set $B( s^{+}, d_{y} )$ to the empty set and the step will be rejected. We compute the dual step size as follows:
 \begin{flalign}
-\alpha_{D} = \arg \min_{\alpha_{D} \in B( s^{+}, d_{y} )} \| S^{+} y + \alpha_{D} S^{+} d_{y} \|^2_{2} +  \sigma(y) \| \nabla L(x, y)  + (\nabla^2 L(x, y) + \delta I) d_{x} + \alpha_{D}  \nabla a(x)^T d_{y} \|^{2}_{2}
+\alpha_{D} = \arg \min_{\alpha_{D} \in B( s^{+}, d_{y} )} \| S^{+} y + \alpha_{D} S^{+} d_{y} \|^2_{2} + \| \nabla L(x, y)  + (\nabla^2 L(x, y) + \delta I) d_{x} + \alpha_{D}  \nabla a(x)^T d_{y} \|^{2}_{2}
 \end{flalign}
 This reduces to a one dimensional least squares problem in $\alpha_{D}$ which has a closed form expression.
 
@@ -296,7 +346,7 @@ This reduces to a one dimensional least squares problem in $\alpha_{D}$ which ha
 \begin{enumerate}[label*=A.{\arabic*}]
 \item Compute a direction $d$ from the system~\eqref{primal-dual-newton-direction} with $\eta = 1$
 \item Estimate the largest primal step size $\alpha^{\max}_{P}$
-\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha \in \{\alpha^{\max}_{P}, \beta \alpha^{\max}_{P}, ... \}$ and terminate with $\status = \success$ the first time all of the following conditions hold:
+\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, ... \}$ and terminate with $\status = \success$ the first time all of the following conditions hold:
 \begin{enumerate}[label=({\roman*})] 
 \item The fraction to the boundary rule \eqref{} is satisfied 
 \item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
@@ -564,6 +614,12 @@ And since $\frac{s^{k} y^{k}}{\mu^k} \in [1/2,3/2]$ we have  $\frac{s^{k+1} y^{k
 
 
 \section{Scrap paper}
+
+\section{Proximal}
+
+$$
+\mu^k \sqrt{ x_i^2 + 1 }
+$$
 
 \section{Log barrier sub-problems}
 

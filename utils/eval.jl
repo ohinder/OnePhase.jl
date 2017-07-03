@@ -28,6 +28,17 @@ function isbad(num::Float64)
     end
 end
 
+function isbad(vec)
+  for i = 1:length(vec)
+    if isbad(vec[i])
+      return true
+    end
+  end
+
+  return false
+end
+
+
 function get_fval(it::Class_iterate)
     return it.cache.fval
 end
@@ -107,13 +118,13 @@ function eval_merit_function(it::Class_iterate, pars::Class_parameters)
     end
 end
 
-function vector_product(LowerTriangularMat, vector)
+function vector_product(LowerTriangularMat, vector::Vector)
     v1 = LowerTriangularMat * vector
     v2 = LowerTriangularMat' * vector
     return v1 + v2 - diag(LowerTriangularMat) .* vector
 end
 
-function hess_product(it::Class_iterate, vector::Array{Float64,1})
+function hess_product(it::Class_iterate, vector::Vector)
     return vector_product(it.cache.H, vector)
 end
 

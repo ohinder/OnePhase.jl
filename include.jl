@@ -9,7 +9,7 @@ include("line_search/line_search.jl")
 include("IPM/IPM_tools.jl")
 include("IPM/display_progress.jl")
 include("IPM/one_phase.jl")
-include("IPM/init.jl")
+include("IPM/init2.jl")
 include("IPM/delta_strategy.jl")
 include("AbstractNLPModel/infeas.jl")
 

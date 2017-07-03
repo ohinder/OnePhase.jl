@@ -206,8 +206,11 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
       if(isbad(a))
           throw(Eval_NaN_error(getbad(a),x,"a"))
       end
+
+      if isbad(g)
+        throw(Eval_NaN_error(getbad(g),x,"g"))
+      end
     end
-    @assert(!isbad(g))
     pause_advanced_timer(timer, "INIT/evals")
 
 
@@ -229,6 +232,12 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
 
+    Delta_s = 0.0 # norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
+    if pars.start_satisfying_bounds
+      s[ais] = s[ais] + Delta_s
+    else
+      s = s + Delta_s
+    end
 
     s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
 
@@ -278,6 +287,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     start_advanced_timer(timer, "INIT/construct_class")
     init_point = Class_point(x, y, s, mu)
+    check_for_nan(init_point)
     init_it = Class_iterate(init_point, nlp, Class_local_info(0.0, NaN, :init), timer, pars);
     pause_advanced_timer(timer, "INIT/construct_class")
 
@@ -285,12 +295,18 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 end
 
 function estimate_y_tilde( J, g, pars )
-    H = Symmetric(J * J' + norm(J,Inf) * 1e-2 * speye( size(J,1) ))
-    #@show H, J
-    M = cholfact( H );
-    rhs = J * g
-    #@show rhs
-    return M \ rhs
+    try
+      H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
+      #@show H, J
+      M = cholfact( H );
+      rhs = J * g
+      #@show rhs
+      return M \ rhs
+    catch (e)
+      println("error in estimate_y_tilde")
+      @show e
+      return ones(size(J,1))
+    end
 end
 
 function mehortra_guarding( s_tilde::Array{Float64,1}, y_tilde::Array{Float64,1}, threshold::Float64 )

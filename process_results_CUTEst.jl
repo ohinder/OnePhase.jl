@@ -31,7 +31,7 @@ results = Dict{String, Dict{String,problem_summary}}()
 #results["One Phase 10"] = load("results/pars4/test10/summary.jld", "summary")
 #results["One Phase 11"] = load("results/pars4/test11/summary.jld", "summary")
 #results["One Phase 12"] = load("results/pars4/test12/summary.jld", "summary")
-results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary"))
+results["IPOPT"] = convert_JuMP(load("results/ipopt_test3/summary.jld", "summary"))
 #results["One Phase none"] = load("results/pars4/none/summary.jld", "summary")
 #results["One Phase true"] = load("results/pd-split/true/summary.jld", "summary")
 #results["One Phase false"] = load("results/pd-split/false/summary.jld", "summary")
@@ -47,14 +47,52 @@ results["IPOPT"] = convert_JuMP(load("results/ipopt_test2/summary.jld", "summary
 #results["new approach"] = load("results/new_approach_latest/summary.jld", "summary")
 #results["new approach 2"] = load("results/new_approach_latest/summary.jld", "summary")
 #results["new approach 2"] = load("results/new_approach_latest_working/summary.jld", "summary")
-results["new approach 3"] = load("results/new_approach_latest2/summary.jld", "summary")
+#results["new approach 3"] = load("results/new_approach_latest2/summary.jld", "summary")
 
+#results["new approach 4"] = load("results/new_approach_latest3/summary.jld", "summary")
+results["big_run"] = load("results/big_run/summary.jld", "summary")
+
+function restrict_problems(results, problem_list)
+  new_results = Dict{String,Dict{String,problem_summary}}()
+  for (method_name, sum_data) in results
+      new_results[method_name] = Dict()
+      for (problem_name, info) in sum_data
+        if problem_name in problem_list
+          new_results[method_name][problem_name] = info
+        end
+      end
+  end
+  return new_results
+end
+
+function lrg_problems(problem)
+    regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+    correct_size = problem["variables"]["number"] + problem["constraints"]["number"] >= 500 #&& problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
+    if correct_size && regular
+        return true
+    else
+      return false
+    end
+end
+
+function real_problems(problem)
+    if problem["origin"] == "real" || problem["origin"] == "modelling"
+        return true
+    else
+        return false
+    end
+end
+
+problem_list = CUTEst.select(custom_filter=lrg_problems);
+problem_list = convert(Array{String,1},problem_list);
+
+results = restrict_problems(results, problem_list)
 
 #results["stable_first/false"] = load("results/stable_first/false/summary.jld", "summary")
 #results["stable_first/true"] = load("results/stable_first/true/summary.jld", "summary")
 
 if true
-error_free_results = remove_errors(results, [:NaN_ERR])#, :ERR])
+error_free_results = remove_errors(results, [:NaN_ERR]) #, :MAX_TIME])#, :ERR])
 overlapping_results = overlap(error_free_results)
 elseif false
 overlapping_results = overlap(results)
@@ -74,35 +112,8 @@ for (method_name, sum_data) in overlapping_results
 end
 
 list_failures(overlapping_results)
+its, best, ratios, times = compute_its_etc(overlapping_results)
 
-its = Dict{String,Array{Int64,1}}()
-println("quartiles")
-for (method_name, sum_data) in overlapping_results
-    its[method_name] = iteration_list(sum_data);
-    d = its[method_name]
-    println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)))
-end
-
-times = Dict{String,Array{Float64,1}}()
-for (method_name, sum_data) in overlapping_results
-    times[method_name] = []
-    for (problem_name,info) in sum_data
-      push!(times[method_name], info.total_time);
-    end
-    println(method_name, " ", rd(mean(times[method_name])), " ", rd(median(times[method_name])))
-end
-
-best = best_its(its)
-
-ratios = Dict()
-for (method_name, val) in its
-  ratios[method_name] = its[method_name] ./ best;
-  lrg = its[method_name] .>= Infty
-  ratios[method_name][lrg] = Inf
-
-  d = ratios[method_name]
-  println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)), rd(quantile(d,0.9)))
-end
 
 ##
 ## PLOT ITERATION RATIO CURVES
@@ -176,7 +187,6 @@ begin
         print(rd(con_vio))
         print(rd(fval))
         if overlapping_results[method_name][problem_name].con_vio < 1e-5
-
           ftol = 1e-2
           ftol_scaled = ftol * (1.0 + abs(fbest))
           if fval <= fbest - ftol_scaled
@@ -193,6 +203,53 @@ begin
       print("\n")
   end
 end
+
+function best_fvals(method_name1, method_name2)
+    better_fval = Dict()
+    succeed = Dict()
+
+    feas_tol = 1e-4
+    fval_tol = 1e-1
+
+    better_fval[method_name1] = 0
+    better_fval[method_name2] = 0
+
+    succeed[method_name1] = 0
+    succeed[method_name2] = 0
+
+    for problem_name in problem_list
+      fval1 = overlapping_results[method_name1][problem_name].fval
+      con_vio1 = overlapping_results[method_name1][problem_name].con_vio
+
+      fval2 = overlapping_results[method_name2][problem_name].fval
+      con_vio2 = overlapping_results[method_name2][problem_name].con_vio
+
+      if con_vio1 < feas_tol && con_vio2 < feas_tol
+        fbest = min(fval1,fval2)
+        ftol_scaled = fval_tol * (1.0 + abs(fbest))
+
+        if fval1 < fval2 - ftol_scaled
+          better_fval[method_name1] += 1
+        elseif fval2 < fval1 - ftol_scaled
+          better_fval[method_name2] += 1
+        end
+      end
+
+      if con_vio1 < feas_tol
+        succeed[method_name1] += 1
+      end
+
+      if con_vio2 < feas_tol
+        succeed[method_name2] += 1
+      end
+    end
+
+    return better_fval, succeed
+end
+
+method_name1 = "IPOPT"
+method_name2 = "new approach 4"
+best_fvals(method_name1, method_name2)
 
 
 
@@ -221,39 +278,3 @@ xlabel("iteration ratio to best solver")
 ylabel("proportion of problems")
 
 legend()
-
-
-##
-## DUAL sequences
-##
-
-#=
-problem_list = collect(keys(first(overlapping_results)[2]))
-method_list = keys(overlapping_results)
-
-dual_maxes = Dict{String,Array{Float64,1}}()
-for folder_name in method_list
-  dual_maxes[folder_name] = Array{Float64,1}()
-  for problem_name in problem_list
-      results = load("results/$folder_name/jld/$problem_name.jld", "history")
-      dual_hist = compute_dual_hist(results)
-      push!(dual_maxes[folder_name], maximum(dual_hist))
-  end
-end
-
-best_duals = best_its(dual_maxes)
-
-min_y = 1.0
-
-ratios = Dict()
-y_vals = collect(1:length(best_duals)) / length(best_duals)
-for (method_name, val) in dual_maxes
-  #ratios[method_name] = dual_maxes[method_name] ./ best_duals
-  semilogx(sort(dual_maxes[method_name]), y_vals, label=method_name, basex=10)
-  #min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best_duals))
-end
-
-xlabel("maximum dual value")
-ylabel("proportion of problems")
-
-legend()=#

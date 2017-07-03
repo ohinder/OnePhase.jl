@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  24 JUN 2017 16:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  3 JUL 2017 13:17
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2019,7 +2019,14 @@ less on input line 67.
 Package Fancyhdr Warning: \fancyfoot's `E' option without twoside option is use
 less on input line 68.
 
-) (./notes.aux)
+) (./notes.aux
+
+LaTeX Warning: Label `compute-directions' multiply defined.
+
+
+LaTeX Warning: Label `compute-directions-dx' multiply defined.
+
+)
 \openout1 = `notes.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
@@ -2036,8 +2043,7 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
 LaTeX Font Info:    ... okay on input line 6.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 6.
 LaTeX Font Info:    ... okay on input line 6.
-
-(/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
+ (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count212
 \scratchdimen=\dimen233
@@ -2137,33 +2143,33 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 
 LaTeX Warning: Citation `wachter2000failure' on page 1 undefined on input line 
-56.
+57.
 
 
-LaTeX Warning: Citation `Chen06' on page 1 undefined on input line 75.
+LaTeX Warning: Citation `Chen06' on page 1 undefined on input line 76.
 
 
 LaTeX Warning: Citation `curtis2012penalty' on page 1 undefined on input line 7
-5.
+6.
 
 
 LaTeX Warning: Citation `wachter2000failure' on page 1 undefined on input line 
-84.
+85.
 
 
-LaTeX Warning: Citation `wachter2005line' on page 1 undefined on input line 85.
+LaTeX Warning: Citation `wachter2005line' on page 1 undefined on input line 86.
 
 
 
-LaTeX Warning: Citation `byrd2006knitro' on page 1 undefined on input line 86.
+LaTeX Warning: Citation `byrd2006knitro' on page 1 undefined on input line 87.
 
 
 LaTeX Warning: Citation `nocedal2014interior' on page 1 undefined on input line
- 86.
+ 87.
 
 
 LaTeX Warning: Citation `curtis2012penalty' on page 1 undefined on input line 8
-7.
+8.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2175,7 +2181,23 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 ]
 Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
-ine 134.
+ine 135.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 145.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `subscript' on input line 145.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\infty' on input line 145.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 145.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2185,59 +2207,14 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [2]
 
-LaTeX Warning: Reference `primal-dual-newton-direction' on page 3 undefined on 
-input line 183.
-
-
-LaTeX Warning: Reference `terminate-kkt' on page 3 undefined on input line 249.
-
-
-
-LaTeX Warning: Reference `terminate-primal-infeasible' on page 3 undefined on i
-nput line 249.
-
-
-LaTeX Warning: Reference `terminate-dual-infeasible' on page 3 undefined on inp
-ut line 249.
-
-
-LaTeX Warning: Reference `agg-criteron' on page 3 undefined on input line 255.
-
-
-LaTeX Warning: Reference `alg:aggressive' on page 3 undefined on input line 255
-.
-
-
-LaTeX Warning: Reference `alg:stable' on page 3 undefined on input line 256.
-
-
-LaTeX Warning: Reference `increase-delta-for-failure' on page 3 undefined on in
-put line 258.
-
-
-LaTeX Warning: Reference `step-1' on page 3 undefined on input line 258.
-
-
-LaTeX Warning: Reference `step-1' on page 3 undefined on input line 260.
-
-
-LaTeX Warning: Reference `take-steps' on page 3 undefined on input line 261.
-
-Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 263.
-
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
 [3]
-
-LaTeX Warning: Reference `primal-dual-newton-direction' on page 4 undefined on 
-input line 297.
-
-
-LaTeX Warning: Reference `' on page 4 undefined on input line 301.
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 313.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2247,35 +2224,7 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [4]
 
-LaTeX Warning: Reference `' on page 5 undefined on input line 336.
-
-
-LaTeX Warning: Reference `filter-update' on page 5 undefined on input line 338.
-
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 340.
-
-
-LaTeX Warning: Reference `eq:filter' on page 5 undefined on input line 342.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 355.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 357.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 359.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 361.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 363.
-
-
-LaTeX Warning: Reference `' on page 5 undefined on input line 365.
+LaTeX Warning: Reference `' on page 5 undefined on input line 351.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2284,9 +2233,32 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [5]
-Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
-line 374.
 
+LaTeX Warning: Reference `' on page 6 undefined on input line 386.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 390.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 405.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 407.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 409.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 411.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 413.
+
+
+LaTeX Warning: Reference `' on page 6 undefined on input line 415.
+
+Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
+line 424.
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2309,10 +2281,6 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [8]
 
-LaTeX Warning: Reference `solve-problem' on page 9 undefined on input line 578.
-
-
-
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
@@ -2320,28 +2288,8 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [9]
 
-LaTeX Warning: Reference `KKT-barrier' on page 10 undefined on input line 642.
-
-
-LaTeX Warning: Reference `newton-system' on page 10 undefined on input line 685
+LaTeX Warning: Reference `newton-system' on page 10 undefined on input line 741
 .
-
-
-Overfull \hbox (30.38666pt too wide) in paragraph at lines 694--695
-[]\OT1/cmr/m/n/9 ******CAREFUL WITH SIGNS i.e. should be $\OML/cmm/m/it/9 d[] \
-OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@r\OML/cmm/m/it/9 a\OT1/cmr/m/n/9 (\OML/cmm/m
-/it/9 x\OT1/cmr/m/n/9 )\OML/cmm/m/it/9 d[]$\OT1/cmr/m/n/9 , $\OML/cmm/m/it/9 d[
-] \OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@\OML/cmm/m/it/9 S[] []$ \OT1/cmr/m/n/9 **
-************* 
- []
-
-
-LaTeX Warning: Reference `newton-system' on page 10 undefined on input line 700
-.
-
-
-LaTeX Warning: Hyper reference `AlgTrust' on page 10 undefined on input line 74
-6.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2350,6 +2298,18 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [10]
+Overfull \hbox (30.38666pt too wide) in paragraph at lines 750--751
+[]\OT1/cmr/m/n/9 ******CAREFUL WITH SIGNS i.e. should be $\OML/cmm/m/it/9 d[] \
+OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@r\OML/cmm/m/it/9 a\OT1/cmr/m/n/9 (\OML/cmm/m
+/it/9 x\OT1/cmr/m/n/9 )\OML/cmm/m/it/9 d[]$\OT1/cmr/m/n/9 , $\OML/cmm/m/it/9 d[
+] \OT1/cmr/m/n/9 = \OMS/cmsy/m/n/9 ^^@\OML/cmm/m/it/9 S[] []$ \OT1/cmr/m/n/9 **
+************* 
+ []
+
+
+LaTeX Warning: Reference `newton-system' on page 11 undefined on input line 756
+.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2357,36 +2317,37 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [11]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 789.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 789.
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[12]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 845.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 845.
  (./notes.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 789.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 789.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 845.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 845.
+Package rerunfilecheck Info: File `notes.out' has not changed.
+(rerunfilecheck)             Checksum: E948D78301858E67EADD42D9B0972811;1330.
 
-
-Package rerunfilecheck Warning: File `notes.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `notes.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  B893A5EA23A479FC6D70ED565B37FA30;1101.
 
 LaTeX Warning: There were undefined references.
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 789.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 845.
  ) 
 Here is how much of TeX's memory you used:
- 26539 strings out of 493089
- 495043 string characters out of 6134842
- 557226 words of memory out of 5000000
- 29452 multiletter control sequences out of 15000+600000
+ 26571 strings out of 493089
+ 495452 string characters out of 6134842
+ 556858 words of memory out of 5000000
+ 29474 multiletter control sequences out of 15000+600000
  17181 words of font info for 65 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 64i,17n,76p,10402b,737s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 64i,17n,76p,10402b,731s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx6.pfb></
@@ -2394,30 +2355,32 @@ usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></us
 r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></us
 r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb><
 /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></us
-r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/
-local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/lo
-cal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/loca
-l/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/
-texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/te
-xlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texl
-ive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive
-/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/20
-15/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2015/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2015/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-dist/fon
-ts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on notes.pdf (11 pages, 361449 bytes).
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local
+/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/t
+exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texli
+ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/
+2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/201
+5/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2015/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2015/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/font
+s/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-dist/fonts/
+type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on notes.pdf (12 pages, 381822 bytes).
 PDF statistics:
- 325 PDF objects out of 1000 (max. 8388607)
- 282 compressed objects within 3 object streams
- 141 named destinations out of 1000 (max. 500000)
- 13 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 428 PDF objects out of 1000 (max. 8388607)
+ 381 compressed objects within 4 object streams
+ 151 named destinations out of 1000 (max. 500000)
+ 173 words of extra memory for PDF output out of 10000 (max. 10000000)
 
