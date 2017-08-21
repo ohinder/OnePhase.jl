@@ -15,6 +15,9 @@ include("include.jl")
 #nlp_raw = CUTEstModel("SPANHYD")
 #nlp_raw = CUTEstModel("HS12")
 
+
+
+
 #nlp_raw = CUTEstModel("QPCBOEI1")
 #nlp_raw = CUTEstModel("PT") # 13 ITS
 #nlp_raw = CUTEstModel("AGG") # 153 ITS
@@ -32,15 +35,16 @@ include("include.jl")
 #nlp_raw = CUTEstModel("QPCSTAIR")
 #nlp_raw = CUTEstModel("QPNBOEI2")
 #nlp_raw = CUTEstModel("READING6")
-nlp_raw = CUTEstModel("YORKNET")
+#nlp_raw = CUTEstModel("YORKNET")
 
 
 #nlp_raw = CUTEstModel("DISC2")
 #nlp_raw = CUTEstModel("TFI1")
+#nlp_raw = CUTEstModel("ACOPR57")
 #nlp_raw = CUTEstModel("GPP")
 #nlp_raw = CUTEstModel("ANTWERP")
 #nlp_raw = CUTEstModel("HYDCAR20")
-#nlp_raw = CUTEstModel("STEENBRD")
+#nlp_raw = CUTEstModel("STEENBRE")
 #nlp_raw = CUTEstModel("STEENBRC")
 #nlp_raw = CUTEstModel("EXPFITC")
 #nlp_raw = CUTEstModel("LAUNCH")
@@ -49,7 +53,13 @@ nlp_raw = CUTEstModel("YORKNET")
 #nlp_raw = CUTEstModel("HAIFAM")
 #nlp_raw = CUTEstModel("ACOPR118")
 #nlp_raw = CUTEstModel("LAKES")
-#nlp_raw = CUTEstModel("ELATTAR")
+nlp_raw = CUTEstModel("ELATTAR")
+#nlp_raw = CUTEstModel("A4X12")
+
+#nlp_raw = CUTEstModel("CRESC100")
+#nlp_raw = CUTEstModel("ACOPR118")
+#nlp_raw = CUTEstModel("LHAIFAM")
+
 #nlp_raw = CUTEstModel("ELEC")
 #nlp_raw = CUTEstModel("CRESC50")
 #nlp_raw = CUTEstModel("TRO4X4")
@@ -57,6 +67,7 @@ nlp_raw = CUTEstModel("YORKNET")
 #nlp_raw = CUTEstModel("GROUPING")
 #nlp_raw = CUTEstModel("ARWHDNE")
 #nlp_raw = CUTEstModel("HYDCAR6")
+#nlp_raw = CUTEstModel("EXPFITA")
 #nlp_raw = CUTEstModel("EXPFITC")
 
 #HVYCRASH,
@@ -76,6 +87,9 @@ nlp_raw = CUTEstModel("YORKNET")
 #finalize(nlp_raw)
 
 ## HARD PROBLEMS
+#nlp_raw = CUTEstModel("MSS1")
+#nlp_raw = CUTEstModel("ACOPR14")
+#nlp_raw = CUTEstModel("ACOPR118")
 #nlp_raw = CUTEstModel("ACOPP57")
 #nlp_raw = CUTEstModel("ACOPP300")
 #nlp_raw = CUTEstModel("LEAKNET")
@@ -84,16 +98,21 @@ nlp_raw = CUTEstModel("YORKNET")
 #nlp_raw = CUTEstModel("AVION2") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("A4X12") # HARD and poorly conditioned
 #nlp_raw = CUTEstModel("CRESC100") # >> 100. Infinities!
+#nlp_raw = CUTEstModel("CRESC50")
 #nlp_raw = CUTEstModel("AVION2")
 #nlp_raw = CUTEstModel("QPNSTAIR")
 #nlp_raw = CUTEstModel("YORKNET")
 
-if true
+if false
 using Ipopt
-mp = NLPModels.NLPtoMPB(nlp_raw, IpoptSolver(print_level=5, tol=1e-8, bound_relax_factor=1e-6))
+solver = IpoptSolver(print_level=5, tol=1e-6, bound_relax_factor=0.0) #, tol_dual_abs=1e-6)
+#solver = IpoptSolver(print_level=5, tol=1e-8)
+mp = NLPModels.NLPtoMPB(nlp_raw, solver)
 MathProgBase.optimize!(mp)
 x = MathProgBase.getsolution(mp)
+y = MathProgBase.getdual(mp)
 solver = MathProgBase.getrawsolver(mp)
+
 #finalize(nlp_raw)
 end
 
@@ -117,8 +136,9 @@ pause_advanced_timer(timer)
 
 print_timer_stats(timer)
 
-finalize(nlp_raw)
 end
+finalize(nlp_raw)
+
 #
 # aggressive steps do max LP step
 

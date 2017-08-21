@@ -23,14 +23,17 @@ function projection_onto_bounds1( nlp::Class_CUTEst, pars::Class_parameters, x::
         error("bounds too close!")
       end
 
-      if lvar[i] < Inf
-        b_L[i] = lvar[i] + min(κ_1 * max(1, abs(lvar[i])), κ_2 * (uvar[i] - lvar[i]) )
+      p_L = min(κ_1 * max(1, abs(lvar[i])), κ_2 * (uvar[i] - lvar[i]) )
+      p_U = min(κ_1 * max(1, abs(uvar[i])), κ_2 * (uvar[i] - lvar[i]) )
+
+      if lvar[i] > -Inf
+        b_L[i] = lvar[i] + p_L
       else
         b_L[i] = -Inf
       end
 
       if uvar[i] < Inf
-        b_U[i] = uvar[i] - min(κ_1 * max(1, abs(uvar[i])), κ_2 * (uvar[i] - lvar[i]) )
+        b_U[i] = uvar[i] - p_U
       else
         b_U[i] = Inf
       end
@@ -39,7 +42,9 @@ function projection_onto_bounds1( nlp::Class_CUTEst, pars::Class_parameters, x::
       if b_L[i] < b_U[i]
         x[i] = min(max(b_L[i], x[i]), b_U[i])
       else
-        x[i] = (uvar[i] + lvar[i]) / 2.0
+        @show b_L[i], b_U[i]
+        error("this shouldn't happen!")
+        #x[i] = (uvar[i] + lvar[i]) / 2.0
       end
 
 
@@ -91,8 +96,8 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     if pars.start_satisfying_bounds
       start_advanced_timer(timer, "INIT/projection_onto_bounds")
-      #x = projection_onto_bounds1( nlp, pars, x )
-      x = projection_onto_bounds2( nlp, pars, x )
+      x = projection_onto_bounds1( nlp, pars, x )
+      #x = projection_onto_bounds2( nlp, pars, x )
       pause_advanced_timer(timer, "INIT/projection_onto_bounds")
     end
 

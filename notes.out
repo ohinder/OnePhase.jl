@@ -1,20 +1,30 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [2][-]{subsection.1.1}{Relevant literature}{section.1}% 2
-\BOOKMARK [1][-]{section.2}{Motivation and derivation of algorithm}{}% 3
-\BOOKMARK [2][-]{subsection.2.1}{Infeasibility certificates}{section.2}% 4
-\BOOKMARK [2][-]{subsection.2.2}{Stationary point of L constraint violation}{section.2}% 5
-\BOOKMARK [2][-]{subsection.2.3}{Discussion of Watcher and Biegler's example}{section.2}% 6
-\BOOKMARK [2][-]{subsection.2.4}{Derivation of method}{section.2}% 7
-\BOOKMARK [2][-]{subsection.2.5}{Behavior of this algorithm on convex quadratic programs}{section.2}% 8
-\BOOKMARK [1][-]{section.3}{Practical algorithm}{}% 9
-\BOOKMARK [2][-]{subsection.3.1}{Updating the iterates}{section.3}% 10
-\BOOKMARK [2][-]{subsection.3.2}{Aggressive search directions}{section.3}% 11
-\BOOKMARK [2][-]{subsection.3.3}{Stablization search directions}{section.3}% 12
-\BOOKMARK [1][-]{section.4}{Convergence proofs}{}% 13
-\BOOKMARK [2][-]{subsection.4.1}{Trust region}{section.4}% 14
-\BOOKMARK [2][-]{subsection.4.2}{Line searches}{section.4}% 15
-\BOOKMARK [1][-]{section.5}{Scrap paper}{}% 16
-\BOOKMARK [1][-]{section.6}{Proximal}{}% 17
-\BOOKMARK [1][-]{section.7}{Log barrier sub-problems}{}% 18
-\BOOKMARK [1][-]{section.8}{Algorithm}{}% 19
-\BOOKMARK [1][-]{section.9}{Delta computation}{}% 20
+\BOOKMARK [1][-]{section.2}{The algorithm}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Derivation of direction computation}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Updating the iterates}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Termination criterion}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Algorithm outline}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{Stabilization steps}{section.2}% 7
+\BOOKMARK [3][-]{subsubsection.2.5.1}{Augmented log barrier merit function}{subsection.2.5}% 8
+\BOOKMARK [3][-]{subsubsection.2.5.2}{KKT merit function and filter}{subsection.2.5}% 9
+\BOOKMARK [3][-]{subsubsection.2.5.3}{Stabilization step algorithm}{subsection.2.5}% 10
+\BOOKMARK [2][-]{subsection.2.6}{Aggressive steps}{section.2}% 11
+\BOOKMARK [3][-]{subsubsection.2.6.1}{Algorithm Parameters}{subsection.2.6}% 12
+\BOOKMARK [1][-]{section.3}{Theoretical justification}{}% 13
+\BOOKMARK [2][-]{subsection.3.1}{Derivation of primal infeasibility termination criterion}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.2}{Global convergence proofs for a naive algorithm}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.3}{Global convergence proofs for Algorithm 1}{section.3}% 16
+\BOOKMARK [1][-]{section.4}{Implementation details}{}% 17
+\BOOKMARK [2][-]{subsection.4.1}{Initialization}{section.4}% 18
+\BOOKMARK [2][-]{subsection.4.2}{Linear algebra}{section.4}% 19
+\BOOKMARK [2][-]{subsection.4.3}{Iterative refinement}{section.4}% 20
+\BOOKMARK [1][-]{section.5}{To do}{}% 21
+\BOOKMARK [1][-]{section.6}{Empirical results}{}% 22
+\BOOKMARK [1][-]{section.7}{Conclusions}{}% 23
+\BOOKMARK [1][-]{appendix.A}{Matrix factorization strategy}{}% 24
+\BOOKMARK [1][-]{appendix.B}{The \(non-existence\) of a central path in non-convex optimization}{}% 25
+\BOOKMARK [1][-]{appendix.C}{Old}{}% 26
+\BOOKMARK [2][-]{subsection.C.1}{Intuition: penalty method versus infeasible start method}{appendix.C}% 27
+\BOOKMARK [2][-]{subsection.C.2}{Discussion of Watcher and Biegler's example}{appendix.C}% 28
+\BOOKMARK [2][-]{subsection.C.3}{Relevant literature}{appendix.C}% 29
+\BOOKMARK [2][-]{subsection.C.4}{Old convergence proofs}{appendix.C}% 30

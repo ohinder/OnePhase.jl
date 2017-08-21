@@ -176,12 +176,12 @@ end
 function filter_cutest(problem)
   regular = problem["derivative_order"] >= 2 && problem["regular"] == true
     # large
-    correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 10000
+    #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 10000
     # medium lrg
     #correct_size = problem["variables"]["number"] + problem["constraints"]["number"] >= 100 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
     #correct_size = problem["constraints"]["number"] >= 1 && problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
     # medium
-    #correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
+    correct_size = 50 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] <= 600 && problem["constraints"]["number"] <= 1000
     # small
     #correct_size = 100 <= problem["variables"]["number"] + problem["constraints"]["number"] && problem["constraints"]["number"] >= 10 && problem["variables"]["number"] + problem["constraints"]["number"] <= 300
     if correct_size && regular
@@ -235,7 +235,7 @@ run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if false
-folder_name = "big_run"
+folder_name = "no_regularizer"
 if_mkdir("results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 
@@ -339,7 +339,7 @@ if false
     end
 end
 
-if true
+if false
   using Ipopt
   folder_name = "ipopt_big_run"
   if_mkdir("results/$folder_name")
@@ -347,7 +347,7 @@ if true
   run_cutest_problems_on_solver(problem_list, folder_name, my_solver)
 end
 
-if true
+if false
   using Ipopt
   folder_name = "ipopt_big_run_no_relax"
   if_mkdir("results/$folder_name")

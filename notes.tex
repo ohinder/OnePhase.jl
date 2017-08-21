@@ -18,6 +18,8 @@
 \newcommand{\algorithmicbreak}{\textbf{break}}
 \newcommand{\obj}{f}
 \newcommand{\cons}{a}
+\newcommand{\nvar}{n}
+\newcommand{\ncon}{m}
 \newcommand{\parNumCor}{c_{\max}}
 \newcommand{\parComp}{\beta_{1}}
 \newcommand{\parCompAgg}{\beta_{2}}
@@ -26,15 +28,40 @@
 \newcommand{\parKKTReductFactor}{\beta_{5}}
 \newcommand{\parObjReductFactor}{\beta_{6}}
 \newcommand{\parBacktracking}{\beta_{7}}
+\newcommand{\parMinStepAgg}{\beta_{8}}
+\newcommand{\parFracBoundaryMax}{\beta_{9}}
+\newcommand{\parRegularizer}{\beta_{10}}
+\newcommand{\parConRegularizer}{\beta_{11}}
+\newcommand{\parFracBoundaryExp}{\beta_{12}}
+\newcommand{\parFilterReduceBarrier}{\beta_{13}}
+\newcommand{\parMaxRatioPrimalMu}{\beta_{14}}
+
+
 
 %\newcommand{\Filter}{\mathbb{F}}
 \newcommand{\History}{\mathbb{H}}
+\newcommand{\conWeight}{w}
+\newcommand{\ConWeight}{W}
+\newcommand{\zeroSet}{B}
+\newcommand{\nonzeroSet}{N}
+\newcommand{\alphaMinAgg}{\alpha_{\min}}
+\newcommand{\vioVar}{\theta}
+\newcommand{\barrier}{\psi}
+\newcommand{\regularizer}{r}
+\renewcommand{\R}{\mathbb{R}}
+\newcommand{\schur}[1]{M(#1)}
 
+
+\newcommand{\termination}{\eqref{terminate-kkt}, \eqref{terminate-primal-infeasible} or \eqref{terminate-dual-infeasible}}
+\newcommand{\infeasFunc}{\Gamma}
 
 
 \newcommand{\TOLinf}{\epsilon_{\textbf{inf}}}
 \newcommand{\TOLmu}{\epsilon_{\textbf{mu}}}
-\newcommand{\TOL}{\epsilon}
+\newcommand{\TOLopt}{\epsilon_{\textbf{opt}}}
+\newcommand{\TOLunbounded}{\epsilon_{\textbf{unbd}}}
+\newcommand{\maxgrad}{G}
+
 
 \newcommand{\status}{\textbf{status}}
 \newcommand{\success}{\textsc{success}}
@@ -49,116 +76,924 @@
 \newcommand{\callSimpleIPM}{\Call{Simplified-One-Phase-Non-Convex-IPM}}
 
 \abstract{
-Based on the work of [REF] it has been assumed that infeasible start IPM developed for conic optimization [REF] cannot be adapted to non-linear optimization and converge without significant modification i.e. a two phase method or a penalty function. We show that, in fact, by careful initialization and non-linear updates on the primal variables.
+The work of \cite{wachter2000failure} suggests that infeasible start interior point methods (IPMs) developed for linear programming cannot be adapted to non-linear optimization without significant modification i.e. using a two phase or a penalty method. We propose an IPM that by careful initialization and updates the slack variables, is guaranteed to find an first order certificate of local infeasibility, local optimal or unboundedness. Our proposed algorithm differs from other IPM methods for non-convex programming, because reduce primal feasibility in a controlled manner. This gives an algorithm with more robust convergence properties and closely resembles successful algorithms from linear programming. We implement the algorithm and compare with IPOPT on large scale CUTEst problems. We require less iterations on Z\% of the problems and our algorithm fails only on X\% of the problems compared with Y\% for IPOPT.
 }
 
 \section{Introduction}
 
-\cite{wachter2000failure} showed that if we apply an infeasible start IPM to:
-\begin{flalign*}
+This paper develops an interior point method for finding stationary points of:
+\begin{flalign}\label{original-problem} 
+\min_{x \in \R^{\nvar}}{f(x)} \\
+a(x) \le 0
+\end{flalign}
+where the functions $a(x) : \R^{\nvar} \rightarrow \R^{\ncon}$ and $f(x)$ are twice differentiable and might be non-convex. Examples of real world problems in this framework include truss design, robot control, aircraft control and aircraft design \cite[TRO11X3, ROBOT, AIRCRAFTA, AVION2]{gould2015cutest}. 
+
+Interior point methods were first developed for linear programming \cite{karmarkar1984new}. The idea for primal-dual interior point methods originates with \cite{megiddo1989pathways}. Initially, algorithms that required a feasible starting point were studied \cite{kojima1989primal,monteiro1989interior}. However, generally one is not given an initial point that is feasible. A naive solution to this issue is to move the constraints into the objective  by adding a large penalty for constraint violation (Big-M method) \cite{mcshane1989implementation}. A more effective solution is the infeasible start algorithm of \cite{lustig1990feasibility} which has less numerical issues and a smaller iteration count than the big-M method of \cite{mcshane1989implementation}. This approach also simplified the algorithm, by avoiding the need to make a good initial guess for the size of the penalty parameters. Lustig's approach was further improved in the predictor-corrector algorithm of \cite{mehrotra1992implementation}. This algorithm reduced complementarity, duality and primal feasibility at the same rate, using an adaptive heuristic. This class of methods was shown by \cite{todd2003detecting} to converge to either optimality or infeasibility certificates (of the primal or dual). 
+
+%This infeasible start algorithm was combined with predictor-corrector technique of Mehrotra \cite{ye1993quadratic} into an algorithm with excellent practical performance. 
+
+This infeasible start approach of \cite{lustig1990feasibility} for linear programming naturally generalizes to general non-linear optimization. 
+And most non-convex interior point codes are built off these ideas \cite{vanderbei1999loqo,wachter2006implementation,byrd2006knitro}. However, \cite{wachter2000failure} showed for the problem
+\begin{subequations}\label{failure-ex}
+\begin{flalign}
 \min { x }\\
 x^2 - s_1 - 1 &= 0 \\
 x - s_2 - 1/2 &= 0 \\
-s_1, s_2 &\ge 0
-\end{flalign*}
+s_1, s_2 &\ge 0,
+\end{flalign}
+\end{subequations}
+a large class of infeasible start algorithms fails to converge to either a local optimum or infeasibility certificate starting at any point with $x < 0$, $s_{1}, s_{2} > 0$. Following this paper, a flurry of research was published suggesting different methods for resolving this issue \cite{benson2004interior}. The main two approaches can be split into penalty methods \cite{liu2004robust, chen2006interior,curtis2012penalty,gould2015interior} and two phase algorithms \cite{wachter2006implementation}. 
 
-Fails to converge to either a local optimum or infeasibility certificate
+Penalty methods move some measure of constraint violation into the objective. These methods require a penalty parameter $M$ that measures how much the constraint violation contributes to the objective. For large enough $M$ the algorithm will converge to an optimal solution. However, estimating this penalty parameter is difficult -- too small and the algorithm will not find a feasible solution, too big and the algorithm will be slow or numerical issues will occur. Consequently, typically penalty methods tend to be slow \cite[Algorithm 1]{curtis2012penalty} or use complex updating schemes \cite[Algorithm 2]{curtis2012penalty}\footnote{Should explain and discuss this in appendix}. 
 
-Modifications:
+The algorithm IPOPT is an example of a two phase algorithm: it has a main phase and a feasibility restoration phase  \cite{wachter2006implementation}. The main phase searches simultaneously for optimality and feasibility using a classical infeasible start method. The other phase, known as the feasibility restoration phase, aims to minimizes infeasibility. The feasibility restoration phase is only called when the main phase fails e.g. the step size is small. It is well-known that this approach has drawbacks. The algorithm has difficulties detecting infeasibility \cite[Table 15]{huang2016solution} and will fail if the feasibility restoration phase is called too close to the optimal solution. Some of these issues have been addressed by \cite{nocedal2014interior}. 
+
+The main contribution of this paper is an infeasible start method interior point method for non-linear programming that builds on the work of \cite{lustig1990feasibility, mehrotra1992implementation} for linear programming. The algorithm avoids a big-M or a two phase approach. Furthermore, our solution to the issue in example \eqref{failure-ex} of \cite{wachter2000failure} is simple: we   carefully initialize the slack variables and use non-linear updates to ensure we approach feasibility from above. Consequently, under general conditions we guarantee that our algorithm will converge to either a local certificate of optimality, local infeasibility or unboundedness. Our algorithm has other desirable properties. Complementarity moves at the same rate as primal feasibility. From \cite{lagIPM} we know that if certain sufficient conditions for local optimality conditions hold, then a subsequence of the dual multipliers will be converge if the primal solution is converging to a KKT point.  Our method has further similarities with Mehrotra's \cite{mehrotra1992implementation} predictor-corrector algorithm for linear programming: the rate that we reduce the dual feasibility, primal feasibility and complementarity is adaptive.
+We compare our implementation with the interior point solver IPOPT. On large scale CUTEst problems we require less iterations on Z\% of the problems and our algorithm fails only on X\% of the problems compared with Y\% for IPOPT. We also show that the algorithm has excellent performance on the netlib LP test set.
+
+
+The paper is structured as follows: Section~\ref{sec:basic-alg} describes the algorithm, Section~\ref{sec:convergence-proofs} gives the convergence proofs, Section~\ref{sec:implementation-details} delves into implementation details and Section~\ref{sec:empirical-results} presents test results on the CUTEst test set.
+
+
+{\color{red}
 \begin{enumerate}
-\item Two phases (IPOPT)
-%\begin{itemize}
-%\item Each phase has a different variables
-%\item Awkward convergence assumptions
-%\item Poor performance on infeasible problems
-%\end{itemize}
-\item Compute two directions (KNITRO)
-\item Penalty (or big-M) method e.g. \cite{Chen06,curtis2012penalty}
+\item talk about sequence stuff or MFCQ [MOVE??]
+\item talk about filter methods and how people observed better performance by avoiding penalty functions (so they take bigger steps)
 \end{enumerate}
 
 
-\subsection{Relevant literature}
-
-Within non-convex optimization there are four papers that I think are particularly relevant to our work:
+Summary of contributions:
 
 \begin{enumerate}
-\item The paper \cite{wachter2000failure} shows that there are examples for which infeasible start algorithms will always fail to converge to either a optimal solution or a stationary measure of infeasibility when constraints are non-convex (irrespective of the strategy for used). This is the inspiration for the two phase algorithm of IPOPT and justifies why our one phase algorithm is necessary.
-\item The description of the IPOPT algorithm \cite{wachter2005line}. IPOPT uses a two phase method the primary phase searches simultaneously for optimality and feasibility using a classical infeasible start method and a feasibility restoration phase that minimizes infeasibility. The feasibility restoration phase is only called when the step size for the infeasible start method is small. Another distinct feature of the algorithm is the filter line search (which allows progress on either the constraints or the objective).
-\item The description of the KNITRO algorithm \cite{byrd2006knitro}. KNITRO is a trust region algorithm. The approach is quite distinct from typical infeasible start algorithms and is worth looking at (each step computes two different directions, using two different linear systems, one to reduce the objective and the other to reduce infeasibility). There is a more recent paper \cite{nocedal2014interior} that adds an feasibility restoration phase (this is theoretically unnecessary, but the practical results are good). 
-\item The paper \cite{curtis2012penalty} introduces a barrier penalty method. This paper uses a similar approach to us. The main different with our approach is we treat $\lambda$ as a dual variable, whereas in Curtis's paper $\lambda$ is replaced by a penalty parameter that is updated in an ad hoc fashion.
-\item Papers in convex optimization?
+\item Adaptive heuristics for reduction in $\mu$
 \end{enumerate}
+}
 
-\section{Motivation and derivation of algorithm}
 
-We wish to solve the following problem:
+%may cycle between the feasibility restoration and optimality phases. Furthermore, if the feasibility 
+
+\section{The algorithm}\label{sec:basic-alg}
+
+
+Consider a naive log barrier problems of the form:
+\begin{flalign} \label{naive-log-barrier}
+\min_{x \in \R^{\nvar}}{f(x) - \mu \sum_i{ \log{(-a_i(x))} } }
+\end{flalign}
+The idea is to solve sequence of these sub-problems with $\mu \rightarrow 0$ and $\mu \ge 0$. The log barrier allows us to solve a sequence of continuous unconstrained optimization sub-problems. These sub-problems can be solved with newton's method or other methods for unconstrained optimization. However, there are issues with this naive log barrier formulation. We are rarely given a feasible starting point. Furthermore, one would like to ensure that the primal and dual variables remain bounded. To resolve these issues we consider the shifted and regularized sub-problem described as follows:
+%Therefore we shift the constraints, problem and gradually reduce the
+% in the primal feasibility at each iteration. This is known shifted barrier formulation is given as follows:
+\begin{flalign}
+\min_{x \in \R^{\nvar}} \barrier_{\mu,\theta}(x) := f(x) + \mu r(x)  - \mu  \sum_i{ \log \left( \vioVar \conWeight_i - a_i(x)  \right) } \label{shifted-barrier-problem}
+\end{flalign}
+With some vector $\conWeight \ge 0$ which remains fixed for all sub-problems, and some $\vioVar > 0$ which measures the size of the shift. The function $\regularizer : \R^{\nvar} \rightarrow \R$ is define as follows:
+$$
+\regularizer(x) := \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} - \parConRegularizer e^T a(x).
+$$
+where $\parRegularizer, \parConRegularizer \in (0,1)$ are constants. The purpose of $\regularizer$ is to prevent the primal iterates from unnecessarily diverging. 
+%\todo{say something more vague or cite theorem}
+%As  $\mu \rightarrow 0$ convergent sequence of KKT solutions with $\mu \rightarrow 0$ to the shifted barrier problem \eqref{shifted-barrier-problem} will converge towards a KKT solution of the original problem.
+%\todo{Comment about importance of non-linear updates and intialization}
+
+
+Holistically, our technique consists of computing two types of directions: stabilization and aggressive directions. Both of these directions are computed from the same primal dual newton system, but with different right hand sides. Aggressive directions are equivalent to the affine scaling steps \cite{mehrotra1992implementation} and applies a newton step directly to the KKT system, ignoring the barrier parameter $\mu$. Aggressive steps aim to simultaneously approach optimality and feasibility. However, continuously taking aggressive steps may cause the algorithm to stall or fail to converge. To remedy this we have a stabilization step. The stabilization steps keeps the primal feasibility the same i.e. uses $\eta = 0$ and aims to reduce the log barrier objective until an approximate solution to the shifted log barrier problem is found. While this step has similar goals to the centering step of Mehrotra there are distinct differences. The centering steps of Mehrotra move the iterates towards the central path, while keeping the primal and dual feasibility fixed. However, our stabilization steps only keep the primal feasibility fixed, while reducing the log barrier objective. This choice reflects challenges that occur in non-convex optimization and will be discussed more in [??]
+%Section~\ref{sec:convergence-proofs}. 
+
+The interior point method that we develop generates a sequences of primal iterates $x^{k}$, $s^{k} \in \R^{\nvar}$ with $s^k > 0$, barrier parameter $\mu^k > 0$ and feasibility violation $\vioVar^k > 0$ that satisfy:
+\begin{subequations}\label{eq:barrier-primal-sequence-nice}
+\begin{flalign}
+a(x^{k}) + s^{k} &= \vioVar^k \conWeight \label{eq:primal-feasibility} \\
+\theta^{k} / \mu^{k} &\in [\parMaxRatioPrimalMu^{l}, \parMaxRatioPrimalMu^{u}] \\ %\theta^{0} / \mu^{0} \text{??? maybe just write an interval here} \\
+\frac{S^{k} y^{k}}{\mu^{k}} &\in [\parComp, 1 / \parComp],\label{eq:comp-slack} 
+\end{flalign} 
+\end{subequations}
+For some predetermined vector $\conWeight \ge 0$ selected such that $a(x^{1}) + s^{1} = \vioVar^k \conWeight$. This set of equations implies the primal feasibility and complementarity are moved at the same rate. Furthermore, there exists a subsequence of the iterates (those that satisfy the aggressive direction criterion \eqref{agg-criteron}) such that: %  i.e. $x^{k} \rightarrow x^{*}$ and $s^{k} \rightarrow s^{*}$
+\begin{flalign}
+\frac{\| \nabla f(x^{k}) + \sum_{i=1}^m y_i^{k} \nabla a_i(x^{k}) \|}{\mu^k(\| y^{k} \| + 1)} &\leq 1, \label{eq:dual-feas}
+\end{flalign}
+Equations \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} holding is common in many practical linear programming implementations \cite{mehrotra1992implementation, more}. It is desirable because the dual variables will more likely remained bounded. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then as shown in \cite{lagIPM} the dual variables will remain bounded. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{megiddo1989pathways,andersen1999homogeneous}. Ideally, one would hope that the central path also existed in non-convex optimization. Unfortunately, there may not exist a continuous central path (see Appendix~\ref{app:non-existence-of-central-path}).
+
+\todo{
+interpretation of equality v.s. inequality constraints primal-dual methods 
+}
+
+\subsection{Derivation of direction computation}\label{sub:direction-computation}
+
+We cannot apply a newton method directly to problem \eqref{shifted-barrier-problem} without adding a proximal term \eqref{prox-obj} parameterized by $\delta$ and centered about the previous iterate $x$. This ensures the newton direction will exist and will be decreasing in the objective value for a fixed constraint violation i.e. $\eta = 0$. Therefore we find the next iterate by approximately solving:
+
+\begin{subequations}\label{sophisticated-barrier-problem}
+\begin{flalign}
+x^{*}, s^{*} \gets \arg \min_{\bar{x} \in \R^{\nvar}, \bar{s} \in \R^{\ncon}} & f(\bar{x}) -(1 - \eta) \mu \left( -\regularizer( \bar{x} ) + \sum_i{ \log{\bar{s}_i} } \right)  + \frac{\delta}{2} \| \bar{x} - x \|^2 \label{prox-obj} \\
+& a(\bar{x}) + \bar{s} = (1 - \eta) \mu \conWeight \\
+& \bar{s} \ge 0.
+\end{flalign}
+\end{subequations}
+
+Writing the first-order local optimality conditions for this problem gives:
 \begin{flalign*}
- &  \min{f(x) } \\
-& a(x) \le 0 \\
-\end{flalign*}
+\nabla_{x} L(x^{*}, y^{*}) + \delta (x^{*} - x) &= 0 \\
+a(x^{*}) + s^{*} &= (1 - \eta) (a(x) + s) \\
+s_i^{*} y_i^{*} &= (1 - \eta) \mu \\
+s^{*}, y^{*} &\ge 0
+\end{flalign*} 
+where $\Lag (x, y) := f(x) + y^T \nabla a(x)$ is the Lagragian function.
 
-Assume:
-\begin{enumerate}
-\item The constraints and objective are $C^2$ - $L_{0}, L_{1}$ etc
-\item The set $a(x) \le \theta$ is bounded for any $\theta \in \mathbb{R}^{m}$
+Primal interior point methods \cite{fiacco1990nonlinear} apply Newton's method directly to system \eqref{sophisticated-barrier-problem}. However, they have inferior practical performance to primal-dual methods, that apply newton's method directly to the optimality conditions. Therefore, we use primal-dual search directions defined as follows:
+\begin{flalign}\label{primal-dual-newton-direction}
+\begin{bmatrix}
+ \nabla^2_{x} \Lag(x,y) + \delta I  & \nabla a(x)^T & 0  \\
+\nabla a(x) & 0 & I \\
+0 & S & Y
+\end{bmatrix} 
+\begin{bmatrix}
+d_x \\
+d_y \\
+d_s
+\end{bmatrix} 
+=
+\begin{bmatrix}
+- (\nabla f(x) + \nabla a(x)^T y) - (1 - \eta) \mu \nabla r(x) \\
+- \eta  (a(x) + s) \\
+(1 - \eta) \mu e - Y s 
+\end{bmatrix} 
+\end{flalign} 
+
+
+By taking the primal schur complement one can see solving system \eqref{primal-dual-newton-direction} is equivalent to solving:
+\begin{flalign}\label{eq:schur-complement}
+(\schur{x, y, s, \mu} + \delta I)  d_{x} = - \nabla f(x) - \nabla a(x)^T ((1 - \eta) \mu (S)^{-1} e + \eta Y ( e + (S)^{-1} (a(x) + s))  ) - \mu (1 - \eta) \nabla r(x)
+\end{flalign}
+Where the matrix $M$ defined as
+\begin{flalign}
+\schur{x, y, s, \mu} := \nabla^2_{x} \Lag (x, y) + \mu \nabla^2 r(x)  + \nabla a(x)^T Y S^{-1} \nabla a(x),
+\end{flalign}
+is a primal-dual approximation of the hessian of the log barrier function $ \barrier_{\mu,\theta}$. One can therefore see if the matrix $(\schur{x, y, s, \mu} + \delta I)$ is positive definite and $\eta = 0$ then the right hand side of \eqref{eq:schur-complement} becomes $-\nabla \barrier_{\mu,\theta}$ hence the direction $d_{x}$ is a descent direction on the function $\barrier_{\mu,\theta}$.
+
+
+\subsection{Updating the iterates}
+
+Suppose that we have computed some direction $d$.
+Given a primal step size $\alpha_{P}$ we update the primal iterates as follows:
+\begin{subequations}\label{eq:iterate-update}
+\begin{flalign}
+x^{+} &\gets x + \alpha_{P} d_{x} \\
+\mu^{+} &\gets (1 - \eta \alpha_{P}) \mu \\
+\vioVar^{+} &\gets (1 - \eta \alpha_{P}) \vioVar \\
+s^{+} &\gets \vioVar \conWeight - a(x^{+}) \label{eq:slackVarUpdate}
+\end{flalign}
+\end{subequations}
+The slack variable update \eqref{eq:slackVarUpdate} is non-linear and its purpose is to ensure that equation~\eqref{eq:primal-feasibility} remains satisfied and therefore we can control the rate of reduction of primal feasibility. However, if the function $a_i$ is linear the slack variable update~\eqref{eq:slackVarUpdate} reduces to:
+$$
+s^{+}_i \gets \vioVar \conWeight_i - a(x) - \alpha_{P} \nabla a_i(x)  d_{x} = s + \alpha_{P} d_{s}
+$$
+where the second equality uses $d_{s} = -\nabla a_i(x)  d_{x}$ and $\vioVar \conWeight = a(x) + s$. Therefore if the function $a$ is linear we use the same updates as infeasible start algorithms for linear programming \cite{lustig1990feasibility,mehrotra1992implementation}.
+
+Next, we specify a criterion to prevent the slack variables from getting too close to the boundary. In particular, given any candidate primal iterate $x^{+}$, $s^{+}$ we require that the following fraction to the boundary rule is satisfied:
+\begin{flalign}\label{fracBoundary}
+s^{+} \ge  \parFracBoundary \min\{ s, \| d_{x} \|_{\infty}^2 \} 
+\end{flalign}
+
+Finally, it remains to desribe how to update the dual variables. Given some candidate primal iterate $x^{+}$, $s^{+}$, then let $B( s^{+}, d_{y} )$ be the set of feasible dual step sizes. More precisely, $B( s^{+}, d_{y} )$ is the largest interval such that if $\alpha_{D} \in B( s^{+}, d_{y} )$ then
+\begin{subequations}\label{subeq:set-B}
+\begin{flalign}
+ \frac{S^{+} (y + \alpha_{D} d_{y})}{\mu} &\in [\parComp, 1/\parComp ] \label{satisfy-comp} \\
+ y + \alpha_{D} d_{y} &\ge  \parFracBoundary \min\{ y ,  \| d_{x} \|_{\infty}^2 \}.
+\end{flalign}
+\end{subequations}
+If no such interval exists we set $B( s^{+}, d_{y} )$ to the empty set and the step will be rejected. We compute the dual step size as follows:
+\begin{flalign}
+\alpha_{D} = \arg \min_{\alpha_{D} \in B( s^{+}, d_{y} )} \| S^{+} y + \alpha_{D} S^{+} d_{y} \|^2_{2} + \| \nabla \Lag(x, y)  + (\nabla^2 \Lag(x, y) + \delta I) d_{x} + \alpha_{D}  \nabla a(x)^T d_{y} \|^{2}_{2}.
+\end{flalign}
+This reduces to a one dimensional least squares problem in $\alpha_{D}$ which has a closed form expression.
+
+\subsection{Termination criterion}
+
+Now, we have derived the primal infeasibility termination criterion we can present the termination criterion for our algorithm. Define the following function $\sigma$,
+$$
+\sigma (y) := \frac{100}{\max\{ 100, \| y \|_{\infty} \}}
+$$
+which is a scaling factor based on the size of the dual variables. This scaling factor is related to $s_{d}$ and $s_{c}$ in the IPOPT implementation paper \cite{wachter2006implementation}. We use $\sigma(y)$ in the local optimality termination criterion \eqref{terminate-kkt} because there may be numerical issues reducing the unscaled dual feasibility if the dual multipliers become large. In particular, the first order optimality termination criterion we use is:
+\begin{subequations}\label{terminate-kkt}
+\begin{flalign}
+\sigma (y) \| \nabla \Lag(x, y) \|_{\infty} &\le  \TOLopt  \\
+\sigma (y) \| S y \|_{\infty} &\le \TOLopt  \\
+\| a(x) + s \|_{\infty} &\le \TOLopt.
+\end{flalign}
+\end{subequations}
+The first order local primal infeasibility termination criterion is given by:
+\begin{flalign}\label{terminate-primal-infeasible}
+\infeasFunc (x,y,s, \vioVar) \le \TOLinf
+\end{flalign}
+where
+$$
+\infeasFunc (x,y,s, \vioVar) := \frac{\max \{ \| \nabla a(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \| y \|_{\infty} \min\{  1, \vioVar \}}.
+$$
+We remark that if we find a point with $\infeasFunc (x,y,s, \vioVar) = 0$ then we if $w = e$ have found a stationary point to the problem:
+\begin{flalign*}
+\min_{x \in \R^{\nvar}} \max_{i \in \{1 , ..., \ncon\}}{ a_i(x) } 
+\end{flalign*}
+For a more thorough justification of this choice for the infeasibility termination criterion see Section~\ref{sec:infeas-criteron-justify}.
+
+The first order unboundedness termination criterion is given by
+\begin{flalign}\label{terminate-dual-infeasible}
+\frac{-\| \min\{ a(x), 0 \} \|_{\infty} }{f(x)} \le \TOLunbounded.
+\end{flalign}
+Satisfying this termination criterion for arbitrary small $ \TOLunbounded$ does not guarantee that the problem has an objective that is unbounded from below on the feasible region. However, if the functions $f$ and $a$ are convex, and there exists a strictly feasible solution, then if the criterion is satisfied as $\TOLunbounded \rightarrow 0$ one can conclude the objective is unbounded from below on the feasible region.
+
+\subsection{Algorithm outline}
+
+Before we outline our algorithm, we need to define the switching condition when we decide to choose an aggressive direction instead of a stabilization direction, which we define as follows:
+\begin{subequations}\label{agg-criteron}
+\begin{flalign}
+\| \nabla \Lag(x, y) \|_{\infty} &\le \max\left\{ \mu, \frac{\theta \| w \|_{\infty}  }{ \sigma (y) } \right\}  \label{agg-criteron-opt} \\
+\| \nabla \Lag(x, y) \|_{\infty} &\le  \| \nabla f(x) \|_{\infty} + \mu / \parCompAgg \label{agg-criteron-farkas} \\
+ \frac{S y}{\mu} &\in [ e \parCompAgg, e / \parCompAgg ]. \label{agg-criteron-buffer}
+\end{flalign}
+\end{subequations}
+where the parameter $\parCompAgg \in (0, \parComp)$. The purpose of \eqref{agg-criteron-opt} is to ensure that we have approximately solved the shifted log barrier problem. Equation~\eqref{agg-criteron-farkas} also helps ensure (as we show in Section~\ref{sec:convergence-proofs}) that if the dual variables are diverging rapidly then the infeasibility termination criterion is met. Finally, equation~\eqref{agg-criteron-buffer} with $\parCompAgg < \parComp$ ensures we have some a buffer in the complementarity such that we can still satisfy \eqref{satisfy-comp} when we move in the aggressive search direction. Algorithm~\ref{one-phase-IPM} formally outlines our one phase interior point method. Note that Algorithm~\ref{one-phase-IPM} does not include the details for the aggressive or stabilization steps that are given in Algorithm~\ref{alg:aggressive} and Algorithm~\ref{alg:stable} respectively. Since Algorithm~\ref{one-phase-IPM} maintains $a(x) + s = \conWeight \vioVar$ for each iterate, it requires the starting point satisfies:
+$$
+a(x^{0}) + s^{0} = \conWeight \vioVar^{0},
+$$
+with $\conWeight \ge 0$ and $\vioVar^{0} > 0$. For any fixed $x^{0}$ one can always pick sufficiently large $\conWeight$ and $\mu^{0}$ such that $\mu^{0} \conWeight > a(x^{0})$ and setting $s^{0} \gets \conWeight \vioVar^{0} - a(x^{0})$ meets our requirements. For the details of how initialize the variables in the practical implementation see Section~\ref{sec:initialization}.
+
+The general idea of Algorithm~\ref{one-phase-IPM} is as follows. At each outer iteration we factorize the primal-dual system~\eqref{primal-dual-newton-direction} with an appropriate choice of $\delta$ using Algorithm~\ref{alg:mat-fact} (based off ideas of IPOPT). With this factorization fixed, we then attempt to take multiple correction steps (at most $\parNumCor$), which corresponds solving system~\ref{primal-dual-newton-direction} with different right hand sides choices. These corrections may either be aggressive steps or stabilization steps. If, on the first correction, the step fails (i.e. due to a too small step size), then we increase $\delta$ to address this failure and re-factorization system~\eqref{primal-dual-newton-direction}. Note that we evaluate the Hessian of the Lagrangian and the full Jacobian once per outer iteration (we do one Jacobian-vector product per inner iteration).
+
+
+%it is suffices to choose $\mu^{0} \conWeight > a(x^{0})$, although we choose $\conWeight_i = 1$ for
+
+\begin{algorithm}[H]
+\textbf{Input:} some initial point $x^{0}$, vector $\conWeight \ge 0$ and variables $y^{0}, s^{0}, \mu^0, \vioVar^{0} > 0$  such that $a(x^{0}) + s^{0} = \conWeight \vioVar^{0}$. Termination tolerances $\TOLinf$, $\TOLunbounded, \TOLinf > 0$. \\
+\vspace{0.2 cm} \\
+Set $p \gets (x^{0}, y^{0}, s^{0}, \mu^{0}, \vioVar^{0})$ 
+\vspace{0.2 cm} \\
+\emph{For each outer iteration $i \in \{1, \dots, i_{\max}\}$ perform the following steps:}
+\begin{enumerate}[label*=A.{\arabic*}]
+\item \label{step-1}  \emph{Evaluate the Hessian of the Lagrangian $\nabla^2_{x} \Lag(x,y)$ and the Jacobian of the constraints $\nabla a(x)$.}
+\item \emph{Form primal schur complement at the current point $\schur{x,y,s,\mu}$.}
+\item \emph{Select $\delta$ and factorize the matrix $H = \schur{x,y,s,\mu} + \delta I$ using Algorithm~\ref{alg:mat-fact}}.
+\item \label{take-steps}  \emph{Perform correction steps for $k \in \{ 1, \dots , \parNumCor \}$}:
+\begin{enumerate}[label*=.{\arabic*}]
+\item \emph{Take step}\label{line:take-step}
+\begin{enumerate}[label=-Case-{\Roman*}]
+\item If equation~\eqref{agg-criteron} is satisfied, go do an aggressive step (Algorithm~\ref{alg:aggressive}).
+\item Otherwise, go do a stabilization step (Algorithm~\ref{alg:stable}).
 \end{enumerate}
+Denote $p^{+}$ as the new iterates.
+\item \emph{Deal with failures}. If step succeeds set $p \gets p^{+}$. If step failed and $k = 1$ go to \eqref{increase-delta-for-failure}. Otherwise if the step failed with $k > 1$ go to step~\eqref{step-1}.
+\item \emph{Termination criterion}. If any of the inequalities \termination{} hold terminate the algorithm.
+\end{enumerate}
+\item Go to \eqref{step-1}.
+\item \label{increase-delta-for-failure} \emph{Increase delta to address failure}. Set $\delta = \max\{10 \delta, \delta_{\min} \}$ and factorize the matrix $\schur{x,y,s,\mu} + \delta I$. Go to step \eqref{take-steps}.
+\end{enumerate}
+\caption{High level description of one phase IPM}\label{one-phase-IPM}
+\end{algorithm}
 
-\subsection{Infeasibility certificates}
+In both the aggressive steps and stabilization steps we use a backtracking line search. 
+We choose the initial trial primal step size $\alpha_{P}^{\max}$ to be the maximum $\alpha_{P} \in [0,1]$ that satisfies the following fraction to the boundary rule:
+\begin{flalign}\label{fracBoundaryPrimalMax}
+s + \alpha_{P} d_{s} &\ge  \parFracBoundaryMax  \min\{ s, \| d_{x} \|_{\infty}^{\parFracBoundaryExp} \} 
+\end{flalign}
+where the parameter $\parFracBoundaryMax \in (0, \parFracBoundary)$ and $\parFracBoundaryExp \in (1,2)$. The idea of this choice for $\alpha_{P}^{\max}$ is that by choosing $\parFracBoundaryMax \in (0, \parFracBoundary)$ the fraction to the boundary rule \eqref{fracBoundary} may be satisfied for the first trial point i.e. $\alpha_{P} = \alpha_{P}^{\max}$.
 
-\emph{First-order  local L1-infeasibility certificate}, if $x^{*}$ is a first-order local optimum of:
+\subsection{Stabilization steps}
+
+\subsubsection{Augmented log barrier merit function}\label{sec:augmented-log-barrier}
+
+When the stabilization step is called the goal is to minimize the function $\barrier_{\mu,\theta}$ keeping the constraint violation and barrier parameter fixed, until criterion~\eqref{agg-criteron} for an aggressive step is met. For this reason, it makes sense to use the log barrier function $\barrier_{\mu,\theta}$ to measure progress. We can approximate the change in the log barrier function by the following model:
+\begin{flalign}
+\tilde{\Delta}_{(x,y)}^{\barrier_{\mu,\theta}} ( u ) = \frac{1}{2} u^T \schur{x, y, s, \mu} u + \nabla \barrier_{\mu,\theta}(x)^T u
+\end{flalign}
+
+Note that if we set $y_i = \frac{\mu}{s_i}$ then $\schur{x, y, s, \mu} = \nabla^2_{\mu} \barrier(x)$ and $\tilde{\Delta}_{(x,y)}^{\barrier}$ becomes the second order taylor approximation of $\barrier$ at the point $x$. Thus, we can think of $\tilde{\Delta}_{(x,y)}^{\barrier} ( u )$ as a primal-dual approximation of the barrier function $\barrier_{\mu,\theta}$. Note that the log barrier function  does not measure anything with respect to the dual iterates. This might impede performance if $\| S y - \mu \|_{\infty}$ is large, but $\| \nabla \barrier_{\mu,\theta}(x) \|$ is small. In this case, taking a large step might reduce the complementarity significantly, even though the barrier function increases slightly. Therefore we add a complementarity measure to the barrier function to create an augmented log barrier function:
+\begin{flalign}
+\phi_{\mu,\theta}(x, y, s) := \barrier_{\mu,\theta}(x) + \MeritComp(s, y),
+\end{flalign}
+where
+$$
+\MeritComp(s,y) = \frac{\| S y - \mu \|_{\infty}^3}{\mu^2}.
+$$
+We can also build a model of the $\MeritComp(s,y) $ as follows:
 \begin{flalign*}
-\min e^T z \\
-a(x) - s + z = 0 \\
- s, z \ge 0
+\tilde{\Delta}^{\MeritComp}_{(x,y)}( u, v ) = \frac{\| S y + Y \nabla a(x) u + S v - \mu e \|_{\infty}^3 - \| S y - \mu  \|_{\infty}^3}{\mu^2}
 \end{flalign*}
-With $e^T z > 0$.
+and our model of $\phi_{\mu,\theta}$ is
+\begin{flalign}
+\tilde{\Delta}^{\phi_{\mu,\theta}}_{(x,y)}(u, v) = \tilde{\Delta}^{\barrier_{\mu,\theta}}_{(x,y)}( u ) +   \tilde{\Delta}^{\MeritComp}_{(x,y)}( u, v ).
+\end{flalign}
 
 
-\emph{First-order  local farkas infeasibility certificate}, if there exists some $w \le 0$, such that $x^{*}$ is a first-order local optimum of:
-\begin{flalign*}
-\min w^T a(x)
-\end{flalign*}
-With $w^T a(x) > 0$. Now, suppose we have found a point such that
-$$
-\| w^T \nabla a(x) \|_{2} < \frac{w^T a(x)}{\| x - x^{*} \|_{2}}
-$$
-Now, if the function $w^T a(x)$ is convex then we have:
-$$
-w^T a(x^{*}) \ge w^T a(x) + w^T \nabla a(x) (x - x^{*}) > 0
-$$
-Therefore we declare a problem locally infeasible if our algorithm finds a point with:
-$$
-\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf
-$$
-Where $\TOLinf$ is the tolerance for primal feasibility.
 
-\todo{ $L_{\infty}$ ... }
+We say that the candidate iterates $x^{+}, y^{+}, s^{+}$ have made sufficient progress on $\phi$ over the current iterate $x, y, s$ if:
+\begin{flalign}\label{phi-sufficient-progress}
+\phi_{\mu,\theta}(x^{+}, y^{+}, s^{+}) \le \phi_{\mu,\theta}(x, y, s) + \parObjReductFactor \tilde{\Delta}^{\phi_{\mu,\theta}}_{(x,y)}(\alpha d_{x}, \alpha d_{y})
+\end{flalign}
+where $\parObjReductFactor \in (0,1)$ is a user defined parameter. 
+
+\subsubsection{KKT merit function and filter}
+
+In the stabilization search directions we accept steps that make progress one on of two merit functions, which form a filter. The first function $\phi_{\mu,\theta}$ is defined in Section~\ref{sec:augmented-log-barrier}. The second function, we call the KKT merit function, measures the scaled dual feasibility and complementary:
+\begin{flalign}\label{merit-KKT}
+\meritKKT_{\mu} ( x, y, s )  = \sigma( y ) \max\{ \| \nabla \Lag(x, y ) \|_{\infty},  \| S y - \mu \|_{\infty} \}
+\end{flalign}
+This merit function measures progress effectively in regimes where the matrix $\schur{x, y, s, \mu}$ is positive definite. In this case, the search directions generated by \eqref{eq:schur-complement} will be a descent direction on this merit function. This merit function is similar to the types of the potential functions used in interior point methods used for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in non-convex optimization it has serious issues. In particular, the search direction \eqref{eq:schur-complement} will not be a descent direction on this merit function. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could to converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, y, s ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem e.g. minimizing the function $f(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\nabla f(x)$, but is not a critical point of the function.}. For further discussion of these issues see \cite{shanno2000interior}.
+%\cite{shanno1997interior}.
 
 
-Second order stationary point of.
-\begin{flalign*}
-\min w^T a(x) \\
-\text{s.t. } a(x) \le a(x^{*}) + s^{*}
-\end{flalign*}
+While it is sufficient to guarantee convergence by accepting steps if \eqref{phi-sufficient-progress} is satisfied, in some regimes e.g. when $\schur{x, y, s, \mu}$ is positive definite this may select step sizes $\alpha_{P}$ that are too conservative.  For example, this naturally occurs near points satisfying the sufficient conditions for local optimality. In these situation often the KKT error is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility. Furthermore, from our experience, when converging towards an optimal solution numerical errors in the function $\phi_{\mu,\theta}$ may cause the algorithm to fail to make sufficient progress on the merit function $\phi_{\mu,\theta}$ i.e. \eqref{phi-sufficient-progress} is not satisfied for any $\alpha_{P}$. For these reasons we decide to use a filter approach \cite{fletcher2002nonlinear,wachter2006implementation}. Typical filter methods \cite{fletcher2002nonlinear} require progress on either the constraint violation or objective function. Our approach is distinctly different, because we accept steps that make progress on either the merit function $\phi_{\mu,\theta}$ or the merit function $\meritKKT_{\mu}$.
+% where we accept any step that makes sufficient progress on the function $\phi$ i.e. \eqref{phi-sufficient-progress}  or sufficient progress is made on the KKT merit function relative to historical iterates. 
+To be precise we accept any iterate $(x^{+}, y^{+}, s^{+}, \mu^{+})$ that makes sufficient progress on the augment log barrier function $\phi_{\mu,\theta}$, or satisfies the following two equations
+\begin{subequations}\label{eq:filter}
+\begin{flalign}
+\meritKKT_{\mu} (x^{+}, y^{+}, s^{+}) &\le (1 - \parKKTReductFactor \alpha_{P} ) \meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s}) \\
+\phi_{\mu,\theta}(x^{+}, y^{+}, s^{+}) &\le \phi_{\mu,\theta}(\hat{x}, \hat{y}, \hat{s}) + \alpha_{P} \left( \sqrt{\meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s})} + \meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s})^2 \right),
+\end{flalign} %\parFilterReduceBarrier
+\end{subequations}
+ for every previous iterate $(\hat{x}, \hat{y}, \hat{s}, \hat{\vioVar})$ with $a(\hat{x}) + \hat{s} = a(x) + s$.
+
+The idea of \eqref{eq:filter} is to discourage the algorithm from significantly increase the augmented log barrier function while reducing the KKT error. Since if this is occurring the algorithm might converge to a saddle point. 
 
 
-\subsection{Stationary point of $L_{\infty}$ constraint violation}
+
+\subsubsection{Stabilization step algorithm}
+
+During the backtracking line search we terminate with $\status = \failure$ if:
+\begin{flalign}\label{eq:min-step-size-stable}
+\alpha_{P} \le \parMinStableStepSize.
+\end{flalign}
+When this occurs line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} to increases the size of $\delta$ and a new stabilization step is attempted. From Lemma~\ref{lem:stbl-success} we know for sufficiently large $\delta$ the stabilization step will succeed.
+
+\newcommand{\backtrackBlurb}{\emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha_{P} \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, \parBacktracking^2 \alpha^{\max}_{P}, ... \}$ computing the trial point $p^{+} = (x^{+}, y^{+}, s^{+}, \mu^{+}, \theta^{+})$ as described in \eqref{eq:iterate-update}. Terminate with $\status = \success$ and return the trial point $p^{+}$ the first time all of the following conditions hold:}
+
+\begin{algorithm}[H]
+\textbf{Input:} Some point $p = (x, y, s, \mu, \vioVar)$ \\
+\textbf{Output:} A new point $p^{+}$ and a $\status$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item Compute a direction $(d_{x}, d_{y}, d_{s})$ from the system~\eqref{primal-dual-newton-direction} with $\eta = 0$
+\item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}
+\item \backtrackBlurb
+\begin{enumerate}[label=({\roman*})] 
+\item The fraction to the boundary rule \eqref{fracBoundary} is satisfied.
+\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$.
+\item \emph{Sufficient progress on filter.} Either equation~\eqref{phi-sufficient-progress} or \eqref{eq:filter} is satisfied.
+\end{enumerate}
+Terminate with $\status = \failure$ if the step size becomes too small i.e. equation~\eqref{eq:min-step-size-stable} is satisfied.
+\end{enumerate}
+\caption{High level description of stabilization steps}\label{alg:stable}
+\end{algorithm}
+
+
+
+
+\subsection{Aggressive steps}
+
+Recall that when computing aggressive search directions we solve the system~\eqref{primal-dual-newton-direction} with $\eta = 1$, that is, we aim for both feasibility and optimality simultaneously. We accept any step size assuming it satisfies the fraction to the boundary rule \eqref{fracBoundary} and the set of valid dual step sizes are non-empty $B( s^{+}, d_{y} ) \neq \emptyset$ (see equations~\eqref{subeq:set-B}). 
+
+The backtracking line search of the aggressive step has a minimum step size. If during the backtracking line search (line~\ref{agg:back-track} of Algorithm~\ref{alg:aggressive}) the step size $\alpha_{P}$ satisfies:
+ \begin{flalign}\label{min-step-size-aggresssive}
+\alpha_{P} \le \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{ \frac{s_{i}}{4 \vioVar \conWeight_i} } %\parMinStepAgg \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} },
+\end{flalign}
+then we immediately reject the step. Consequently, $\delta$ is increased in Line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} and a new aggressive step is attempted. It is possible that $\delta$ will be increased many times, however, for sufficiently large $\delta$ an acceptable step will be found (see Lemma~\ref{lemma:agg-succeeds}). 
+
+
+We update the barrier parameter $\mu$ dynamically as follows
+\begin{subequations}\label{dynamic-mu}
+\begin{flalign}
+\mu &\gets \frac{s^T y}{\ncon} + \max\left\{ 0, -\frac{y^T a(x)}{\ncon} \right\} \\
+\mu &\gets \max\{ \parMaxRatioPrimalMu^{l} \theta \min\{ \mu, \parMaxRatioPrimalMu^{u} \theta \} \}
+\end{flalign}
+\end{subequations}
+Following this update of $\mu$ we project the dual variables onto the interval
+\begin{flalign}\label{dual-interval}
+\mu S^{-1} e \left[ \frac{\parComp + \parCompAgg}{2}, \frac{2}{ \parComp + \parCompAgg} \right]
+\end{flalign}
+
+\begin{algorithm}[H]
+\textbf{Input:} Some point $p = (x, y, s, \mu, \vioVar)$ \\
+\textbf{Output:} A new point $p^{+}$ and a $\status$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item Compute a direction $(d_{x}, d_{y}, d_{s})$ from the system~\eqref{primal-dual-newton-direction} with $\eta = 1$.
+\item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
+\item Dynamically update mu via \eqref{dynamic-mu} and project $y$ onto the interval \eqref{dual-interval}.
+\item \label{agg:back-track} \backtrackBlurb
+\begin{enumerate}[label=({\roman*})] 
+\item The fraction to the boundary rule \eqref{fracBoundary} is satisfied
+\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
+%\item If either fraction to the boundary rule \eqref{} is satisfied or $\meritKKT_{\mu} ( x^{+}, y^{+}, s^{+} )  \le \beta (\| a(x^{+}) + s^{+} \|_{\infty} + \| a(x^{+}) + s^{+} \|_{\infty}^{1/2}) $
+\end{enumerate}
+Terminate with $\status = \failure$ if the line search step size with \eqref{min-step-size-aggresssive} satisfied.
+\end{enumerate}
+\caption{High level description of aggressive step}\label{alg:aggressive}
+\end{algorithm}
+
+\subsubsection{Algorithm Parameters}
+
+\begin{table}[H]
+\begin{tabular}{ |c| p{7cm}|c|c| } 
+ \hline
+Parameter & Description & Possible values & Chosen value  \\ 
+ \hline
+$\parNumCor$ & Maximum number of steps per outer iteration. See \eqref{take-steps}.  & Any natural number & $3$  \\ 
+ \hline
+  $\parComp$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$. See \eqref{satisfy-comp}.  & The interval $(0,1)$ & 0.01 \\ 
+ \hline
+   $\parCompAgg$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$ in order for the aggressive criterion to be met. See \eqref{agg-criteron-buffer}.  & The interval  $(0, \parComp)$ &  \\ 
+    \hline
+   $\parMinStableStepSize$ & Minimum step size for stable line searches. See \eqref{eq:min-step-size-stable}.  & The interval $(0,1)$ &  \\ 
+   \hline
+      $\parKKTReductFactor$ & Acceptable reduction factor for the scaled KKT error $\meritKKT_{\mu}$ during stabilization steps. See \eqref{}.  & The interval $(0,1)$ &  \\ 
+      \hline
+            $\parObjReductFactor$ & Acceptable reduction factor for the merit function $\phi_{\mu,\theta}$ during stabilization steps. See \eqref{phi-sufficient-progress}.  & The interval $(0,1)$ &  \\
+        \hline
+$\parBacktracking$ & Backtracking factor for line searches & The interval $(0,1)$ & \\
+\hline
+\end{tabular}
+\caption{Parameters values and descriptions}
+\end{table}
+
+
+\section{Theoretical justification}\label{sec:theory}
+
+The goal of this Section provide some simple theoretical justification for our algorithm. Section~\ref{sec:infeas-criteron-justify} justifies infeasibility termination criterion. Section~\ref{sec:theory-naive} provides a simplified version of our algorithm, this is used to explain our algorithms global convergence properties. Section~\ref{sec:global-conv} proves that the algorithm described in Section~\ref{sec:basic-alg} eventually converges. 
+
+\subsection{Derivation of primal infeasibility termination criterion} \label{sec:infeas-criteron-justify}
+
+The purpose of this section is to justify our choice of local infeasibility termination criterion, by showing that it corresponds to stationary measure for the infeasibility with respect to a weighted $L_{\infty}$ norm.
 
 Consider the following optimization problem:
+\begin{subequations}\label{infeasible-problem}
+\begin{flalign}
+\min_{x} \max_i{ \bar{w}_i a_i(x) }  \\
+\text{s.t. } a_i(x) \le 0, \forall i \in \zeroSet
+\end{flalign}
+\end{subequations}
+
+For some non-negative vector $\bar{w}$ with  $\bar{w}_i = 0$ if and only if $i \in \zeroSet$. For example, a natural choice $\zeroSet$ is the indices of constraints that have been chosen to be satisfied throughout the algorithm i.e. the bound constraints and $\bar{w}_i = 1$ for $i \not\in \zeroSet$. In this case, the problem reduces to
 \begin{flalign*}
-\min \theta \\
-\text{s.t. } a(x) + s = \theta e \\
-s, \theta \ge 0
+\min_{x} \max_i{ a_i(x) }  \\
+\text{s.t. } a_i(x) \le 0, \forall i \in \zeroSet
 \end{flalign*}
+Note that \eqref{infeasible-problem} is equivalent to the following optimization problem:
+\begin{flalign*}
+\min \vioVar \\
+\text{s.t. } a(x) + s = \vioVar \conWeight \\
+s, \vioVar \ge 0,
+\end{flalign*}
+where the vector $w$ is defined by $w_i = \bar{w}_i^{-1}$ for $i \not\in \zeroSet$ and $w_i = 0$ for $i \in \zeroSet$. 
 
 The KKT conditions for this problem are:
 \begin{flalign*}
-u \theta \le \epsilon  \\
-\tilde{y}^T s \le \epsilon \\
+a(x) + s = \vioVar \conWeight  \\
 \nabla a(x)^T \tilde{y}  = 0 \\
-e^T \tilde{y}  + u = 1 \\
-u, \theta \ge 0
+\conWeight^T \tilde{y}  + u = 1 \\
+u \vioVar = 0  \\
+\tilde{y}^T s = 0 \\
+u, \vioVar \ge 0.
 \end{flalign*}
+Note that if the point $x,y,s, \vioVar$ satisfies:
+\begin{flalign*}
+a(x) + s = \vioVar \conWeight  \\
+\infeasFunc (x,y,s, \vioVar) = 0 \\
+\vioVar > 0
+\end{flalign*}
+then we have found an stationary point problem~\eqref{infeasible-problem} with $\vioVar > 0$. Furthermore, if we assume that the closest feasible solution $x^{*}$ satisfies $\| x - x^{*} \|_{2} \le R$ then suppose that:
+\begin{flalign*}
+a(x) + s &= \vioVar \conWeight \\
+\infeasFunc (x,y,s, \vioVar) &\le \frac{1}{2 m ( R + 1)}.
+\end{flalign*}
+If we also assume the constraint function $a$ is convex then we can deduce that:
+\begin{flalign*}
+\vioVar^{*} &\ge  \Lag (x^{*},\tilde{y}) \ge \vioVar - s^T \tilde{y} + \tilde{y}^T \nabla a (x) (x - x^{*}) \\
+&\ge \vioVar \left(1 - \infeasFunc (x,y,s, \vioVar) m ( 1 + R) \right) \\
+& \ge \vioVar / 2 > 0.
+\end{flalign*}
+\todo{check this argument with latest $\Gamma$ defintion}
+Hence the problem is infeasible. This is a typical Farkas infeasibility certificate argument.
+
+\subsection{Global convergence proofs for a naive algorithm}\label{sec:theory-naive}
+
+Here we present a naive version of Algorithm~\ref{one-phase-IPM}. The goal of this naive algorithm (Algorithm~\ref{alg:naive}) is to illustrate the ideas of the global convergence proof of Algorithm~\ref{one-phase-IPM}. One should think of Algorithm~\ref{alg:naive} as mimicking the worst case performance of Algorithm~\ref{one-phase-IPM}. However, in practice, Algorithm~\ref{alg:naive} would be much slower than  Algorithm~\ref{one-phase-IPM}. We emphasize that the goal of these convergence proofs is just to prove global converge, not to give a fast theoretical runtime bound. For work on fast theoretical runtime bound for interior point methods for non-convex optimization see [REF, MORE REF].
+
+To understand the similarities between Algorithm~\ref{one-phase-IPM} and Algorithm~\ref{alg:naive} observe the following, the stabilization step is repeatedly called in Algorithm~\ref{one-phase-IPM} until the aggressive step criterion is met. This can be viewed as equivalent to the stabilization stage in Algorithm~\ref{alg:naive}. Now, during the aggressive steps Algorithm~\ref{one-phase-IPM} as $\delta \rightarrow \infty$ the primal variable updates reduce to $s^{+} \gets s - \alpha_{P} e$ and $x^{+} \gets x$ which is roughly equivalent to the aggressive stage of Algorithm~\ref{alg:naive}. 
+
+\begin{algorithm}[H]
+\textbf{Input:} Some point $x^{0}$ and $\mu^{0} > 0$ with $a(x^{0}) < \mu^{0}$ \\
+
+For $k = 1, ..., \infty$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item \label{stabilization-stage} \emph{Stabilization stage}. Consider the following problem:
+$$
+\min_{x} \barrier_{\mu^{k},\mu^{k}}(x)
+$$
+%$\barrier_{\mu,\theta}(x^{k+1}) \le \barrier_{\mu,\theta}(x^{k})$
+starting from the point $x^{k}$ find a stationary point $x^{k+1}$, or show the problem is unbounded from bellow i.e. generate a sequence $\hat{x}^{i}$ such that $\barrier_{\mu,\theta}(\hat{x}^{i}) \rightarrow -\infty$.
+\item \emph{Check termination criterion}. If \termination{} is satisfied for $s^{k+1} \gets \mu^{k} e - a(x^{k+1})$ and $y^{k+1} \gets \mu^{k} (S^{k+1})^{-1} e$ then terminate the algorithm.
+\item \label{agg-stage} \emph{Aggressive stage}. Set
+\begin{flalign}
+\varepsilon^k &\gets \frac{1}{2} \min\left\{ \mu^{k}, \min_i\{ s_i^{k+1} \} \right\} \\
+\mu^{k+1} &\gets \mu^{k} - \varepsilon^k
+\end{flalign}
+\end{enumerate}
+\caption{Naive version of Algorithm~\ref{one-phase-IPM}}\label{alg:naive}
+\end{algorithm}
+
+Each $x^{k+1}$ generated by Algorithm~\ref{alg:naive} is feasible to the next sub-problem $\barrier_{\mu^{k+1}}(x)$ i.e. $\mu^{k+1} e - a(x^{k+1}) > 0$ because 
+$$
+\mu^{k+1} e - a(x^{k+1}) = \mu^{k+1} e - (\mu^{k} e - s^{k+1} )  = s^{k+1} - \varepsilon^{k} > 0.
+$$
+Hence each point $x^{k+1}$ is strictly feasible starting point to the shifted log barrier problem defined in line~\ref{stabilization-stage} of Algorithm~\ref{alg:naive}. For simplicity of exposition, in Algorithm~\ref{alg:naive}, we assume that we have some oracle that will find a stationary point of the sub-problem $\min_{x} \barrier_{\mu,\theta}(x)$ given an initial point $x^{0}$. Most descent algorithms for unconstrained optimization will achieve this, assuming $f$ and $a$ are continuously differentiable. We will show the convergence of the stabilization steps for this solving these sub-problems in Section~\ref{sec:global-conv}. 
+
+The iterates of Algorithm~\ref{one-phase-IPM} satisfy
+\begin{subequations}
+\begin{flalign}
+a(x^{k}) + s^{k} &= e \mu \\
+\nabla \Lag(x^{k}, y^{k}) &= 0 \\
+S^{k} y^{k} &= \mu e \\
+s^{k}, y^{k} &\ge 0
+\end{flalign}
+\end{subequations}
+which is the central sequence property defined in equations \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas}, with $\conWeight = e$, as we discussed in the introduction.
+
+% [sequential property] for $y^k = \mu^k / s^{k}$.
+
+We now proceed to show that this naive algorithm converges in Theorem~\ref{thm:naive}. The argument outline is as follows. If the aggressive criterion is satisfied either we get a certificate of first order local infeasibility or the dual variables are bounded above. Since the dual variables are bounded above, we can bound the slack variables away from zero. By looking at line~\ref{agg-stage} of Algorithm~\ref{alg:naive} this shows we reduce $\mu^{k+1}$ sufficiently at each iteration. Keep in mind that Theorem~\ref{thm:naive} only bounds the number of iterations and excludes the computational cost of each solve of the stabilization stage.
+
+\begin{theorem}\label{thm:naive}
+Assume there exists some $\maxgrad \ge 1$ such that $\| \nabla f(x^k) \|_{\infty} \le \maxgrad$ and that $\TOLopt, \TOLinf, \TOLunbounded \in (0, 1)$. Then at any iteration $k$ where the infeasibility termination criterion~\eqref{terminate-primal-infeasible} is not satisfied,
+$$
+\| y^{k} \|_{\infty} \le \frac{2 G}{ \TOLinf \TOLopt}.
+$$
+Furthermore, Algorithm~\ref{alg:naive} terminates in at most 
+$$
+1 + \frac{4 \maxgrad}{\TOLopt \TOLinf } \log\left( \frac{2 \maxgrad \mu^{0}}{\TOLopt^2 \TOLinf } \right)
+$$
+iterations.
+\end{theorem}
+
+\begin{proof}
+We have
+\begin{flalign*}
+\| y^{k} \|_{\infty} &\le \frac{\| \nabla a(x^k)^T y^k \|_{\infty} + \| Y^k s^k \|_{\infty}}{ \TOLinf \min\{  1, \mu \}} \\
+& \le  \frac{\| \nabla f(x) \|_{\infty} + \mu}{ \TOLinf \min\{  1, \mu \}} \\
+& \le \frac{2 G}{ \TOLinf \TOLopt} 
+\end{flalign*}
+where the first inequality follows from the fact that the \eqref{terminate-primal-infeasible} is not satisfied; the second inequality from $\| \nabla \Lag (x , y) \|_{\infty} = 0$ and $S y = \mu$. The third from $G \ge 1$
+Now,
+\begin{flalign*}
+\mu^{k+1} = \mu^{k} - \varepsilon^k &\le \mu^k  - (1/2) \min_{i}{s_{i}^{k} } \\
+&= \mu^k \left( 1 - \frac{1}{2 \| y^{k} \|_{\infty}} \right) \\
+&\le \mu^{k} \left(1 - \frac{\TOLopt \TOLinf }{4 \maxgrad} \right)
+\end{flalign*}
+where the second equality holds from $S^k y^{k} = \mu e$, the second inequality by our bound on $\| y^k \|_{\infty}$.
+Noting that $\mu^k \le \TOLopt$ implies the algorithm terminates, gives the result.
+\end{proof}
+
+\subsection{Global convergence proofs for Algorithm~\ref{one-phase-IPM}}\label{sec:global-conv}
+
+This section is still under construction.
+
+\begin{assumption}
+The functions $f$ and $a$ are twice differentiable on $\R^{\nvar}$.
+\end{assumption}
+
+\begin{lemma}\label{lem:agg-finite}
+Consider a point $x, y, s$ that satisfies the criterion for an aggressive step \eqref{agg-criteron}, but does not satisfy the infeasibility termination criterion~\eqref{terminate-primal-infeasible} then:
+$$
+\| Y \conWeight \|_{\infty} \le 2 \frac{\| \nabla f(x) \|_{\infty} + \mu / \parComp}{\TOLinf \min\{1 , \vioVar\} }
+$$
+Furthermore, after a finite number of aggressive steps the algorithm has found a point satisfying the local optimality termination criterion \eqref{terminate-kkt}. 
+\end{lemma}
+
+\begin{proof}
+We have
+\begin{flalign*}
+\| Y \conWeight \|_{\infty} &\le \frac{\| \nabla a(x)^T y \|_{\infty} + \| Y s \|_{\infty}}{ \TOLinf \min\{  1, \vioVar \}} \\
+& \le  \frac{\| \nabla f(x) \|_{\infty} + \| \nabla \Lag (x , y) \|_{\infty} + \mu / \parComp}{ \TOLinf \min\{  1, \vioVar \}} \\
+& \le 2  \frac{ \| \nabla f(x) \|_{\infty} + \mu / \parComp}{ \TOLinf \min\{  1, \vioVar \}} 
+\end{flalign*}
+where the first inequality follows from the fact that the \eqref{terminate-primal-infeasible} is not satisfied; the second inequality from the triangle inequality applied to $\| \nabla \Lag (x , y) \|_{\infty}$ and inequality \eqref{agg-criteron-buffer}; and the third inequality from inequality \eqref{agg-criteron-farkas}.
+
+Next, for any step size $\alpha_{P}$ since the minimum step size given \eqref{min-step-size-aggresssive} by implies:
+\begin{flalign*}
+\alpha_{P} &\ge \parBacktracking /4 \min_{i \in \nonzeroSet}{ \frac{s_{i}}{\vioVar \conWeight_i} }\\
+&\ge \parBacktracking/4 \min_{i \in \nonzeroSet}{ \frac{\parCompAgg \mu}{ \vioVar y_i \conWeight_i} } \\
+&\ge \parBacktracking \TOLinf \min\{  1,  \mu \} \frac{\parCompAgg}{8  (\| \nabla f(x) \|_{\infty} + \mu / \parComp )} 
+\end{flalign*}
+Note that if
+$$
+\mu \le \frac{\TOLopt}{\| \conWeight \|_{\infty} + 1 / \parCompAgg} ???
+$$
+and the criterion for an aggressive step \eqref{agg-criteron} is satisfied then the local optimality criteron \eqref{terminate-kkt} is satisfied. Therefore there exists some $\kappa \in (0,1)$ such that $\alphaMinAgg > \kappa$ for all aggressive steps. Finally, it remains to deduce the runtime, after $k$ aggressive steps one has
+\begin{flalign}
+\mu \le \mu^{0} ( 1 - \kappa  )^k
+\end{flalign}
+Which implies after $O( (1 / \kappa) \log(\mu / \epsilon) )$ we meet the local optimality termination criterion.
+\end{proof}
+
+
+Lemma~\ref{lemma:agg-succeeds} shows that one can absorb the slack variable to reduce $\theta$ during aggressive steps by choosing a sufficiently large $\delta$.
+
+\begin{lemma}\label{lemma:agg-succeeds}
+Consider an iterate $p = (x, y, s, \mu)$ that satisfies the criterion for an aggressive step \eqref{agg-criteron} with $a(x) + s = \vioVar \conWeight$, then for
+$$
+\delta \ge \frac{4 \| \nabla \barrier_{\mu,\theta}(x) \| L_0}{\min_{i}{s_i}} - \lambda_{\min}{(\schur{x, y, s, \mu})},
+$$
+Algorithm~\ref{alg:aggressive} applied to the iterate $p$ terminates with $\status = \success$.
+\end{lemma}
+
+\begin{proof}
+\todo{check fraction to boundary rule}
+We wish to show for any
+$$
+\alpha_{P} \in \left[ 0, 1/4 \min \left\{ 1, \min_{i \in \nonzeroSet}{ \frac{s_{i}}{\vioVar \conWeight_i} }  \right\} \right] %\frac{1}{1 + (\vioVar / (  \parCompAgg \mu) ) \| y \|_{\infty}}\right]
+$$
+the iterate $x^{+} = x + \alpha_{P} d_{x}$, $y^{+} = y + \alpha_{D} d_{y}$, $\mu^{+} = \mu (1 - \alpha_{P} ), \vioVar^{+} = \vioVar ( 1 - \alpha_{P})$ is feasible. 
+
+We wish to show that $ s^{+}  \in [s / 2, 3 s / 2]$. Where $s^{+} = a(x + \alpha_{P} d_{x}) + (1 - \alpha_{P} ) \vioVar \conWeight$. Subtracting and adding $s = a(x) + \vioVar \conWeight$ yields
+$$
+s^{+} = s + ( a(x + \alpha_{P} d_{x} ) - a(x)) - \alpha_{P} \vioVar \conWeight
+$$
+Therefore, it remains to bound the term $a(x + \alpha_{P} d_{x}) - a(x)  -  \alpha_{P} \vioVar w$. Applying our assumption on $\alpha$, we immediately get $0 \le \alpha_P \vioVar w  \le s / 4$. Furthermore, from our assumptions on $\delta$ we have:
+$$
+\| d_{x} \|_{2} \le \frac{\min_{i}{s_i}}{4 L_{0}}
+$$ 
+therefore:
+$$
+| a(x) - a(x + \alpha_{P} d_{x}) |  \le L_{0} \alpha_{P} \| d_{x} \|_{2} \le (1/4) \min_{i}{ s_{i} }
+$$
+which shows that $s^{+} \in s [1/2, 3/2]$. Note that
+$$
+\frac{s^{+} Y}{\mu} \in [1/2, 3/2]  \frac{s Y}{\mu} \subseteq [\parCompAgg/2 , 3/(2 \parCompAgg)]  e \subseteq  [\parComp, 1/\parComp ] e
+$$
+which concludes the proof since if $\alpha_{D} = 0$ then $y = y^{+}$. 
+\end{proof}
+
+\begin{lemma}\label{lem:compact-Q}
+Let the functions $f : \R^{\nvar} \rightarrow \R$ and $a : \R^{\nvar} \rightarrow \R^{\ncon}$ be twice differentiable.
+Consider some constants $c, \mu \ge 0$. Define:
+$$
+Q :=  \left\{  x \in \R^{\nvar} : \phi_{\mu,\theta}(x) \le c, f(x) \ge -c, a(x) \le \mu \conWeight \right\}
+$$
+and let $\hat{Q}_{r} :=  \left\{  x': \| x - x'\| \le r, x \in Q \right\}$, then
+\begin{enumerate}
+\item The sets $Q$ and $\hat{Q}_{r}$ are compact.
+\item There exists $r > 0$ such that for any $x \in \hat{Q}_{r}$ then $a(x) < w \mu$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+The expression $\parConRegularizer a_i(x) - \log(\mu \conWeight_i - a_i(x))$ is bounded from bellow and similarly $\frac{\| S y - \mu \|^3}{\mu^2} \ge 0$. Therefore there exists some constant $C > 0$ such that
+$$
+f(x) \le C - \parRegularizer \sum_{i}{\sqrt{x_i^2 + 1 / \parRegularizer^2}}
+$$
+It follows that there exists some constant $R > 0$ such that $\| x \| \le R$. Therefore the set $Q$ is bounded. It remains to show the set is closed. To see this it suffices to observe that the functions $f$, $a$ and $\barrier_{\mu,\theta}$ are continuous.
+$$
+\dots
+$$
+\end{proof}
+
+Note that if we define $c$ in Lemma~\ref{lem:compact-Q} to be:
+$$
+c = \max \left\{ \phi_{\mu,\theta}(x) , -\frac{w \mu}{\TOLunbounded} \right\}  
+$$
+where $x$ is the output of the most recent aggressive step then if $x'$ is any subsequence stabilization step, $x' \not\in Q$ implies that the unboundedness termination criterion~\eqref{terminate-dual-infeasible} is met. With this in mind we proceed to showing that there will only be a finite number of stabilization steps until the next aggressive step.
+
+\begin{lemma}
+After a finite number of consecutive stabilization steps either the aggressive criterion~\eqref{agg-criteron} or the unboundedness termination criterion~\eqref{terminate-dual-infeasible}  is met.
+\label{lem:stbl-success}
+\end{lemma}
+
+\begin{proof}
+
+[Blah]
+Define 
+
+From Lemma~\ref{lem:compact-Q} we know $\hat{Q}_{r}$ is a compact set and $\barrier_{\mu,\theta}$ is twice differentiable on $\hat{Q}_{r}$, there exists some constant $K_{1} > 0$ such that:
+$$
+\| \nabla^2 \barrier_{\mu,\theta}(x)  \| \le K_{1}
+$$
+for all $x \in \hat{Q}_{\sigma}(\mu, c)$. Therefore $\| \schur{x, y, s, \mu} \| $ is bounded. Therefore there exists some $\kappa > 0$ such that if $\delta \ge \kappa$ the stabilization steps succeeds. It remains to show that for any $\delta \le \kappa / \beta$ if the stabilization step succeeds then $\phi_{\mu,\theta}(x)$ is reduced by some constant. Note once again by the compactness of $\hat{Q}_{\sigma}(\mu, c)$ there exists a  constant $\varepsilon > 0$ such that if $\| \nabla \barrier_{\mu,\theta}(x) \|_{\infty} \le \varepsilon$ and $\MeritComp(s,y) \le \varepsilon$ then the aggressive termination criterion~\eqref{agg-criteron} is met. Therefore at each iteration the algorithm reduces $\phi_{\mu,\theta}$ by a constant.
+\end{proof}
+
+\begin{theorem}
+Algorithm~\ref{one-phase-IPM} terminates after a finite number of computational operations.
+\end{theorem}
+
+\begin{proof}
+Lemma~\ref{lem:agg-finite} and Lemma~\ref{lemma:agg-succeeds} show that the algorithm must terminate after a finite number of aggressive steps.
+Lemma~\ref{lem:stbl-success} shows that the algorithm terminates or an aggressive step must be taken after a finite number of stabilization steps. The result follows.
+\end{proof}
+
+%
+%
+%It remains to show that $\| y^{+} s^{+} - \mu^{+} \|_{\infty} \le \mu^{+} / 2$. Now we have:
+%$$
+%d_{y}  = - Y (S^{-1} d_{s} + e)
+%$$
+%Hence using that $\| d_{s} \| \le ...$ we get $d_{y} \in [-2y, 2y]$. It follows that $y^k + \alpha_{P} d_{y} \in [ y^{k} / 2, 3 y^{k} / 2]$. 
+%
+%Finally, using the fact that $s^{k+1}  \in s^{k} [3/4, 5/4]$ and $s^{k+1} \in y^{k} [3/4, 5/4]$  we have: 
+%$$
+%\frac{s^{k+1} y^{k+1}}{s^k y^k} \in [1/2, 3/2]
+%$$
+%And since $\frac{s^{k} y^{k}}{\mu^k} \in [1/2,3/2]$ we have  $\frac{s^{k+1} y^{k+1}}{\mu^k} \in [1/4,3]$ which concludes the proof.
+%
+%\subsection{Super-linear convergence proofs??}
+
+
+%
+%\subsection{Line searches}
+%
+%\begin{algorithm}[H]
+%\begin{algorithmic}
+%\Function{Move}{$\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}$}
+%\State $x^{+} \gets x + \alpha_{P} d_{x}$
+%\State $\mu^{+} \gets (1 - \eta \alpha_{P}) \mu$
+%\State $\vioVar^{+} \gets (1 - \eta \alpha_{P}) \vioVar$
+%\State $s^{+} \gets a(x^{+}) + \vioVar (  s^{1} - a(x^{1}) )$
+%\State $\alpha_{D} \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+%\State $y^{+} \gets y + \alpha_{D} d_{y}$
+%\EndFunction
+%\end{algorithmic}
+%\end{algorithm}
+%
+%\begin{algorithm}[H]
+%\begin{algorithmic}
+%\Function{Dual-line-search}{$\obj, \cons, x^{+}, s^{+}, y, d_{y}, \alpha_{P}$}
+%\State $u_{D}, \status1 \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+%\State $l_{D}, \status2 \gets \arg \min_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
+%\State $\alpha_{D} \gets \arg \min_{ \alpha \in [l_{D}, u_{D}] }{ D(x^{+}, y  + \alpha d_{y} ) }$
+%\State $y^{+} \gets y + \alpha_{D} d_{y}$
+%\EndFunction
+%\end{algorithmic}
+%\end{algorithm}
+%
+%
+%
+%
+%
+%\begin{algorithm}[H]
+%\begin{algorithmic}
+%\Function{Stable-line-search}{$\obj, \cons, x, y, s, d_{x}, d_{y}, d_{s} \eta$}
+%\State $\eta \gets 0$
+%\State $\alpha_{P} \gets \Call{FractionToBoundary}{y, s, d_{y}, d_{s} }$
+%\For{$i = 1, ..., \infty$}
+%\State  $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
+%\If{$\status = \feasible$}
+%\If{\text{sufficient progress on merit function}}
+%\State \Return{$x^{+}, y^{+}$}
+%\Else
+%\State 
+%\EndIf
+%\Else
+%\State $\alpha_{P} \gets \alpha_{P} /2$
+%\EndIf
+%\State ...
+%\EndFor
+%\EndFunction
+%\end{algorithmic}
+%\caption{Stable line search}
+%\end{algorithm}
+
+\section{Implementation details}\label{sec:implementation-details}
+
+
+\subsection{Initialization}\label{sec:initialization}
+ 
+This section explains how given a starting point $x^{0}$, how to select the initial variable values. The first goal is to modify $x^{0}$ such that it satisfies any bound constraints. This is done because often the non-linear constraints or objective may not be defined outside the bound constraints. Note that the way we have presenting our work the bound constraints are a subset of the set constraints given by $a_i(x)$ for $i = 1, ..., m$. We project onto the bounds in the same way as \cite[Section 3.7]{wachter2006implementation}.
+
+%\begin{flalign}
+%x_{i}^{0} \gets \min \{ x_{i}^{0}, u_i \} \\
+%x_{i}^{0} \gets \max \{ x_{i}^{0}, l_i \} 
+%\end{flalign}
+%where $l$ and $u$ correspond to the upper and lower bounds defined by the constraints $a$.
+
+%Recall that to start the algorithm, we must select points vector $w \ge 0$, slack variables $s > 0$ and initial barrier parameter $\mu^{0}$ such that
+%$$
+%a(x^{0}) + s^{0} = w \mu^{0}
+%$$
+%How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
+%we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
+The remainder of the intialization scheme is inspired by Mehrotra's work for linear programming \cite{}, but has been adapted to the non-linear programming context. We select a candidate dual variable and slack variables as follows 
+\begin{flalign}
+\tilde{y} &\gets \nabla a(x) (\nabla a(x)^T \nabla a(x) + I \kappa)^{-1}  \nabla f(x) \\
+\tilde{s} &\gets -a(x^{0})
+\end{flalign}
+Consider the following scalar variables:
+\begin{flalign}
+& \varepsilon_{y} \gets \max\{ -2 \min_i{ y_i}, 0 \}  \\
+& \varepsilon_{s} \gets \max\left\{ - 2 \min_i{ s_i}, \frac{\| \nabla \Lag(x^{0}, \tilde{y}) \|_{\infty}}{\| \tilde{y} \|_{\infty} + 1} \right\} %\frac{\tilde{s}^T y }{\| y \|_{1}} +
+\end{flalign}
+then:
+\begin{flalign}
+y^{0} &\gets \tilde{y} + \varepsilon_{y} \\
+s^{0} &\gets \tilde{s} + \varepsilon_{s} \\
+\mu^{0} &\gets \frac{(s^0)^T y^{0}}{\ncon}
+\end{flalign}
+Project $\mu^{0}$ onto the interval  $\| s \|_{\infty} [10^{-2},10^{5}]$. Project the dual variables $y^{0}$ onto the intervals:
+$$
+\mu S^{-1} e [\parComp, 1/\parComp]
+$$
+
+
+%The default value is $\kappa = 10^{-3}$.
+
+%\begin{enumerate}
+%\item Dealing with bound constraints
+%\end{enumerate}
+%
+%For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\vioVar^{1}$ via
+%\begin{flalign*}
+%\vioVar^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
+%s^{1} &\gets \vioVar^{1} e - a(x^{1}) 
+%\end{flalign*}   
+\subsection{Linear algebra}
+
+
+\begin{enumerate}
+\item Splitting dense columns in sparse linear systems. Linear Algebra and its Applications. Robert J. Vanderbei. \cite{vanderbei1991splitting}
+\item \cite{lustig1991formulating} Get between 5 times and 80 times speed up from splitting dense columns for stochastic programs.
+\item Matrix Stretching for Sparse Least Squares \url{https://pdfs.semanticscholar.org/0054/9cc96c29f24c9d55d76962676fe5993f2b11.pdf}
+\item Matrix Stretching for Linear Equations \url{https://arxiv.org/abs/1203.2377}
+\item J. F. Grcar, Matrix stretching for linear equations, Tech. Report SAND90-8723, Sandia
+National Laboratories, Nov. 1990.
+\end{enumerate}
+
+\subsection{Iterative refinement}
+
+
+\section{To do}
+
+\begin{enumerate}
+\item clean up 
+\item edit code to match document
+\item run full CUTEst test
+\end{enumerate}
+
+\section{Empirical results}\label{sec:empirical-results}
+
+\begin{enumerate}
+\item Comparison on netlib
+\item Comparison on large CUTEst problems
+\item Comparison on small CUTEst problems
+\item Comparison on infeasible problems
+\item Comparison of static $\mu$ versus dynamic $\mu$
+\item `Maimed' IPOPT
+\end{enumerate}
+
+
+\section{Conclusions}
+\begin{enumerate}
+\item ??
+\end{enumerate}
+
+\bibliographystyle{apalike}
+\bibliography{library-one-phase-2.bib}
+
+
+\appendix
+
+\section{Matrix factorization strategy}
+
+This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006implementation}.
+
+\begin{algorithm}[H]
+\textbf{Input:} The matrix $H = \schur{x,y,s,\mu}$ and current delta choice $\delta$ \\
+\textbf{Output:} The cholesky factorization of the matrix $H + I \delta$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item Set $\delta_{\text{prev}} \gets \delta$
+\item Set $\delta \gets 0$
+\item Perform cholesky factorization of $H$, if factorization does not fail i.e. matrix is positive definite return $H^{-1}$, $\delta$ otherwise continue.
+\item If $\delta_{prev} > 0$ set $\delta \gets \max\{ \delta_{\min}, \delta_{\text{prev}} / 3 \}$ otherwise set $\delta = \delta_{\text{start}} \mu$.
+\item Perform cholesky factorization of $(H + \delta I)$, if succeeds return $(H + \delta I)^{-1}, \delta$ otherwise continue.
+\item Set $\delta \gets 8 \delta$. Go to previous step.
+\end{enumerate}
+\caption{Matrix factorization strategy}\label{alg:mat-fact}
+\end{algorithm}
+
+\section{The (non-existence) of a central path in non-convex optimization}\label{app:non-existence-of-central-path}
+
+Would be nice to have a long discussion on this issue
+
+$$
+f_{\mu}(x) = 50 (x - 0.5)^3 + x - \mu (\log(x) + \log(1 - x))
+$$
+
+$$
+\nabla f_{\mu}(x) = 150.0 * (x - 0.5)^2 + 1.0  - \mu / x + \mu / (1 - x) = 0 \\
+$$
+Is discontinuous at $\mu = 3$, $x \approx 0.5$ i.e. there exists no function $x(\mu)$ such that $\nabla f_{\mu}(x(\mu)) = 0$ and $x(\mu)$ is continuous. 
+
+[Vanderbei' s example for the problem $\min{ x -x^2}$ s.t. $x \ge 0$ there exists no continuous central path from an initial point to the optimal solution. However, optimal solution is unbounded.]
+
+
+\section{Old}
+
+\subsection{Intuition: penalty method versus infeasible start method}
+
+Give a simple example illustrating the draw backs of a penalty method
+\begin{enumerate}
+\item Makes the algorithm more complex
+\item If penalty parameter is too big then problem is harder to solve than it should be
+\item When penalty parameter is updated the dual feasibility increases suddenly
+\end{enumerate}
 
 \subsection{Discussion of Watcher and Biegler's example}
 
@@ -174,260 +1009,51 @@ x_{1} \ge b
 \end{flalign}
 
 \begin{flalign}
-\min{ -\theta (x_{1}^2 + a) - (x_{1} - b) } \\
+\min{ -\vioVar (x_{1}^2 + a) - (x_{1} - b) } \\
 w \ge 0
 \end{flalign}
 At 
 $$
-\theta = 1 / (2 x_{1})
-$$
-
-
-\subsection{Derivation of method}
-
-
-Log barrier problem:
-\begin{flalign*}
- &  \min{f(x) - \mu^k \sum_i{ \log{(s_i)} } } \\
-& a(x) + s = 0 \\
-& s \ge 0
-\end{flalign*}
-
-Shifted log barrier problem
-\begin{flalign}\label{shifted-barrier-problem}
- &  \min{f(x) -(1 - \eta^k) \mu^k \sum_i{ \log{s_i} } } + \frac{\delta^k}{2} \| x - x^k \|^2 \\
-& a(x) + s = (1 - \eta^k) (a(x^k) + s^k) \\
-& s \ge 0
-\end{flalign}
-
-KKT system:
-
-\begin{flalign*}
-\nabla f(x) + \delta^k (x - x^k) + {y}^T \nabla a(x) &= 0 \\
-a(x) + s &= (1 - \eta^k) (a(x^k) + s^k) \\
-s_i {y_i} &= (1 - \eta^k) \mu^k \\
-s, y &\ge 0
-\end{flalign*} 
-
-Corresponding newton system:
-
-\begin{flalign}\label{primal-dual-newton-direction}
-\begin{bmatrix}
- \nabla^2_{x} L(x^k,y^k) + \delta^k I  & \nabla a(x^k)^T & 0  \\
-\nabla a(x^k) & 0 & I \\
-0 & S^k & Y^k
-\end{bmatrix} 
-\begin{bmatrix}
-d_x^k \\
-d_y^k \\
-d_s^k
-\end{bmatrix} 
-=
-\begin{bmatrix}
-- (\nabla f(x^k) + \nabla a(x^k)^T y^k) \\
-- \eta^k  (a(x^k) + s^k) \\
-(1 - \eta^k) \mu^k e - Y^k s^k 
-\end{bmatrix} 
-\end{flalign} 
-
-By taking the primal schur complement one can see solving system \eqref{primal-dual-newton-direction} is equivalent to solving:
-$$
-(M (x^k,y^k, s^k) + \delta I)  d_{x}^k = - \nabla f(x^k) - \nabla a(x^k)^T ((1 - \eta^k) \mu^k (S^k)^{-1} e + \eta^k Y^k ( e + (S^k)^{-1} (a(x^k) + s^k))  )
-$$
-Where:
-\begin{flalign}
-M (x,y, s) = \nabla^2 \Lag (x, y) + \nabla a(x)^T Y S^{-1} \nabla a(x) 
-\end{flalign}
-
-\begin{flalign}\label{terminate-when}
-D(x,y) \le \mu^{k}  \& \| Sy - \mu^{k} \|_{\infty} \le \mu^k / 4
-\end{flalign}
-
-\subsection{Behavior of this algorithm on convex quadratic programs}
-
-[one stabilization step followed by one aggressive step]. [resemblance to predictor corrector]
-
-\section{Practical algorithm}
-
-
-$$
-\sigma (y) = \frac{100}{\max\{ 100, \| y \|_{\infty} \}}
+\vioVar = 1 / (2 x_{1})
 $$
 
 
 
-Scaled KKT termination criterion: 
-\begin{subequations}\label{terminate-kkt}
-\begin{flalign}
-\sigma (y) \| \nabla L_{\gamma}(x, y) \|_{\infty} &\le  \epsilon  \\
-\sigma (y) \| S y \|_{\infty} &\le \epsilon  \\
-\| a(x) + s \|_{\infty} &\le \epsilon 
-\end{flalign}
-\end{subequations}
-Local primal infeasibility termination criterion:
-\begin{subequations}\label{terminate-primal-infeasible}
-\begin{flalign}
-\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf \\
-\frac{\| w^T \nabla a(x) \|_{\infty}}{\| w \|_{\infty}} \le \TOLinf
-\end{flalign}
-\end{subequations}
+\subsection{Relevant literature}
 
-Local dual infeasibility termination criteron
-\begin{subequations}\label{terminate-dual-infeasible}
-\begin{flalign}
-\frac{\| w^T \nabla a(x) \|_{2}}{w^T a(x)} \le \TOLinf \\
-\frac{\| w^T \nabla a(x) \|_{\infty}}{\| w \|_{\infty}} \le \TOLinf
-\end{flalign}
-\end{subequations}
+Within non-convex optimization there are four papers that I think are particularly relevant to our work:
 
-Aggressive step criterion:
-\begin{subequations}\label{agg-criteron}
-\begin{flalign}
-\| \nabla L_{\gamma}(x, y) \|_{\infty} &\le \min\left\{ \frac{\| a(x) + s \|_{\infty}}{\sigma (y)  } , 1 + \| \nabla f_{\gamma}(x) \|_{\infty} \right\} \\
- \frac{S y}{\mu} &\in [ e \parCompAgg, e / \parCompAgg ] 
-\end{flalign}
-\end{subequations}
-
-
-\begin{algorithm}[H]
-\textbf{Input:} Some initial point $x_{0}, y_{0}, s_{0}, \mu$ 
-\vspace{0.2 cm} \\
-\emph{For each iteration $i = 1, ..., i_{\max}$ perform the following steps:}
-\begin{enumerate}[label*=A.{\arabic*}]
-\item \label{step-1}  \emph{Update hessian and jacobian. 
-\item Check the termination criterion given in \eqref{terminate-kkt}, \eqref{terminate-primal-infeasible} and \eqref{terminate-dual-infeasible}.
-\item Form primal schur complement at the point $x$, $y$}
-\item \emph{Factorize the matrix using IPOPT strategy}
-\item \label{take-steps}  \emph{Perform corrections steps for $k \in \{ 1, ..., \parNumCor \}$}
-\begin{enumerate}[label*=.{\arabic*}]
-\item \emph{Perform corrections}
-\begin{enumerate}[label=-Case-{\Roman*}]
-\item If equation~\eqref{agg-criteron} is satisfied then go to the aggressive search direction algorithm (Algorithm~\ref{alg:aggressive}).
-\item Otherwise go to the stablization search direction algorithm (Algorithm~\ref{alg:stable}).
+\begin{enumerate}
+\item The paper \cite{wachter2000failure} shows that there are examples for which infeasible start algorithms will always fail to converge to either a optimal solution or a stationary measure of infeasibility when constraints are non-convex (irrespective of the strategy for used). This is the inspiration for the two phase algorithm of IPOPT and justifies why our one phase algorithm is necessary.
+\item The description of the IPOPT algorithm \cite{wachter2005line}. IPOPT uses a two phase method the primary phase searches simultaneously for optimality and feasibility using a classical infeasible start method and a feasibility restoration phase that minimizes infeasibility. The feasibility restoration phase is only called when the step size for the infeasible start method is small. Another distinct feature of the algorithm is the filter line search (which allows progress on either the constraints or the objective).
+\item The description of the KNITRO algorithm \cite{byrd2006knitro}. KNITRO is a trust region algorithm. The approach is quite distinct from typical infeasible start algorithms and is worth looking at (each step computes two different directions, using two different linear systems, one to reduce the objective and the other to reduce infeasibility). There is a more recent paper \cite{nocedal2014interior} that adds an feasibility restoration phase (this is theoretically unnecessary, but the practical results are good). 
+\item The paper \cite{curtis2012penalty} introduces a barrier penalty method. This paper uses a similar approach to us. The main different with our approach is we treat $\lambda$ as a dual variable, whereas in Curtis's paper $\lambda$ is replaced by a penalty parameter that is updated in an ad hoc fashion.
+\item Papers in convex optimization?
+\item why homogenous algorithm fails: relies on KKT conditions to measure progress
 \end{enumerate}
-\item \emph{Deal with failures}. If correction succeeds set $x, y, s \gets x^{+}, y^{+}, s^{+}$. If correction failed and $k = 1$ go to \eqref{increase-delta-for-failure}. Otherwise if the correction failed with $k > 1$ go to step~\eqref{step-1}.
-\end{enumerate}
-\item Go to \eqref{step-1}
-\item \label{increase-delta-for-failure} \emph{Increase delta to address failure}. Set $\delta = \max\{10 \delta, \delta_{\min} \}$ and factorize the matrix. Go to step \eqref{take-steps}.
-\end{enumerate}
-\caption{High level description of one phase IPM}
-\end{algorithm}
-
-\subsection{Updating the iterates}
-
-Given a primal step size $\alpha_{P}$ we update the primal iterates as follows:
-\begin{subequations}
-\begin{flalign}\label{eq:iterate-update}
-x^{+} &\gets x + \alpha_{P} d_{x} \\
-\mu^{+} &\gets (1 - \eta \alpha_{P}) \mu \\
-\theta^{+} &\gets (1 - \eta \alpha_{P}) \theta \\
-s^{+} &\gets a(x^{+}) + \theta (  s^{1} - a(x^{1}) )
-\end{flalign}
-\end{subequations}
-Fraction to the boundary:
-\begin{flalign}
-s + \alpha_{P} d_{s} \ge s \parFracBoundary
-\end{flalign}
-Given some candidate primal iterate $x^{+}$, $s^{+}$, we define $B( s^{+}, d_{y} )$ set of feasible dual step sizes. In particular, let it be the largest interval such that if $\alpha_{D} \in B( s^{+}, d_{y} )$ then
-\begin{flalign}
- \frac{S^{+} y + \alpha_{D} d_{y}}{\mu} \in [\parComp, 1/\parComp ]
-\end{flalign}
-If no such interval exists we set $B( s^{+}, d_{y} )$ to the empty set and the step will be rejected. We compute the dual step size as follows:
-\begin{flalign}
-\alpha_{D} = \arg \min_{\alpha_{D} \in B( s^{+}, d_{y} )} \| S^{+} y + \alpha_{D} S^{+} d_{y} \|^2_{2} + \| \nabla L(x, y)  + (\nabla^2 L(x, y) + \delta I) d_{x} + \alpha_{D}  \nabla a(x)^T d_{y} \|^{2}_{2}
-\end{flalign}
-This reduces to a one dimensional least squares problem in $\alpha_{D}$ which has a closed form expression.
-
-\subsection{Aggressive search directions}
-
-\begin{algorithm}[H]
-\textbf{Input:} Some point $x, y, s, \mu$ \\
-\textbf{Output:} A new point $x^{+}, y^{+}, s^{+}, \mu^{+}$ and a $\status$
-\begin{enumerate}[label*=A.{\arabic*}]
-\item Compute a direction $d$ from the system~\eqref{primal-dual-newton-direction} with $\eta = 1$
-\item Estimate the largest primal step size $\alpha^{\max}_{P}$
-\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, ... \}$ and terminate with $\status = \success$ the first time all of the following conditions hold:
-\begin{enumerate}[label=({\roman*})] 
-\item The fraction to the boundary rule \eqref{} is satisfied 
-\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
-\item Lagragian???
-\end{enumerate}
-Terminate with $\status = \failure$ if the line search trials a point with
- $$
-\alpha_{P} \le \textbf{some constant} \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} }
-$$
-\end{enumerate}
-\caption{High level description of aggressive correction}\label{alg:aggressive}
-\end{algorithm}
-
-\subsection{Stablization search directions}
 
 
-Let:
-\begin{flalign}
-\meritKKT ( x, y, s )  = \sigma( y ) \max\{ \| \nabla L(x, y ) \|_{\infty},  \| S y - \mu \|_{\infty} \}
-\end{flalign}
-During the stabilization search we accept iterates that sufficiently reduce the merit function:
-\begin{flalign}
-\phi(x^{+}, y^{+}, s^{+}) \le \phi(x, y, s) + \parObjReductFactor \tilde{\Delta}_{(x,y,s)}^{\phi}  ( d_{x}, d_{y} )
-\end{flalign}
-Or sufficient progress is made on a KKT merit function relative to the historic iterates. In particular, for every $(\hat{x}, \hat{y}, \hat{s}) \in \History$ one of the following two equations holds:
-\begin{subequations}\label{eq:filter}
-\begin{flalign}
-\meritKKT (x^{+}, y^{+}, s^{+}) &\le (1 - \parKKTReductFactor \alpha_{P} ) \meritKKT (\hat{x}, \hat{y}, \hat{s}) \\
-\phi(x^{+}, y^{+}, s^{+}) &\le \phi(\hat{x}, \hat{y}, \hat{s}) - \parKKTReductFactor \alpha_{P} \meritKKT (\hat{x}, \hat{y}, \hat{s}).
-\end{flalign}
-\end{subequations}
-This filter accepts large steps that significantly reduce the KKT error. The motivation for this choice is that, even on non-convex problems, the optimization trajectory often passes through regions where the primal schur complement is positive definite. For example, this naturally occurs near points satisfying the sufficient conditions for local optimality. In these situation often the KKT error is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility.
 
-\begin{algorithm}[H]
-\textbf{Input:} Some point $x, y, s, \mu$
-\begin{enumerate}[label*=A.{\arabic*}]
-\item Compute a direction $d$ from the system~\eqref{} with $\eta = 0$
-\item Estimate the largest primal step size $\alpha^{\max}_{P}$
-\item \emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Start with $\alpha_{P} = \alpha^{\max}_{P}$. Set $\status = \success$ and move to step~\eqref{filter-update} if all of the following conditions hold:
-\begin{enumerate}[label=({\roman*})] 
-\item The fraction to the boundary rule \eqref{} is satisfied 
-\item The set of valid dual step sizes is non-empty i.e. $B( s^{+}, d_{y} ) \neq \emptyset$ 
-\item The filter i.e. one of equations~\eqref{eq:filter} is satisfied.
-\end{enumerate}
-Return the original iterates and $\status = \failure$ if the line search trials a point with $\alpha_{P} \le \parMinStableStepSize$
-\item \label{filter-update} Augment the histories $\History$ with the new iterate $(x^{+}, y^{+}, s^{+})$.
-\end{enumerate}
-\caption{High level description of stabilization corrections}\label{alg:stable}
-\end{algorithm}
+\subsection{Old convergence proofs}
 
-\begin{table}[H]
-\begin{tabular}{ |c| p{7cm}|c|c| } 
- \hline
-Parameter & Description & Possible values & Chosen value  \\ 
- \hline
-$\parNumCor$ & Maximum number of corrections per iteration. See \eqref{}.  & Any natural number & $3$  \\ 
- \hline
-  $\parComp$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$. See \eqref{}.  & The interval $(0,1)$ & 0.01 \\ 
- \hline
-   $\parCompAgg$ & Restricts how far complementarity of $s$ and $y$ can be from $\mu$ in order for the aggressive criterion to be met. See \eqref{}.  & The interval  $(0, \parComp)$ &  \\ 
-    \hline
-   $\parMinStableStepSize$ & Minimum step size for stable line searches. See \eqref{}.  & The interval $(0,1)$ &  \\ 
-   \hline
-      $\parKKTReductFactor$ & Acceptable reduction factor for the scaled KKT error $\meritKKT$ during stabilization steps. See \eqref{}.  & The interval $(0,1)$ &  \\ 
-      \hline
-            $\parObjReductFactor$ & Acceptable reduction factor for the merit function $\phi$ during stabilization steps. See \eqref{}.  & The interval $(0,1)$ &  \\
-\hline
-\end{tabular}
-\caption{Parameters values and descriptions}
-\end{table}
 
-\section{Convergence proofs}
+I keep on re-writing these as the algorithm changes, so the current proofs are not up to date. Will revise these once the algorithm stabilizes.
+
+\newcommand{\algBlurb}{Consider Algorithm~\ref{one-phase-IPM}.
+Assume that the slack variables are initialized such that $s^{1} \gets \vioVar^{1} \conWeight - a(x^{1})$ for some $\vioVar^{1}, \conWeight \ge 0$ such that $s^{1} > 0$.}
 
 \begin{lemma}
-Assume that $a(x^{1}) - s^{1} = -\mu e$ and $\epsilon < 1$.
-If the criterion for an aggressive step is met at iteration $k$ then we have:
+\algBlurb{}
+If the criterion for an aggressive step \eqref{agg-criteron} is met at any point during the algorithm then for the current dual variable $y$ we have:
 $$
-\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2}}{\TOL^2} + 3 m
+\| y^k \|_{1} \le \frac{\| \nabla f(x^{k}) \|_{2}}{\TOLinf^2} + 3 m
+$$
+
+$$
+\conWeight^T y^k \le \frac{ \| \nabla f(x^{k}) \|_{2} + \mu (1 + \| W \|_{\infty} )}{ \vioVar^k \TOLinf }
 $$
 %$$
-%s^{k} \ge \frac{\mu \TOL^2}{\| \nabla c(x^{k}) \|_{2} + 1}
+%s^{k} \ge \frac{\mu \TOLopt^2}{\| \nabla c(x^{k}) \|_{2} + 1}
 %$$
 \end{lemma}
 
@@ -440,7 +1066,7 @@ $$
 $$
 If:
 $$
-\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2} +  3 m}{\TOL^2} 
+\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2} +  3 m}{\TOLopt^2} 
 $$
 Then:
 $$
@@ -458,7 +1084,7 @@ $$
 $$
 If:
 $$
-\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2}}{\TOL^2} +  3 m
+\| y^k \|_{1} \ge \frac{\| \nabla c(x^{k}) \|_{2}}{\TOLopt^2} +  3 m
 $$
 Then:
 $$
@@ -467,10 +1093,9 @@ $$
 Which gives the result.
 \end{proof}
 
-
 \begin{lemma}
-Assume that $a(x^{1}) - s^{1} = -\mu e$ and $\epsilon < 1$.
-The algorithm, \callSimpleIPM{}, with any takes at most $\frac{\mu^{0} (2 \| \nabla c(x^{k}) \|_{2} + 8)}{\epsilon^2}$ aggressive steps to terminate with either a first-order stationary point or first-order farkas certificate.
+\algBlurb{}
+Algorithm~\ref{one-phase-IPM} takes at most $\frac{\mu^{0} (2 \| \nabla c(x^{k}) \|_{2} + 8)}{\epsilon^2}$ aggressive steps to satisfy the termination criterion i.e satisfy \termination{}.
 \end{lemma}
 
 \begin{proof}
@@ -515,331 +1140,5 @@ And since $\frac{s^{k} y^{k}}{\mu^k} \in [1/2,3/2]$ we have  $\frac{s^{k+1} y^{k
 \end{proof}
 
 
-
-\subsection{Trust region}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Stable-trust-region-step}{$\obj, \cons, x, y, r$}
-\For{$j = 1, ..., \infty$}
-\State $(d_{x}, d_{y}, M^{+}) \gets  \Call{Approx-Primal-Dual-Trust-Region}{\obj, \cons, x, y, r}$
-\State $x^{+}, y^{+}, \alpha^{+} \gets \text{stable-line-search}(...)$
-\If{$\alpha^{+} > \alpha_{\min}$}
-\If{$j = 1$ \& $\alpha = 1$}
-\State $r^{+} \gets 10 r$
-\ElsIf{$\alpha^{+} < \alpha_{small}$}
-\State $r^{+} \gets r / 2$
-\Else
-\State $r^{+} \gets \| d_{x} \|_{2}$
-\EndIf
-\State \algorithmicbreak
-\EndIf
-\State $r^{+} \gets r^{+} / 8$
-\EndFor
-\State \Return{$(x^{+}, y^{+}, M^{+},  r^{+})$}
-\EndFunction
-\end{algorithmic}
-\caption{Stable-trust-region-step}
-\end{algorithm}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Stable-trust-region-ipopt-style}{$\obj, \cons, x, y, r$}
-\For{$j = 1, ..., \infty$}
-\State Factorize $M$ with ... $\delta$ ...
-\If{inertia is good}
-\State ...
-\EndIf
-\State $x^{+}, y^{+}, \alpha^{+} \gets \text{stable-line-search}(...)$
-\EndFor
-\State \Return{$(x^{+}, y^{+}, M^{+},  r^{+})$}
-\EndFunction
-\end{algorithmic}
-\caption{Stable-trust-region-step}
-\end{algorithm}
-
-\subsection{Line searches}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Move}{$\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}$}
-\State $x^{+} \gets x + \alpha_{P} d_{x}$
-\State $\mu^{+} \gets (1 - \eta \alpha_{P}) \mu$
-\State $\theta^{+} \gets (1 - \eta \alpha_{P}) \theta$
-\State $s^{+} \gets a(x^{+}) + \theta (  s^{1} - a(x^{1}) )$
-\State $\alpha_{D} \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
-\State $y^{+} \gets y + \alpha_{D} d_{y}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Dual-line-search}{$\obj, \cons, x^{+}, s^{+}, y, d_{y}, \alpha_{P}$}
-\State $u_{D}, \status1 \gets \arg \max_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
-\State $l_{D}, \status2 \gets \arg \min_{\alpha \in [0,1]} {\alpha} \text{ s.t. } \frac{S^{+} (y + d_{y} \alpha_{D})}{\mu} \in [ e \parComp, e / \parComp ] $
-\State $\alpha_{D} \gets \arg \min_{ \alpha \in [l_{D}, u_{D}] }{ D_{\gamma}(x^{+}, y  + \alpha d_{y} ) }$
-\State $y^{+} \gets y + \alpha_{D} d_{y}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-
-
-
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\Function{Stable-line-search}{$\obj, \cons, x, y, s, d_{x}, d_{y}, d_{s} \eta$}
-\State $\eta \gets 0$
-\State $\alpha_{P} \gets \Call{FractionToBoundary}{y, s, d_{y}, d_{s} }$
-\For{$i = 1, ..., \infty$}
-\State  $x^{+}, y^{+}, \status \gets \Call{Move}{\obj, \cons, x, y, d_{x}, d_{y}, \eta, \alpha_{P}}$
-\If{$\status = \feasible$}
-\If{\text{sufficient progress on merit function}}
-\State \Return{$x^{+}, y^{+}$}
-\Else
-\State 
-\EndIf
-\Else
-\State $\alpha_{P} \gets \alpha_{P} /2$
-\EndIf
-\State ...
-\EndFor
-\EndFunction
-\end{algorithmic}
-\caption{Stable line search}
-\end{algorithm}
-
-
-
-\section{Scrap paper}
-
-\section{Proximal}
-
-$$
-\mu^k \sqrt{ x_i^2 + 1 }
-$$
-
-\section{Log barrier sub-problems}
-
-This paper is concerned with the following problem:
-\begin{subequations}\label{solve-problem}
-\begin{flalign}
-& \min{f(x) - \mu \log( s )} + \frac{1}{2} d_{x}^T D_{x} d_{x} + \frac{1}{2} d_{s}^T D_{s} d_{s} \\
-& a(x)  - s = r \mu \\
-& s \ge 0
-\end{flalign}
-\end{subequations}
-The KKT conditions for \eqref{solve-problem} are:
-\begin{subequations}\label{KKT-barrier}
-\begin{flalign}
-\nabla_{x} \Lag(x,y) = \nabla f(x) + D_{x} d_{x}  - \nabla a(x)^T y &= 0 \\
-\ResComp_{\mu}(s, y) = Y s - \mu e &= 0  \\
-\ResPrimal_{\mu}(x, s) = a(x) - s - \mu r &= 0 \\ 
-s, y &\ge 0
-\end{flalign}
-\end{subequations}
-Where the Lagrangian $\Lag(x,y) := f(x) - y^T a(x)$.
-
-We combine the log barrier merit function and the complementary conditions as follows:
-\begin{flalign}
-\phi(x,y) = \psi(x) + \MeritComp(x,y)
-\end{flalign}
-With:
-$$
-\MeritComp(x,y) = \frac{\| \ResComp(x, y) \|_{\infty}^3}{\mu^2}
-$$
-
-We now introduces models to locally approximate these merit functions $\nabla_{x} \Lag(x,y)$, $\psi$, $\ResComp$ and $\phi$ respectively. To describe our approximations of a function $f$ around the point $(x, y)$ we use the function $\tilde{\Delta}_{(x,y)}^{f}(u, v)$ to denote the predicted increase in the function $f$ at the new point $(x + u, y + v)$. Observe that we use different approximations depending on the choice of function $f$.
-
-
-We use a typical linear approximate of $\nabla_{x} \Lag(x,y)$ as follows:
-\begin{flalign}
-\tilde{\Delta}_{(x,y)}^{\nabla_{x} \Lag} (d_{x}, d_{y}) = \nabla_{x,x} L(x,y) d_{x} + \nabla a(x) d_{y}
-\end{flalign}
-The following function $\tilde{\Delta}_{(x,y)}^{\psi} ( u )$ is an approximation of the function $\psi(x)$ at the point $(x,y)$ and predicts how much the function $\psi$ changes as we change the current from $x$ to $x + u$.
-\begin{flalign}
-\tilde{\Delta}_{(x,y)}^{\psi} ( u ) = \frac{1}{2} u^T M(x, y) u + \nabla \psi(x)^T u
-\end{flalign}
-
-With:
-\begin{flalign}
-M (x,y) = \nabla^2 \Lag (x, y) + \sum_i{ \frac{y_i}{a(x)} \nabla a(x)^T \nabla a(x) }
-\end{flalign}  
-Note that if we set $y_i = \frac{\mu}{s_i}$ then $M(x,y) = \nabla^2 \psi(x)$ and $\tilde{\Delta}_{(x,y)}^{\psi}$ becomes the second order taylor approximation of $\psi$ at the point $x$. Thus we can think of $\tilde{\Delta}_{(x,y)}^{\psi} ( u )$ as a primal-dual approximation of the function $\psi$. 
-
-We can also build a model of the $\MeritComp(x,y) $ as follows:
-\begin{flalign}
-\tilde{\Delta}^{\MeritComp}_{(x,y)}( d_{x}, d_{y} ) = \frac{\| S y + Y d_{s} + S d_{y} - \mu e \|_{\infty}^3 - \| \ResComp(x, y)  \|_{\infty}^3}{\mu^2}
-\end{flalign}
-With $S$ a diagonal matrix containing entries of $a(x)$ and $d_{s} = \nabla a(x) d_{x}$. This model $\tilde{\Delta}^{\ResComp}_{(x,y)}$ corresponds to the typical primal-dual linear model of $\ResComp$ i.e. $C(x + d_{x}, y + d_{y}) \approx S y + Y d_{s} + S d_{y} - \mu e$.
-
-With $S$ and $Y$ contain the diagonal elements of $a(x)$ and $y$ respectively.
-
-This allows us to approximate the change in the function $\phi$ at the point $(x,y)$ as follows:
-\begin{flalign}
-\tilde{\Delta}^{\phi}_{(x,y)}(d_{x}, d_{y}) = \tilde{\Delta}^{\psi}_{(x,y)}( d_{x} ) +   \tilde{\Delta}^{\MeritComp}_{(x,y)}( d_{x}, d_{y} )
-\end{flalign}
-
-We say an iterate $(x, y)$ satisfies approximate complementary if $(x,y) \in \Q$ where $\Q$ is defined as follows:
-\begin{flalign}\label{approximate-complementary}
-\Q = \left\{ (x, y) \in \R^{\NumVar} \times \R^{\NumCon} : a(x) > 0, y > 0, \| \ResComp(x, y) \|_{\infty} \le \frac{\mu}{2} \right\}
- \end{flalign}
-We say the point $(x, y)$ is a $\mu$-scaled KKT point if $(x,y) \in \T$ where: 
-\begin{flalign}\label{first-order-necessary}
-\T = \left\{ (x, y) \in \Q :  \| \nabla \Lag (x, y) \| \le \mu ( \| y \|_1 + 1)  \right\}
- \end{flalign}
- 
-In which case the algorithm terminates.
- 
-\section{Algorithm}\label{sec:alg}
-
-Let $S$, $Y$ denote the diagonal matrices with entries of $s$ and $y$ respectively. We can linearize \eqref{KKT-barrier} at the iterate $(x, y, s)$ as follows:
-\begin{flalign}
-\begin{bmatrix}
-\nabla^2 \Lag (\hat{x}, \hat{y}) + D_{x} &  -\nabla a(\hat{x})^T & 0 \\
-\nabla a(\hat{x}) & 0 & -I \\
-0 & \hat{S} & \hat{Y} + D_{s}
-\end{bmatrix} 
-\begin{bmatrix}
-d_x \\
-d_y \\
-d_s
-\end{bmatrix}
-&= -\begin{bmatrix}
-\nabla \Lag(x, y) \\
-\ResPrimal_{\mu}(x, s)  \\
-\ResComp_{\mu}(s, y)
-\end{bmatrix}
-\end{flalign}
-
-Which is equivalent to solving:
-
-\begin{flalign}
-\begin{bmatrix}
-\nabla^2 \Lag (\hat{x}, \hat{y}) + \nabla a(x)^T D_{s} \nabla a(x) + D_{x}  &  \nabla a(\hat{x})^T  \\
-\nabla a(\hat{x}) & -(\hat{Y}  + D_{s})^{-1}  \hat{S}  \\
-\end{bmatrix} 
-\begin{bmatrix}
-d_x \\
--d_y 
-\end{bmatrix}
-&= -\begin{bmatrix}
-\nabla \Lag(x, y) \\
-\ResPrimal_{\mu}(x, s)  + (\hat{Y} + D_{s})^{-1} \ResComp_{\mu}(s, y)
-\end{bmatrix}
-\end{flalign}
-
-One can also solve this system by solving the Schur complement:
-$$
-(\nabla^2 \Lag (\hat{x}, \hat{y}) + \nabla a(\hat{x})^T (\hat{Y}  + D_{s}) \hat{S}^{-1} \nabla a(\hat{x})  + D_{x} ) d_{x}  = -\nabla \Lag(x, \mu S^{-1} e) - \nabla a(\hat{x})^T  \hat{Y} \hat{S}^{-1} \ResPrimal_{\mu}(x, s) 
-$$
-
-
-
-Observe that \eqref{newton-system} may be singular or correspond to a direction that makes the log barrier objective worse. To rectify this problem we compute the direction as follows:
-\begin{subequations}\label{compute-directions}
-\begin{flalign}
-& d_x = \arg \min_{\| u \|_{2} \le r}{ \tilde{\Delta}^{\psi}_{(x,y)} (u) } \label{compute-directions-dx} \\
-& d_s = \nabla a(x) d_{x} \\
-& d_y =  -S^{-1} \left( Y d_{s} + \ResComp (x, y) \right) \label{compute-dy}
-\end{flalign}
-\end{subequations}
-
-******CAREFUL WITH SIGNS i.e. should be $d_{s} = - \nabla a(x) d_{x}$,  $d_{y} = -S^{-1} \left( Y d_{s} + \ResComp (x, y) \right)$ ***************
-
-It is well-known from trust region literature that there exists some $\delta \in [0, \infty)$ such that:
-\begin{flalign}\label{trust-region-linear-system}
-(M(x,y) + \delta I) d_x = -\nabla \psi(x)
-\end{flalign}
-Furthermore, by re-arranging this equation we can deduce that $(d_x, d_y, d_s)$ satisfies a perturbed version of \eqref{newton-system}:
-\begin{flalign}\label{perturbed-newton-system}
-\begin{bmatrix}
-\nabla^2 \Lag (x, y) + \delta I & -\nabla a(x)^T & 0  \\
--\nabla a(x) & 0 & I \\
-0 & S & Y
-\end{bmatrix} 
-\begin{bmatrix}
-d_x \\
-d_y \\
-d_s
-\end{bmatrix}
-&=  -\begin{bmatrix}
-\nabla \Lag(x, y) \\
-0 \\
-\ResComp(x, y)
-\end{bmatrix}
-\end{flalign}
-
-\begin{algorithm}[H]
-\caption{Primal-dual trust region step}\label{AlgTrust}
-\begin{algorithmic}
-\Function{\AlgTrust}{$x, y, r$}
-\begin{subequations}\label{compute-directions}
-**** $\in$ ****
-\begin{flalign}
-& d_x \in \arg \min_{\| u \| \le r}{ \tilde{\Delta}^{\psi}_{(x, y)} ( u ) } \label{compute-directions-dx} \\
-& d_s = \nabla a(x) d_{x} \\
-& S = \Diag(a(x)) \\
-& d_y =  - S^{-1} \left( Y d_{s} + \ResComp (x, y) \right)
-\end{flalign}
-\end{subequations}
-\State $(x^{+}, y^{+}) \gets (x + d_{x}, y + d_{y})$
-\State $\Return (x^{+}, y^{+}, d_{x}, d_{y})$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-Our complete algorithm is summarized as follows:
-
-\begin{algorithm}[H]
-\begin{algorithmic}\label{AlgMain}
-\Function{\AlgMain}{$x^1, y^1$}
-\For{$k = 1, ... , \infty$}
-\State $r \gets R (y^k)$
-\Repeat
-\State $(x^{+}, y^{+}, d_{x}, d_{y}) \gets \callAlgTrust{x^k, y^k, r}$
-\If{$(x^{+}, y^{+}) \in \Q$}
-\If{$(x^{+}, y^{+}) \in \T$}
-\State \Return{$(x^{+}, y^{+})$}
-\EndIf
-\EndIf
-\State $r \gets r / 2$
-\Until{$\phi(x^{+}) > \phi(x^k) + \frac{1}{2} \tilde{\Delta}_{(x^k,y^k)}^{\phi}  ( d_{x}, d_{y} )$}
-\State $x^{k} \gets x^{+}$
-\State $y^k \gets y^{+}$
-\EndFor
-\EndFunction
-\end{algorithmic}
-\caption{Primal-dual non-convex interior point algorithm}
-\end{algorithm}
-
-
-\section{Delta computation}
-
-\begin{algorithm}[H]
-\begin{algorithmic}
-\State $\gamma_{lb} = 0$, $\gamma_{ub} = \delta_{\max} = \| H \|^2_{F}$, $\delta_{k-1}$ \Comment{lower and upper bounds on minimum eigenvalue}
-\State Try $\delta = 0$, if succeeds, trial solve with this delta. If step size is small skip to trust region step.
-\State $\delta = \delta_{k-1}$
- \If{$\delta = 0$}
-\State $\delta = \delta_{\min}$
-\EndIf
-\For{$i = 1, ..., \infty$}
-\State Break if inertia correct and update $\gamma_{lb}$ and $\gamma_{ub}$.
-\State $\delta = \delta 100$
-\EndFor
-\State \text{Trust region}
-\State $R = \| d_{x}^{k-1} \|_{2}$
-\For{$i = 1, ..., \infty$}
-\State Compute trust region with $R$
-\State If trust region is too accurate increase radius size
-\State If step unsuccessful decrease radius size
-\State Prevent oscillation
-\EndFor
-\end{algorithmic}
-\caption{Delta}
-\end{algorithm}
 
 \end{document}

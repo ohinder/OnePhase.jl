@@ -140,7 +140,7 @@ type Class_parameters
         this.predict_reduction_factor = 0.1 #1e-1
         this.predict_reduction_factor_MAX = 0.3
         this.predict_reduction_eigenvector_threshold = 1e-1
-        this.fraction_to_boundary = 0.01
+        this.fraction_to_boundary = 0.05
         this.fraction_to_boundary_predict = 0.1
         this.ls_backtracking_factor = 0.5
         this.ls_num_backtracks = 60;
@@ -166,8 +166,8 @@ type Class_parameters
         this.saddle_err_tol = Inf
         this.ItRefine_Num = 2
         this.ItRefine_BigFloat = false
-        this.use_prox = true
-        this.proximal_style = :none
+        this.use_prox = true #true
+        this.proximal_style = :fixed
 
         # Don't change these parameters except for experimentation
         this.stable_reduct_factors = Reduct_stable()

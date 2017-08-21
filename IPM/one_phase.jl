@@ -7,6 +7,10 @@ function primal_update_of_dual!(iter, pars)
     end
 end
 
+function mu_func(iter)
+    return norm(get_primal_res(iter),Inf) #/(1 + sqrt(get_mu(iter))) # norm(get_grad(iter),Inf)
+end
+
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
   t = 0;
   progress = Array{alg_history,1}();
@@ -14,7 +18,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
   #try
       if pars.use_prox
-        convert_to_prox!(iter, pars);
+        convert_to_prox!(iter, pars, mu_func(iter));
       end
       update!(iter, timer, pars)
 
@@ -135,12 +139,23 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                    for i = 1:100
                      if be_aggressive
                        ls_mode = pars.ls_mode_agg;
-                     elseif get_delta(iter) == 0.0
-                       ls_mode = pars.ls_mode_stable_delta_zero
-                       #pars.ls_mode_stable_correction;
-                       #;
+                       if pars.use_prox
+                         update_prox!(iter, pars, 0.0)
+                         update!(iter, timer, pars)
+                       end
                      else
-                       ls_mode = pars.ls_mode_stable_correction;
+                       if pars.use_prox
+                         update_prox!(iter, pars, mu_func(iter))
+                         update!(iter, timer, pars)
+                       end
+
+                       if get_delta(iter) == 0.0
+                         ls_mode = pars.ls_mode_stable_delta_zero
+                         #pars.ls_mode_stable_correction;
+                         #;
+                       else
+                         ls_mode = pars.ls_mode_stable_correction;
+                       end
                      end
 
                      status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
@@ -187,10 +202,10 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  iter = new_iter
                  if step_type == "agg"
                    dir_size_agg = norm(kkt_solver.dir.x, 2)
-                   if pars.use_prox
-                     update_prox!(iter, pars)
-                     update!(iter, timer, pars)
-                   end
+                    if pars.use_prox
+                       update_prox!(iter, pars, mu_func(iter))
+                       update!(iter, timer, pars)
+                    end
                  end
                end
 

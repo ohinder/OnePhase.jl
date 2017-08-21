@@ -51,6 +51,9 @@ results["IPOPT"] = convert_JuMP(load("results/ipopt_test3/summary.jld", "summary
 
 #results["new approach 4"] = load("results/new_approach_latest3/summary.jld", "summary")
 results["big_run"] = load("results/big_run/summary.jld", "summary")
+#results["regularizer"] = load("results/regularizer/summary.jld", "summary")
+#results["no_regularizer"] = load("results/no_regularizer/summary.jld", "summary")
+
 
 function restrict_problems(results, problem_list)
   new_results = Dict{String,Dict{String,problem_summary}}()
@@ -67,7 +70,7 @@ end
 
 function lrg_problems(problem)
     regular = problem["derivative_order"] >= 2 && problem["regular"] == true
-    correct_size = problem["variables"]["number"] + problem["constraints"]["number"] >= 500 #&& problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
+    correct_size = problem["variables"]["number"] + problem["constraints"]["number"] >= 100 #&& problem["variables"]["number"] + problem["constraints"]["number"] <= 1600
     if correct_size && regular
         return true
     else
@@ -92,7 +95,7 @@ results = restrict_problems(results, problem_list)
 #results["stable_first/true"] = load("results/stable_first/true/summary.jld", "summary")
 
 if true
-error_free_results = remove_errors(results, [:NaN_ERR]) #, :MAX_TIME])#, :ERR])
+error_free_results = remove_errors(results, [:NaN_ERR, :MAX_TIME])#, :ERR])
 overlapping_results = overlap(error_free_results)
 elseif false
 overlapping_results = overlap(results)
