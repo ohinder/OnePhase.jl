@@ -55,7 +55,7 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
         #
         kkt_reduction = (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
         fval_reduction = p.fval < ar[i].fval - (p.scaled_kkt_err)^2
-        fval_no_increase = p.fval < ar[i].fval + p.scaled_kkt_err
+        fval_no_increase = p.fval < ar[i].fval + sqrt(p.scaled_kkt_err) #+ p.scaled_kkt_err^2
         net_reduction = p.scaled_kkt_err + p.fval < ar[i].fval + ar[i].scaled_kkt_err - (p.scaled_kkt_err)^2
 
         if pars.filter_type == :default
@@ -63,7 +63,7 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
         elseif pars.filter_type == :test1
             accept = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
         elseif pars.filter_type == :test2
-            accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase) || fval_reduction)
+            accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase)) # || fval_reduction)
         elseif pars.filter_type == :test3
             accept = !(p.mu < ar[i].mu || net_reduction)
         else

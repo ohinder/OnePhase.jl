@@ -1,0 +1,34 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{The algorithm}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Derivation of direction computation}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Updating the iterates}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Termination criterion}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Algorithm outline}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{Stabilization steps}{section.2}% 7
+\BOOKMARK [3][-]{subsubsection.2.5.1}{Augmented log barrier merit function}{subsection.2.5}% 8
+\BOOKMARK [3][-]{subsubsection.2.5.2}{KKT merit function and filter}{subsection.2.5}% 9
+\BOOKMARK [3][-]{subsubsection.2.5.3}{Stabilization step algorithm}{subsection.2.5}% 10
+\BOOKMARK [2][-]{subsection.2.6}{Aggressive steps}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.7}{Random step}{section.2}% 12
+\BOOKMARK [2][-]{subsection.2.8}{Algorithm Parameters}{section.2}% 13
+\BOOKMARK [1][-]{section.3}{Theoretical justification}{}% 14
+\BOOKMARK [2][-]{subsection.3.1}{Derivation of primal infeasibility termination criterion}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.2}{Global convergence proofs for a naive algorithm}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.3}{Global convergence proofs for Algorithm 1}{section.3}% 17
+\BOOKMARK [1][-]{section.4}{Implementation details}{}% 18
+\BOOKMARK [2][-]{subsection.4.1}{Initialization}{section.4}% 19
+\BOOKMARK [2][-]{subsection.4.2}{Linear algebra}{section.4}% 20
+\BOOKMARK [2][-]{subsection.4.3}{Iterative refinement}{section.4}% 21
+\BOOKMARK [1][-]{section.5}{To do}{}% 22
+\BOOKMARK [1][-]{section.6}{Empirical results}{}% 23
+\BOOKMARK [2][-]{subsection.6.1}{Comparison of different algorithm options}{section.6}% 24
+\BOOKMARK [2][-]{subsection.6.2}{Comparison with IPOPT}{section.6}% 25
+\BOOKMARK [2][-]{subsection.6.3}{Comparison on infeasible problems}{section.6}% 26
+\BOOKMARK [1][-]{section.7}{Conclusions}{}% 27
+\BOOKMARK [1][-]{appendix.A}{Matrix factorization strategy}{}% 28
+\BOOKMARK [1][-]{appendix.B}{The \(non-existence\) of a central path in non-convex optimization}{}% 29
+\BOOKMARK [1][-]{appendix.C}{Old}{}% 30
+\BOOKMARK [2][-]{subsection.C.1}{Intuition: penalty method versus infeasible start method}{appendix.C}% 31
+\BOOKMARK [2][-]{subsection.C.2}{Discussion of Watcher and Biegler's example}{appendix.C}% 32
+\BOOKMARK [2][-]{subsection.C.3}{Relevant literature}{appendix.C}% 33
+\BOOKMARK [2][-]{subsection.C.4}{Old convergence proofs}{appendix.C}% 34

@@ -15,7 +15,7 @@ abstract abstract_reduct_factors;
 type Class_parameters
     output_level::Int64
     debug_mode::Int64
-    what_to_do_with_nans::Symbol
+    throw_error_nans::Bool
 
     # init
     start_satisfying_bounds::Bool
@@ -36,6 +36,7 @@ type Class_parameters
     predict_reduction_eigenvector_threshold::Float64
     fraction_to_boundary_predict::Float64
     fraction_to_boundary::Float64
+    fraction_to_boundary_predict_exp::Float64
     ls_backtracking_factor::Float64
     ls_num_backtracks::Int64
     ls_mode_agg::Symbol
@@ -63,15 +64,21 @@ type Class_parameters
     ls_mode_stable_trust::Symbol
     ls_mode_stable_delta_zero::Symbol
     ls_mode_stable_correction::Symbol
+    LS_non_negative_predicted_gain::Bool
     filter_type::Symbol
     use_delta_s::Bool
     adaptive_mu::Symbol
     pause_primal::Bool
     eigen_search::Bool
     trust_region::Bool
+    kkt_include_comp::Bool
+    primal_bounds_dual_feas::Bool
+
     proximal_style::Symbol
     use_prox::Bool
-    kkt_include_comp::Bool
+    ##
+    x_norm_penalty::Float64
+    a_norm_penalty::Float64
 
     # SADDLE PROBLEM
     ItRefine_BigFloat::Bool
@@ -109,51 +116,56 @@ type Class_parameters
         this.inertia_test = false # true
         this.max_it_corrections = 3 ######
         this.comp_feas_agg_inf = Inf
-        this.comp_feas = 1/100.0
-        this.comp_feas_agg = 1/70.0 #1/70.0 #1/50.0
+        this.comp_feas = 1/100.0 #1/100.0
+        this.comp_feas_agg = 1/50.0 #1/50.0 #1/70.0 #1/50.0
         #this.comp_feas = 1/20.0
         #this.comp_feas_agg = 1/10.0 #1/70.0 #1/70.0 #1/50.0
-        this.min_step_size_stable = 1e-3
+        this.min_step_size_stable = 0.5^5.0
         this.min_step_size_agg_ratio = 1e-2
+        this.LS_non_negative_predicted_gain = true
         this.use_delta_s = false
         this.adaptive_mu = :none
         #this.adaptive_mu = :test7 # DEFAULT
         #this.adaptive_mu = :test11
+        #this.adaptive_mu = :paper
+        #this.adaptive_mu = :paper2
+        this.primal_bounds_dual_feas = false
+
         this.pause_primal = false
         this.stb_before_agg = false
         this.eigen_search = false
         this.trust_region = false
 
         this.output_level = 3
-        this.debug_mode = 1
-        this.what_to_do_with_nans = :error
+        this.debug_mode = 0
+        this.throw_error_nans = false
 
         this.tol = 1e-6
         this.tol_dual_abs = 1e-6
         this.tol_infeas = 1e-12 # ????
         this.max_it = 3000;
         #this.MAX_TIME = 30.0
-        this.MAX_TIME = 10.0 * 60 # 10 minutes max time
+        this.MAX_TIME = 60.0 * 60 # 10 minutes max time
 
         # LINE SEARCH
-        this.kkt_reduction_factor = 0.5
+        this.kkt_reduction_factor = 0.2
         this.predict_reduction_factor = 0.1 #1e-1
         this.predict_reduction_factor_MAX = 0.3
         this.predict_reduction_eigenvector_threshold = 1e-1
-        this.fraction_to_boundary = 0.05
-        this.fraction_to_boundary_predict = 0.1
+        this.fraction_to_boundary = 0.1
+        this.fraction_to_boundary_predict = 0.2
+        this.fraction_to_boundary_predict_exp = 1.5
         this.ls_backtracking_factor = 0.5
         this.ls_num_backtracks = 60;
-        this.ls_mode_stable_trust = :accept_filter
-        #this.ls_mode_stable_trust = :accept_stable #:accept_aggressive #:accept_filter #:accept_aggressive #:accept_filter
-        #this.ls_mode_stable_delta_zero = :accept_filter #:accept_filter
-        this.ls_mode_stable_delta_zero = :accept_filter
-        this.ls_mode_stable_correction = :accept_filter
+        ls_mode = :accept_filter
+        this.ls_mode_stable_trust = ls_mode
+        this.ls_mode_stable_delta_zero = ls_mode
+        this.ls_mode_stable_correction = ls_mode
         this.ls_mode_agg = :accept_aggressive
         this.agg_protect_factor = Inf
         #this.protect_factor_boundary_threshold = ...
         #this.filter_type = :default
-        this.filter_type = :default
+        this.filter_type = :test2
         this.kkt_include_comp = true
 
         this.move_type = :primal_dual
@@ -164,10 +176,13 @@ type Class_parameters
         this.mu_update = :static #:dynamic #:static #:static #:static #:dynamic :dynamic_agg
 
         this.saddle_err_tol = Inf
-        this.ItRefine_Num = 2
+        this.ItRefine_Num = 3
         this.ItRefine_BigFloat = false
         this.use_prox = true #true
         this.proximal_style = :fixed
+
+        this.x_norm_penalty = 1e-8
+        this.a_norm_penalty = 1e-4
 
         # Don't change these parameters except for experimentation
         this.stable_reduct_factors = Reduct_stable()

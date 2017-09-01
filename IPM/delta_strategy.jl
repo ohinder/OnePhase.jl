@@ -42,8 +42,6 @@ function ipopt_strategy_stable!(iter::Class_iterate, stable_reduct_factors::Clas
 
             if status == :success
               success = true
-            else
-              println("increase delta")
             end
           end
         end

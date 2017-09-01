@@ -18,27 +18,34 @@ but desired accuracy could not be achieved.
 18: Restoration phase cannot further improve feasibility
 =#
 
-function jump_status_conversion(status::Symbol)
+function jump_status_conversion(info::problem_summary)
+  status = info.status
   if status == :Optimal
     return :optimal
   elseif status == :Infeasible
     return :primal_infeasible
   elseif status == :Unbounded
     return :dual_infeasible
-  #elseif status ==
-  #  return :dual_infeasible
-elseif status == :UserLimit
-    return :MAX_IT
-  elseif status == -1
-    return :MAX_TIME
+  elseif status == :UserLimit
+    if info.it_count >= 3000
+      return :MAX_IT
+    else
+      return :MAX_TIME
+    end
+  elseif status == :Error
+    if info.it_count > 0
+      return :ERROR
+    else
+      return :INIT_ERROR
+    end
   else
-    return :ERROR
+    return :UNKNOWN
   end
 end
 
 function convert_JuMP(results::Dict{String,problem_summary})
     for (prb_name, info) in results
-      info.status = jump_status_conversion(info.status)
+      info.status = jump_status_conversion(info)
     end
 
     return results
@@ -90,15 +97,21 @@ function alg_success(status::Symbol)
 end
 
 
-function iteration_list(results::Dict{String, problem_summary})
+function iteration_list(results::Dict{String, problem_summary}; MAX_IT::Int64=3000)
   problem_list = collect(keys(results))
   its = zeros(length(problem_list))
 
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      if alg_success(info.status) && info.it_count < 3000
-        its[i] = info.it_count
+      @show MAX_IT
+      if alg_success(info.status) && info.it_count < MAX_IT
+        if info.it_count < 1
+          println("warning: non-positive iteration count for $problem_name")
+          its[i] = 1
+        else
+          its[i] = info.it_count
+        end
       else
         its[i] = Infty
       end
@@ -127,16 +140,65 @@ function overlap(dics::Dict{String, Dict{String,problem_summary}})
     overlap = intersect(problem_list, overlap)
   end
 
+  return restrict_problems(dics, overlap)
+
   #@show overlap
-  new_dic = Dict{String, Dict{String,problem_summary}}()
+  #=new_dic = Dict{String, Dict{String,problem_summary}}()
   for (method_name, data) in dics
     new_dic[method_name] = Dict{String,problem_summary}()
     for problem_name in overlap
       new_dic[method_name][problem_name] = data[problem_name]
     end
+  end=#
+end
+
+function restrict_to_set(dics::Dict{String, Dict{String,problem_summary}}, set)
+    p_list = []
+    for (method_name,data) in dics
+      p_list = union(get_list_of(data, set), p_list)
+    end
+    return restrict_problems(dics, p_list)
+end
+
+
+function get_list_of(results::Dict{String, problem_summary}, set)
+  new_problem_list = []
+  for (problem_name, info) in results
+      if info.status in set
+        push!(new_problem_list,problem_name)
+      end
   end
 
-  return new_dic
+  return new_problem_list
+end
+
+
+function restrict_problems(results, problem_list)
+  new_results = Dict{String,Dict{String,problem_summary}}()
+  for (method_name, sum_data) in results
+      new_results[method_name] = Dict()
+      for (problem_name, info) in sum_data
+        if problem_name in problem_list
+          new_results[method_name][problem_name] = info
+        end
+      end
+  end
+  return new_results
+end
+
+function tot(results::Dict{String, problem_summary}, set)
+  problem_list = collect(keys(results))
+  tot = 0
+
+  for i = 1:length(problem_list)
+      problem_name = problem_list[i]
+      info = results[problem_name]
+      if info.status in set
+        tot += 1
+      end
+  end
+
+  return tot
 end
 
 function tot_failures(results::Dict{String, problem_summary})
@@ -156,7 +218,84 @@ function tot_failures(results::Dict{String, problem_summary})
   return tot
 end
 
-function list_failures(results::Dict{String, Dict{String,problem_summary}})
+function failure_list(results::Dict{String, problem_summary})
+  problem_list = collect(keys(results))
+  failure_list = zeros(length(problem_list))
+
+  for i = 1:length(problem_list)
+      problem_name = problem_list[i]
+      info = results[problem_name]
+      if alg_success(info.status) && info.it_count <= 3000
+        failure_list[i] = 0
+      else
+        failure_list[i] = 1
+      end
+  end
+
+  return failure_list
+end
+
+function shared_failures(results::Dict{String, Dict{String,problem_summary}})
+  problem_list = collect(keys(first(results)[2]))
+  all_fail = ones(length(problem_list))
+  #@show length(all_fail)
+  for (method_name, data) in results
+      ls = failure_list(data)
+      #@show length(ls)
+      all_fail = all_fail .* ls
+  end
+  return sum(all_fail)
+end
+
+function failure_causes(results::Dict{String, problem_summary})
+  problem_list = collect(keys(results))
+  failure_causes = Dict()
+
+  for i = 1:length(problem_list)
+      problem_name = problem_list[i]
+      info = results[problem_name]
+      if !alg_success(info.status) #&& info.it_count <= 3000
+        if info.status in keys(failure_causes)
+          failure_causes[info.status] += 1
+        else
+          failure_causes[info.status] = 1
+        end
+      end
+  end
+
+  return failure_causes
+end
+
+function list_combined_failures(results::Dict{String, Dict{String,problem_summary}})
+  problem_list = collect(keys(first(results)[2]))
+  all_fail = ones(length(problem_list))
+  #@show length(all_fail)
+  for (method_name, data) in results
+      for (problem_name,info) in data
+        ls = failure_list(data)
+        #@show length(ls)
+        all_fail = all_fail .* ls
+      end
+  end
+  println("shared failures = ", sum(all_fail))
+end
+
+#=
+function outcomes_table(results::Dict{String, Dict{String,problem_summary}})
+    outcomes = Dict()
+    for problem_name in problem_list
+        key = ()
+        for (method_name, data) in results
+            key = info.status
+            #outcomes[(info.status,] += 1
+        end
+    end
+end
+=#
+
+
+
+function print_failure_problems(results::Dict{String, Dict{String,problem_summary}})
   problem_list = collect(keys(first(results)[2]))
 
   println("FAILURES")
@@ -237,11 +376,11 @@ function show_results(results::Dict{String, Dict{String,problem_summary}})
 end
 
 
-function compute_its_etc(overlapping_results)
+function compute_its_etc(overlapping_results; MAX_IT::Int64=3000)
     its = Dict{String,Array{Int64,1}}()
     println("quartiles")
     for (method_name, sum_data) in overlapping_results
-        its[method_name] = iteration_list(sum_data);
+        its[method_name] = iteration_list(sum_data, MAX_IT=MAX_IT);
         d = its[method_name]
         println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)))
     end

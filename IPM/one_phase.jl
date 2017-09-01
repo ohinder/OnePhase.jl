@@ -8,7 +8,7 @@ function primal_update_of_dual!(iter, pars)
 end
 
 function mu_func(iter)
-    return norm(get_primal_res(iter),Inf) #/(1 + sqrt(get_mu(iter))) # norm(get_grad(iter),Inf)
+    return get_mu(iter) #norm(get_primal_res(iter),Inf) #/(1 + sqrt(get_mu(iter))) # norm(get_grad(iter),Inf)
 end
 
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
@@ -17,6 +17,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
   filter = Array{Class_filter,1}();
 
   #try
+      #iter.point.x += rand(length(iter.point.x)) / 10.0
       if pars.use_prox
         convert_to_prox!(iter, pars, mu_func(iter));
       end
@@ -77,6 +78,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  mu_est = mean(iter.point.y .* iter.point.s)
                elseif pars.adaptive_mu == :test12
                  mu_est = mean(iter.point.y .* iter.point.s) + feas_obj
+               elseif pars.adaptive_mu == :paper
+                 mu_est_unguarded = mean(iter.point.y .* iter.point.s) + feas_obj
+                 Θ = norm(get_primal_res(iter),Inf)
+                 mu_est = min(Θ * 1e5, max(mu_est_unguarded, Θ * 1e-5))
+               elseif pars.adaptive_mu == :paper2
+                 mu_est_unguarded = 0.9 * mean(iter.point.y .* iter.point.s) + feas_obj * 0.2
+                 Θ = norm(get_primal_res(iter),Inf)
+                 mu_est = min(Θ * 1e5, max(mu_est_unguarded, Θ * 1e-5))
                end
 
                is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
@@ -89,7 +98,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                mu_ub = (mean(iter.point.y) + 1.0) * mean(-get_primal_res(iter))
                #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
                dual_avg = scaled_dual_feas(iter, pars)
-               dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
+
+               if pars.primal_bounds_dual_feas
+                 dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
+               else
+                 dual_progress = dual_avg < get_mu(iter)
+               end
                # * 10.0
                #dual_progress = dual_avg < mu_ub * 10.0
                delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
@@ -116,7 +130,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      actual_min_step_size = q
                      #@show q
                      iter.point.mu = mu_est
-                     centre_dual!(iter.point, pars.comp_feas_agg) # ??????
+                     centre_dual!(iter.point, (pars.comp_feas_agg + pars.comp_feas)/2.0) # ??????
                  else
                       reduct_factors = pars.stable_reduct_factors #Reduct_stable()
                       step_type = "stb"
@@ -168,11 +182,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        #@assert(norm(iter.point.x - new_iter.point.x) > 0)
                        break
                      elseif i < 100
-                       set_delta(iter, max(get_delta(iter) * 8.0, 1e-8))
-                       factor!(kkt_solver, get_delta(iter), timer)
+                       #8.0
+                       #println("increase delta")
+                       set_delta(iter, max(get_delta(iter) * 20.0, 1e-8))
+                       inertia = factor!(kkt_solver, get_delta(iter), timer)
                      else
                        pause_advanced_timer(timer, "STEP/first")
                        println("Terminated due to max delta")
+                       println("inertia=$(inertia)")
                        println("delta=$(get_delta(iter)), step_type=$step_type, min_step_size=$actual_min_step_size, status=$status")
                        println("dx = $(norm(kkt_solver.dir.x,2)), dy = $(norm(kkt_solver.dir.y,2)), ds = $(norm(kkt_solver.dir.s,2))")
                        @show reduct_factors, ls_mode

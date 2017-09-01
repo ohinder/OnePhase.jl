@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2015)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: one-phase.aux
+The style file: apalike.bst
+Database file #1: library-one-phase-2.bib.bib
+Warning--I didn't find a database entry for "more"
+You've used 30 entries,
+            1935 wiz_defined-function locations,
+            651 strings with 8534 characters,
+and the built_in function-call counts, 12129 in all, are:
+= -- 1252
+> -- 376
+< -- 27
++ -- 135
+- -- 118
+* -- 1017
+:= -- 2036
+add.period$ -- 94
+call.type$ -- 30
+change.case$ -- 209
+chr.to.int$ -- 29
+cite$ -- 30
+duplicate$ -- 473
+empty$ -- 910
+format.name$ -- 174
+if$ -- 2414
+int.to.chr$ -- 2
+int.to.str$ -- 0
+missing$ -- 30
+newline$ -- 153
+num.names$ -- 90
+pop$ -- 157
+preamble$ -- 1
+purify$ -- 209
+quote$ -- 0
+skip$ -- 369
+stack$ -- 0
+substring$ -- 1028
+swap$ -- 70
+text.length$ -- 5
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 178
+warning$ -- 0
+while$ -- 119
+width$ -- 0
+write$ -- 394
+(There was 1 warning)

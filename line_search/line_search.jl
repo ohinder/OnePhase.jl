@@ -16,6 +16,13 @@ function scale_direction(dir::Class_point, step_size::Float64)
     return new_dir
 end
 
+
+function simple_max_step(val::Array{Float64,1}, dir::Array{Float64,1}, lb::Array{Float64,1})
+    ratio = maximum( [1.0; -dir ./ (val - lb) ] ) #; -q * dir.y ./ iter.point.y] );
+    return 1.0 / ratio
+end
+
+#=
 function max_step_primal_dual(iter::Class_iterate, dir::Class_point, threshold::Float64)
     return simple_max_step([iter.point.s; iter.point.y], [dir.s; dir.y], threshold)
 end
@@ -28,7 +35,7 @@ function simple_max_step(val::Array{Float64,1}, dir::Array{Float64,1}, threshold
     q = 1.0 / (1.0 - threshold)
     ratio = maximum( [1.0; -q * dir ./ val ] ) #; -q * dir.y ./ iter.point.y] );
     return 1.0 / ratio
-end
+end=#
 
 function Blank_ls_info()
     this = Class_stable_ls(0.0,0.0, 0, 0.0, 0.0)
@@ -42,10 +49,18 @@ end=#
 function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
     start_advanced_timer(timer, "SIMPLE_LS")
 
+    # compute fraction to boundary
+    ex = pars.fraction_to_boundary_predict_exp
+    s = iter.point.s
+    ds = orginal_dir.s
+    x_thres = max(2.0 * norm(orginal_dir.x,Inf)^2, norm(orginal_dir.x,Inf)^ex)
+    lb_s = min(pars.fraction_to_boundary_predict * s, x_thres)
+
     if pars.max_step_primal_dual == true
-      step_size_P = max_step_primal_dual(iter, orginal_dir, pars.fraction_to_boundary)
+      step_size_P = max_step_primal_dual(iter, orginal_dir, frac_to_bound)
     elseif pars.max_step_primal_dual == false
-      step_size_P = max_step_primal(iter, orginal_dir, pars.fraction_to_boundary)
+      step_size_P = simple_max_step(s, ds, lb_s)
+      #step_size_P = max_step_primal(iter, orginal_dir, frac_to_bound)
     else
       error("SIMPLE_LS")
     end
@@ -64,10 +79,14 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
       error("acceptance function not defined")
     end
 
+    accept_obj.num_steps = 0
+
     if accept_obj.predict_red >= 0.0
-        my_warn("predicted reduction non-negative")
-        #accept_obj.num_steps = 0
-        #return :predict_red_non_negative, iter, accept_obj
+        if pars.LS_non_negative_predicted_gain
+          return :predict_red_non_negative, iter, accept_obj
+        else
+          my_warn("predicted reduction non-negative")
+        end
     end
 
     if pars.output_level >= 5
@@ -92,12 +111,15 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
 
 
         if move_status == :success
+            #println("accept?")
             start_advanced_timer(timer,"SIMPLE_LS/accept?")
-            update_grad!(candidate, timer, pars)
-            update_obj!(candidate, timer, pars)
-            update_J!(candidate, timer, pars)
+            no_nan = update_grad!(candidate, timer, pars) && update_obj!(candidate, timer, pars) && update_J!(candidate, timer, pars)
 
-            status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
+            if no_nan
+              status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
+            else
+              status = :NaN_ERR
+            end
             pause_advanced_timer(timer,"SIMPLE_LS/accept?")
         else
           status = move_status
@@ -121,7 +143,8 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
           comp_diff = norm(comp(candidate),Inf) - norm(comp(iter), Inf)
           phi_diff = eval_phi(candidate) - eval_phi(iter)
 
-          dx = norm(candidate.point.x - iter.point.x,2); dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
+          dx = step_size_P * norm(orginal_dir.x,2); 
+          dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
           kkt_diff = norm(eval_grad_lag(candidate),Inf) / norm(eval_grad_lag(iter),Inf)
           println(rd(step_size_P), rd(step_size_D), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
         end

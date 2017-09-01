@@ -3,6 +3,8 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
 end
 
 function projection_onto_bounds1( nlp::Class_CUTEst, pars::Class_parameters, x::Array{Float64,1} )
+    println("projecting onto bounds ...")
+
     ifree = _i_not_fixed(nlp.nlp)
     uvar = deepcopy(nlp.nlp.meta.uvar[ifree])
     lvar =  deepcopy(nlp.nlp.meta.lvar[ifree])
@@ -38,6 +40,7 @@ function projection_onto_bounds1( nlp::Class_CUTEst, pars::Class_parameters, x::
         b_U[i] = Inf
       end
 
+      x[i] = x[i] #+ rand() * 100.0
 
       if b_L[i] < b_U[i]
         x[i] = min(max(b_L[i], x[i]), b_U[i])
@@ -128,51 +131,59 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     #@assert(sum(g) > 0.0)
 
-    start_advanced_timer(timer, "INIT/estimate_y_tilde")
-    y = estimate_y_tilde( J, g, pars )
-    pause_advanced_timer(timer, "INIT/estimate_y_tilde")
-
-    start_advanced_timer(timer, "INIT/mehortra_guarding")
-    threshold = 1e-8 #1e-4 * (max(-minimum([a; 0.0]), 0) + norm(g, Inf))
-    #@show threshold
-
-    ais = cons_indicies(nlp)
-    bis = bound_indicies(nlp)
-    @show ais, bis
-
-    #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
-
-    Delta_s = norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
-    if pars.start_satisfying_bounds
-      s[ais] = s[ais] + Delta_s
+    if true
+      println("estimating intial y")
+      start_advanced_timer(timer, "INIT/estimate_y_tilde")
+      y = estimate_y_tilde( J, g, pars )
+      pause_advanced_timer(timer, "INIT/estimate_y_tilde")
     else
-      s = s + Delta_s
-    end
-    if isbad(s)
-      throw(Eval_NaN_error(getbad(s),x,"s"))
+      y = ones(ncon(nlp))
     end
 
-    if isbad(y)
-      throw(Eval_NaN_error(getbad(y),x,"y"))
-    end
+    if true
+      start_advanced_timer(timer, "INIT/mehortra_guarding")
+      threshold = 1e-8 #1e-4 * (max(-minimum([a; 0.0]), 0) + norm(g, Inf))
+      #@show threshold
 
-    s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
-    if isbad(s_new)
-      throw(Eval_NaN_error(getbad(s_new),x,"s"))
-    end
+      ais = cons_indicies(nlp)
+      bis = bound_indicies(nlp)
+      @show ais, bis
 
-    #if (norm(y,Inf) < 1e-1 || norm(y,Inf) > 1e3)
-    #  y = ones(m) * 100.0
-    #end
+      #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
+
+      Delta_s = norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
+      if pars.start_satisfying_bounds
+        s[ais] = s[ais] + Delta_s
+      else
+        s = s + Delta_s
+      end
+      if isbad(s)
+        throw(Eval_NaN_error(getbad(s),x,"s"))
+      end
+
+      if isbad(y)
+        throw(Eval_NaN_error(getbad(y),x,"y"))
+      end
+
+      s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
+      if isbad(s_new)
+        throw(Eval_NaN_error(getbad(s_new),x,"s"))
+      end
+
+      #if (norm(y,Inf) < 1e-1 || norm(y,Inf) > 1e3)
+      #  y = ones(m) * 100.0
+      #end
+      if pars.start_satisfying_bounds
+        s[ais] = s_new[ais]
+      else
+        s = s_new
+      end
+    end
     y = min(ones(m) * 1e3, max(y, 0.1 * ones(m)))
 
     #@show y, J
 
-    if pars.start_satisfying_bounds
-      s[ais] = s_new[ais]
-    else
-      s = s_new
-    end
+
 
     if isbad(s)
       throw(Eval_NaN_error(getbad(s),x,"s"))
@@ -218,14 +229,22 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     return init_it
 end
 
-function estimate_y_tilde( J, g, pars )
+function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1}, pars::Class_parameters )
     try
-      H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
+      println("estimate y_tilde ...")
+      @show densest_col(J)
+      @show densest_row(J)
+      #@time H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
+      n = size(J,2); m = size(J,1);
+      @time H = [speye(n) -J'; J 1e-4 * speye(m)]
       #@show H, J
-      M = cholfact( H );
-      rhs = J * g
+      @time M = lufact( H );
+      rhs = [-g; zeros(m)];
       #@show rhs
-      return M \ rhs
+      sol = M \ rhs
+      y = sol[(n+1):end]
+      println("linear system solved")
+      return y
     catch (e)
       println("error in estimate_y_tilde")
       @show e

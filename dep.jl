@@ -19,7 +19,8 @@ rsync -a --stats ohinder@sherlock.stanford.edu:one-phase-2.0/results/ /Users/Oli
 
 #rsync -a --stats ohinder@sherlock.stanford.edu:one-phase-2.0 /Users/Oliver/Google\ Drive/Stanford/Research/OLD
 
-sbatch run_cutest.sbatch
+sbatch ipopt.sbatch
+sbatch one_phase.sbatch
 sbatch run_netlib.sbatch
 
 squeue -u $USER

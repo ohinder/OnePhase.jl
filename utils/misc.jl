@@ -46,3 +46,21 @@ end
 function my_warn(str::String)
     println("WARNING: ", str)
 end
+
+function densest_row(mat) #::SparseMatrixCSC{Float64,Int32})
+    density = 0
+    for i = 1:size(mat,1)
+      density = max(density, nnz(mat[i,:]))
+    end
+
+    return density
+end
+
+function densest_col(mat) #::SparseMatrixCSC{Float64,Int32})
+    density = 0
+    for i = 1:size(mat,2)
+      density = max(density, nnz(mat[:,i]))
+    end
+
+    return density
+end

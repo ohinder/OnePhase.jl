@@ -1,17 +1,11 @@
 Short term:
+- *remove need for additional function evaluations on proximal term*
+- *improve efficiency of schur complement and eval_jac*
 
-- how to protect aggressive steps??
-(i) if α > 0.9 or step is close to the boundary then insist on gradient of lag_grad not increasing too much
-(ii) insist that s^{+} > s * min{(1 - η^{1 / 2}),0.95}
-
-- check for violation of complementarity from dual iterates (and maybe figure out a more numerically stable calculation!)
-
-- check triangular!!!!!
 
 - deal correctly with exceptions
 - add parameters for termination criterion
 - test unconstrained problems
-- improve efficiency of schur complement and eval_jac
 
 *- create infeasible test set*
 *- scaled termination criterion*
@@ -20,19 +14,6 @@ Short term:
 *- mu stuff *
 
 *- initialization scheme*
-*- record complementarity*
-**- use cache**
-
-
-*- when should i apply aggressive steps ??? *
-*- compare d_P and d_D *
-*- perhaps use a more aggressive criterion for accepting aggressive steps? *
-*- or look at how well complementarity is updated for each variable = decrease????*
-
-*- remain feasible to bounds and make sure we start sufficiently feasible (perhaps compute max infeasiblity)*
-*- fix fixed variables *
-
-*- homogenous variant of algorithm ??? *
 
 - *fix error with predicted reduction of complementarity*
 - **stabilization should prioritize complementarity if dual is small and comp not satisfied**

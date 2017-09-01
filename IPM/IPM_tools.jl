@@ -76,7 +76,7 @@ function terminate(iter::Class_iterate, par::Class_parameters)
         return :optimal
     elseif fark_feas1 < tol && max_vio > tol && norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible
-    elseif get_fval(iter) < -1.0/tol^2 # TMP!!!
+    elseif max( 1.0, max_vio )/ min(max(1.0,-get_fval(iter)),norm(get_x(iter),Inf)) < tol # TMP!!!
         return :dual_infeasible
     else
         return false

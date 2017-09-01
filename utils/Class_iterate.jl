@@ -192,15 +192,16 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
     if pars.move_type == :primal_dual
       new_it = copy(it, timer)
       new_it.point.x += dir.x * step_size
-      update_cons!(new_it, timer, pars)
+
+      if !update_cons!(new_it, timer, pars)
+        return it, :NaN_ERR, step_size
+      end
 
       new_a = get_cons(new_it)
 
       #nl_s = new_it.point.s + step_size * dir.s
       new_it.point.primal_scale += dir.primal_scale * step_size
       nl_s = new_a - new_it.point.primal_scale * it.primal_residual_intial
-
-
 
       if pars.s_update == :careful
         new_it.point.s = nl_s
@@ -212,7 +213,8 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
         error("pars.s_update option $(pars.s_update) not avaliable")
       end
 
-      if !all(new_it.point.s .>= it.point.s * pars.fraction_to_boundary)
+      lb_s = min(it.point.s * pars.fraction_to_boundary, norm(dir.x,Inf)^2)
+      if !all(new_it.point.s .>= lb_s)
           return it, :s_bound, step_size
       end
 
@@ -231,8 +233,7 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
         if pars.move_primal_seperate_to_dual
             if lb1 < ub1
                 theta = (1.0 - pars.fraction_to_boundary)
-                step_size_D_boundary = theta / maximum([theta; -dir.y ./ it.point.y])
-                step_size_D_max = min(step_size_D_boundary, ub1)
+                step_size_D_max = ub1
 
                 if pars.dual_ls
                   scale_D = dual_scale(new_it, pars)
@@ -252,15 +253,6 @@ function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Cla
                 end
 
                 new_it.point.y += dir.y * step_size_D
-
-                #@show dir.y
-                #@show step_size_D
-
-                #if !all(new_it.point.y .>= it.point.y * pars.fraction_to_boundary)
-                #    return it, false, step_size_D
-                #end
-
-                #update_H!(it, timer)
 
                 if !is_feasible(new_it, pars.comp_feas)
                   @show minimum(new_it.point.y), maximum(new_it.point.s)
@@ -489,11 +481,8 @@ function copy_cache!(it::Class_iterate, timer::class_advanced_timer)
 end
 
 function update!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
-    update_cons!(it, timer, pars)
-    update_obj!(it, timer, pars)
-    update_H!(it, timer, pars)
-    update_grad!(it, timer, pars)
-    update_J!(it, timer, pars)
+    success = update_cons!(it, timer, pars) && update_obj!(it, timer, pars) && update_H!(it, timer, pars) && update_grad!(it, timer, pars) && update_J!(it, timer, pars)
+    return success
 end
 
 function getbad(something::Array{Float64,1})
@@ -511,10 +500,18 @@ function update_cons!(it::Class_iterate, timer::class_advanced_timer, pars::Clas
     it.cache.cons = eval_a(it.nlp, it.point.x)
     it.cache.cons_updated = true
     if isbad(it.cache.cons)
-        println("NaN or Inf")
-        throw(Eval_NaN_error(getbad(it.cache.cons), it.point.x,"cons"))
+        println("NaN or Inf in cons")
+        if pars.throw_error_nans
+          throw(Eval_NaN_error(getbad(it.cache.cons), it.point.x,"cons"))
+        else
+          no_nan = false
+        end
+    else
+      no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_cons")
+
+    return no_nan
 end
 
 function update_obj!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
@@ -522,10 +519,18 @@ function update_obj!(it::Class_iterate, timer::class_advanced_timer, pars::Class
     it.cache.fval = eval_f(it.nlp, it.point.x)
     it.cache.fval_updated = true
     if isbad(it.cache.fval)
-        println("NaN or Inf")
-        throw(Eval_NaN_error(it.cache.fval, it.point.x, "obj"))
+        println("$(it.cache.fval) in obj")
+        if pars.throw_error_nans
+          throw(Eval_NaN_error(it.cache.fval, it.point.x, "obj"))
+        else
+          no_nan = false
+        end
+    else
+      no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_obj")
+
+    return no_nan
 end
 
 function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
@@ -535,10 +540,18 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
 
     nzH = nonzeros(it.cache.H)
     if isbad(nzH)
-        println("NaN or Inf")
-        throw(Eval_NaN_error(getbad(nzH), it.point.x, "H"))
+        println("NaN or Inf in H")
+        if pars.throw_error_nans
+          throw(Eval_NaN_error(getbad(nzH), it.point.x, "H"))
+        else
+          no_nan = false
+        end
+    else
+      no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_H")
+
+    return no_nan
 end
 
 function update_grad!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
@@ -546,20 +559,36 @@ function update_grad!(it::Class_iterate, timer::class_advanced_timer, pars::Clas
     it.cache.grad = eval_grad_f(it.nlp, it.point.x)
     it.cache.grad_updated = true
     if isbad(it.cache.grad)
-        println("NaN or Inf")
-        throw(Eval_NaN_error(getbad(it.cache.grad), it.point.x, "grad"))
+        println("NaN or Inf in grad")
+        if pars.throw_error_nans
+          throw(Eval_NaN_error(getbad(it.cache.grad), it.point.x, "grad"))
+        else
+          no_nan = false
+        end
+    else
+      no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_grad")
+
+    return no_nan
 end
 
 function update_J!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
-  start_advanced_timer(timer, "CACHE/update_J")
-  @assert(length(it.point.x) == length(it.cache.grad))
-  it.cache.J = eval_jac(it.nlp, it.point.x)
-  it.cache.J_updated = true
-  if isbad(nonzeros(it.cache.J))
-      println("NaN or Inf")
-      throw(Eval_NaN_error(getbad(it.cache.J), it.point.x, "J"))
-  end
-  pause_advanced_timer(timer, "CACHE/update_J")
+    start_advanced_timer(timer, "CACHE/update_J")
+    @assert(length(it.point.x) == length(it.cache.grad))
+    it.cache.J = eval_jac(it.nlp, it.point.x)
+    it.cache.J_updated = true
+    if isbad(nonzeros(it.cache.J))
+        println("NaN or Inf in J")
+        if pars.throw_error_nans
+          throw(Eval_NaN_error(getbad(it.cache.J), it.point.x, "J"))
+        else
+          no_nan = false
+        end
+    else
+      no_nan = true
+    end
+    pause_advanced_timer(timer, "CACHE/update_J")
+
+    return no_nan
 end
