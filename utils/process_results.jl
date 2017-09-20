@@ -104,7 +104,7 @@ function iteration_list(results::Dict{String, problem_summary}; MAX_IT::Int64=30
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      @show MAX_IT
+
       if alg_success(info.status) && info.it_count < MAX_IT
         if info.it_count < 1
           println("warning: non-positive iteration count for $problem_name")
@@ -280,6 +280,20 @@ function list_combined_failures(results::Dict{String, Dict{String,problem_summar
   println("shared failures = ", sum(all_fail))
 end
 
+function list_combined_success(results::Dict{String, Dict{String,problem_summary}})
+  problem_list = collect(keys(first(results)[2]))
+  all_succeed = ones(length(problem_list))
+  #@show length(all_fail)
+  for (method_name, data) in results
+      for (problem_name,info) in data
+        ls = 1.0 - failure_list(data)
+        #@show length(ls)
+        all_succeed = all_succeed .* ls
+      end
+  end
+  println("shared successes = ", sum(all_succeed))
+end
+
 #=
 function outcomes_table(results::Dict{String, Dict{String,problem_summary}})
     outcomes = Dict()
@@ -389,7 +403,13 @@ function compute_its_etc(overlapping_results; MAX_IT::Int64=3000)
     for (method_name, sum_data) in overlapping_results
         times[method_name] = []
         for (problem_name,info) in sum_data
-          push!(times[method_name], info.total_time);
+          if alg_success(info.status)
+              t = info.total_time
+          else
+              t = Infty
+          end
+
+          push!(times[method_name], t);
         end
         println(method_name, " ", rd(mean(times[method_name])), " ", rd(median(times[method_name])))
     end

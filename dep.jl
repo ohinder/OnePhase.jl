@@ -9,7 +9,7 @@ julia main.jl
 
 # sync to sherlock
 rsync -a --stats /Users/Oliver/Google\ Drive/Stanford/Research/one-phase-2.0 ohinder@sherlock.stanford.edu:
-#one-phase-2.0
+#one-phase-2.0 
 
 # download results
 #rsync -a --stats ohinder@sherlock.stanford.edu:one-phase-2.0/results /Users/Oliver/Google\ Drive/Stanford/Research/one-phase-2.0

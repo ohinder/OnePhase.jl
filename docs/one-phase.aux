@@ -61,161 +61,201 @@
 \citation{megiddo1989pathways}
 \citation{andersen1999homogeneous}
 \newlabel{shifted-barrier-problem}{{5}{3}{The algorithm}{equation.2.5}{}}
-\newlabel{eq:barrier-primal-sequence-nice}{{6}{3}{The algorithm}{equation.2.6}{}}
-\newlabel{eq:primal-feasibility}{{6a}{3}{The algorithm}{equation.2.6a}{}}
-\newlabel{eq:comp-slack}{{6c}{3}{The algorithm}{equation.2.6c}{}}
-\newlabel{eq:dual-feas}{{7}{3}{The algorithm}{equation.2.7}{}}
+\newlabel{def:regularizer}{{6}{3}{The algorithm}{equation.2.6}{}}
+\newlabel{eq:barrier-primal-sequence-nice}{{7}{3}{The algorithm}{equation.2.7}{}}
+\newlabel{eq:primal-feasibility}{{7a}{3}{The algorithm}{equation.2.7a}{}}
+\newlabel{eq:comp-slack}{{7b}{3}{The algorithm}{equation.2.7b}{}}
+\newlabel{eq:dual-feas}{{8}{3}{The algorithm}{equation.2.8}{}}
 \@writefile{tdo}{\contentsline {todo}{ interpretation of equality v.s. inequality constraints primal-dual methods }{3}{section*.1}}
-\pgfsyspdfmark {pgfid1}{5719326}{5533880}
-\pgfsyspdfmark {pgfid4}{38356583}{5546168}
-\pgfsyspdfmark {pgfid5}{40470119}{5322254}
+\pgfsyspdfmark {pgfid1}{5719326}{6465687}
+\pgfsyspdfmark {pgfid4}{38356583}{6477975}
+\pgfsyspdfmark {pgfid5}{40470119}{6254061}
 \citation{fiacco1990nonlinear}
-\citation{lustig1990feasibility}
-\citation{mehrotra1992implementation}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Derivation of direction computation}{4}{subsection.2.1}}
 \newlabel{sub:direction-computation}{{2.1}{4}{Derivation of direction computation}{subsection.2.1}{}}
-\newlabel{sophisticated-barrier-problem}{{8}{4}{Derivation of direction computation}{equation.2.8}{}}
-\newlabel{prox-obj}{{8a}{4}{Derivation of direction computation}{equation.2.8a}{}}
-\newlabel{primal-dual-newton-direction}{{9}{4}{Derivation of direction computation}{equation.2.9}{}}
-\newlabel{eq:schur-complement}{{10}{4}{Derivation of direction computation}{equation.2.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Updating the iterates}{4}{subsection.2.2}}
-\newlabel{eq:iterate-update}{{12}{4}{Updating the iterates}{equation.2.12}{}}
-\newlabel{eq:slackVarUpdate}{{12d}{4}{Updating the iterates}{equation.2.12d}{}}
+\newlabel{sophisticated-barrier-problem}{{9}{4}{Derivation of direction computation}{equation.2.9}{}}
+\newlabel{prox-obj}{{9a}{4}{Derivation of direction computation}{equation.2.9a}{}}
+\newlabel{primal-dual-newton-direction}{{10}{4}{Derivation of direction computation}{equation.2.10}{}}
+\newlabel{def:b}{{12}{4}{Derivation of direction computation}{equation.2.12}{}}
+\newlabel{def:K-delta}{{13}{4}{Derivation of direction computation}{equation.2.13}{}}
+\newlabel{eq:schur-complement}{{14}{4}{Derivation of direction computation}{equation.2.14}{}}
+\newlabel{eq:schur-matrix}{{15}{4}{Derivation of direction computation}{equation.2.15}{}}
+\@writefile{tdo}{\contentsline {todo}{careful with $\nabla ^2 r(x)$.}{4}{section*.2}}
+\pgfsyspdfmark {pgfid6}{5719326}{6223970}
+\pgfsyspdfmark {pgfid9}{38356583}{6236258}
+\pgfsyspdfmark {pgfid10}{40470119}{6012344}
+\citation{lustig1990feasibility}
+\citation{mehrotra1992implementation}
+\citation{curtis2012penalty}
 \citation{wachter2006implementation}
-\newlabel{fracBoundary}{{13}{5}{Updating the iterates}{equation.2.13}{}}
-\newlabel{subeq:set-B}{{14}{5}{Updating the iterates}{equation.2.14}{}}
-\newlabel{satisfy-comp}{{14a}{5}{Updating the iterates}{equation.2.14a}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Updating the iterates}{5}{subsection.2.2}}
+\newlabel{eq:iterate-update}{{16}{5}{Updating the iterates}{equation.2.16}{}}
+\newlabel{eq:xVarUpdate}{{16b}{5}{Updating the iterates}{equation.2.16b}{}}
+\newlabel{eq:slackVarUpdate}{{16c}{5}{Updating the iterates}{equation.2.16c}{}}
+\newlabel{fracBoundary}{{17}{5}{Updating the iterates}{equation.2.17}{}}
+\newlabel{subeq:set-B}{{18}{5}{Updating the iterates}{equation.2.18}{}}
+\newlabel{satisfy-comp}{{18a}{5}{Updating the iterates}{equation.2.18a}{}}
+\newlabel{eq:alphaD-least-squares}{{19}{5}{Updating the iterates}{equation.2.19}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Termination criterion}{5}{subsection.2.3}}
-\newlabel{terminate-kkt}{{16}{5}{Termination criterion}{equation.2.16}{}}
-\newlabel{terminate-primal-infeasible}{{17}{5}{Termination criterion}{equation.2.17}{}}
-\newlabel{terminate-dual-infeasible}{{18}{5}{Termination criterion}{equation.2.18}{}}
+\newlabel{terminate-kkt}{{20}{5}{Termination criterion}{equation.2.20}{}}
+\newlabel{terminate-primal-infeasible}{{21}{6}{Termination criterion}{equation.2.21}{}}
+\newlabel{def:infeasFunc}{{22}{6}{Termination criterion}{equation.2.22}{}}
+\newlabel{terminate-dual-infeasible}{{23}{6}{Termination criterion}{equation.2.23}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Algorithm outline}{6}{subsection.2.4}}
-\newlabel{agg-criteron}{{19}{6}{Algorithm outline}{equation.2.19}{}}
-\newlabel{agg-criteron-opt}{{19a}{6}{Algorithm outline}{equation.2.19a}{}}
-\newlabel{agg-criteron-farkas}{{19b}{6}{Algorithm outline}{equation.2.19b}{}}
-\newlabel{agg-criteron-buffer}{{19c}{6}{Algorithm outline}{equation.2.19c}{}}
+\newlabel{agg-criteron}{{24}{6}{Algorithm outline}{equation.2.24}{}}
+\newlabel{agg-criteron-opt}{{24a}{6}{Algorithm outline}{equation.2.24a}{}}
+\newlabel{agg-criteron-farkas}{{24b}{6}{Algorithm outline}{equation.2.24b}{}}
+\newlabel{agg-criteron-buffer}{{24c}{6}{Algorithm outline}{equation.2.24c}{}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{step-1}{{{{A.{1}}}}{7}{Algorithm outline}{Item.4}{}}
+\newlabel{line:form-K}{{{{A.{2}}}}{7}{Algorithm outline}{Item.5}{}}
 \newlabel{take-steps}{{{{A.{4}}}}{7}{Algorithm outline}{Item.7}{}}
 \newlabel{line:take-step}{{{{{A.{4}}.{1}}}}{7}{Algorithm outline}{Item.8}{}}
 \newlabel{increase-delta-for-failure}{{{{A.{6}}}}{7}{Algorithm outline}{Item.14}{}}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces High level description of one phase IPM\relax }}{7}{algorithm.1}}
 \newlabel{one-phase-IPM}{{1}{7}{High level description of one phase IPM\relax }{algorithm.1}{}}
-\newlabel{fracBoundaryPrimalMax}{{20}{7}{Algorithm outline}{equation.2.20}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Stabilization steps}{7}{subsection.2.5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}Augmented log barrier merit function}{7}{subsubsection.2.5.1}}
-\newlabel{sec:augmented-log-barrier}{{2.5.1}{7}{Augmented log barrier merit function}{subsubsection.2.5.1}{}}
+\newlabel{fracBoundaryPrimalMax}{{25}{7}{Algorithm outline}{equation.2.25}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Aggressive steps}{7}{subsection.2.5}}
+\newlabel{min-step-size-aggresssive}{{26}{8}{Aggressive steps}{equation.2.26}{}}
+\newlabel{agg:back-track}{{{{A.{4}}}}{8}{Aggressive steps}{Item.18}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces High level description of aggressive step\relax }}{8}{algorithm.2}}
+\newlabel{alg:aggressive}{{2}{8}{High level description of aggressive step\relax }{algorithm.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Stabilization step}{8}{subsection.2.6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.1}Augmented log barrier merit function}{8}{subsubsection.2.6.1}}
+\newlabel{sec:augmented-log-barrier}{{2.6.1}{8}{Augmented log barrier merit function}{subsubsection.2.6.1}{}}
 \citation{andersen1998computational}
 \citation{huang2016solution}
 \citation{shanno2000interior}
 \citation{fletcher2002nonlinear}
 \citation{wachter2006implementation}
 \citation{fletcher2002nonlinear}
-\newlabel{phi-sufficient-progress}{{24}{8}{Augmented log barrier merit function}{equation.2.24}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.2}KKT merit function and filter}{8}{subsubsection.2.5.2}}
-\newlabel{merit-KKT}{{25}{8}{KKT merit function and filter}{equation.2.25}{}}
-\newlabel{eq:filter}{{26}{9}{KKT merit function and filter}{equation.2.26}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.3}Stabilization step algorithm}{9}{subsubsection.2.5.3}}
-\newlabel{eq:min-step-size-stable}{{27}{9}{Stabilization step algorithm}{equation.2.27}{}}
-\newlabel{eq:obj-could-improve}{{28}{9}{Stabilization step algorithm}{equation.2.28}{}}
-\newlabel{line:sbl-backtrack}{{{{A.{4}}}}{9}{Stabilization step algorithm}{Item.18}{}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces High level description of stabilization steps\relax }}{9}{algorithm.2}}
-\newlabel{alg:stable}{{2}{9}{High level description of stabilization steps\relax }{algorithm.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Aggressive steps}{9}{subsection.2.6}}
-\newlabel{min-step-size-aggresssive}{{29}{10}{Aggressive steps}{equation.2.29}{}}
-\newlabel{dynamic-mu}{{30}{10}{Aggressive steps}{equation.2.30}{}}
-\newlabel{dual-interval}{{31}{10}{Aggressive steps}{equation.2.31}{}}
-\newlabel{agg:back-track}{{{{A.{4}}}}{10}{Aggressive steps}{Item.25}{}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces High level description of aggressive step\relax }}{10}{algorithm.3}}
-\newlabel{alg:aggressive}{{3}{10}{High level description of aggressive step\relax }{algorithm.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Random step}{11}{subsection.2.7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.8}Algorithm Parameters}{11}{subsection.2.8}}
+\newlabel{phi-sufficient-progress}{{30}{9}{Augmented log barrier merit function}{equation.2.30}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.2}KKT merit function and filter}{9}{subsubsection.2.6.2}}
+\newlabel{merit-KKT}{{31}{9}{KKT merit function and filter}{equation.2.31}{}}
+\newlabel{eq:filter}{{32}{9}{KKT merit function and filter}{equation.2.32}{}}
+\newlabel{eq:kkt-progress}{{32a}{9}{KKT merit function and filter}{equation.2.32a}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.3}Stabilization step algorithm}{10}{subsubsection.2.6.3}}
+\newlabel{eq:min-step-size-stable}{{33}{10}{Stabilization step algorithm}{equation.2.33}{}}
+\newlabel{eq:obj-could-improve}{{34}{10}{Stabilization step algorithm}{equation.2.34}{}}
+\newlabel{line:sbl-backtrack}{{{{A.{5}}}}{10}{Stabilization step algorithm}{Item.25}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces High level description of stabilization steps\relax }}{10}{algorithm.3}}
+\newlabel{alg:stable}{{3}{10}{High level description of stabilization steps\relax }{algorithm.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Algorithm Parameters}{11}{subsection.2.7}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Parameters values and descriptions\relax }}{11}{table.1}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Theoretical justification}{11}{section.3}}
 \newlabel{sec:theory}{{3}{11}{Theoretical justification}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Derivation of primal infeasibility termination criterion}{11}{subsection.3.1}}
 \newlabel{sec:infeas-criteron-justify}{{3.1}{11}{Derivation of primal infeasibility termination criterion}{subsection.3.1}{}}
-\newlabel{infeasible-problem}{{32}{11}{Derivation of primal infeasibility termination criterion}{equation.3.32}{}}
-\@writefile{tdo}{\contentsline {todo}{check this argument with latest $\Gamma $ defintion}{12}{section*.2}}
-\pgfsyspdfmark {pgfid6}{4736286}{23742300}
-\pgfsyspdfmark {pgfid9}{38356583}{23754588}
-\pgfsyspdfmark {pgfid10}{40470119}{23530674}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Global convergence proofs for a naive algorithm}{12}{subsection.3.2}}
-\newlabel{sec:theory-naive}{{3.2}{12}{Global convergence proofs for a naive algorithm}{subsection.3.2}{}}
-\newlabel{stabilization-stage}{{{{A.{1}}}}{13}{Global convergence proofs for a naive algorithm}{Item.28}{}}
-\newlabel{agg-stage}{{{{A.{3}}}}{13}{Global convergence proofs for a naive algorithm}{Item.30}{}}
+\newlabel{infeasible-problem}{{35}{11}{Derivation of primal infeasibility termination criterion}{equation.3.35}{}}
+\newlabel{feas-problem}{{36}{12}{Derivation of primal infeasibility termination criterion}{equation.3.36}{}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {1}Lemma}{12}{lemma.1}}
+\newlabel{eq:assume-primal-good}{{37}{12}{}{equation.3.37}{}}
+\newlabel{eq:assume-infeas-criteron-holds}{{38}{12}{}{equation.3.38}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Global convergence proofs for a naive algorithm}{13}{subsection.3.2}}
+\newlabel{sec:theory-naive}{{3.2}{13}{Global convergence proofs for a naive algorithm}{subsection.3.2}{}}
+\newlabel{stabilization-stage}{{{{A.{1}}}}{13}{Global convergence proofs for a naive algorithm}{Item.29}{}}
+\newlabel{naive:stb:s}{{39a}{13}{Global convergence proofs for a naive algorithm}{equation.3.39a}{}}
+\newlabel{naive:stb:y}{{39b}{13}{Global convergence proofs for a naive algorithm}{equation.3.39b}{}}
+\newlabel{agg-stage}{{{{A.{4}}}}{13}{Global convergence proofs for a naive algorithm}{Item.32}{}}
+\newlabel{naive:agg:alpha}{{40a}{13}{Global convergence proofs for a naive algorithm}{equation.3.40a}{}}
+\newlabel{naive:agg:mu}{{40b}{13}{Global convergence proofs for a naive algorithm}{equation.3.40b}{}}
+\newlabel{naive:agg:s}{{40c}{13}{Global convergence proofs for a naive algorithm}{equation.3.40c}{}}
+\newlabel{naive:agg:y}{{40d}{13}{Global convergence proofs for a naive algorithm}{equation.3.40d}{}}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces Naive version of Algorithm\nobreakspace  {}\ref  {one-phase-IPM}\relax }}{13}{algorithm.4}}
 \newlabel{alg:naive}{{4}{13}{Naive version of Algorithm~\ref {one-phase-IPM}\relax }{algorithm.4}{}}
-\@writefile{loe}{\contentsline {theorem}{\numberline {1}Theorem}{13}{theorem.1}}
-\newlabel{thm:naive}{{1}{13}{}{theorem.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Global convergence proofs for Algorithm\nobreakspace  {}\ref  {one-phase-IPM}}{14}{subsection.3.3}}
-\newlabel{sec:global-conv}{{3.3}{14}{Global convergence proofs for Algorithm~\ref {one-phase-IPM}}{subsection.3.3}{}}
-\@writefile{loe}{\contentsline {assumption}{\numberline {1}Assumption}{14}{assumption.1}}
-\@writefile{loe}{\contentsline {lemma}{\numberline {2}Lemma}{14}{lemma.2}}
-\newlabel{lem:agg-finite}{{2}{14}{}{lemma.2}{}}
+\newlabel{eq:worst-case-agg-sequence}{{42}{13}{Global convergence proofs for a naive algorithm}{equation.3.42}{}}
+\@writefile{loe}{\contentsline {theorem}{\numberline {2}Theorem}{14}{theorem.2}}
+\newlabel{thm:naive}{{2}{14}{}{theorem.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Global convergence proofs for Algorithm\nobreakspace  {}\ref  {one-phase-IPM}}{15}{subsection.3.3}}
+\newlabel{sec:global-conv}{{3.3}{15}{Global convergence proofs for Algorithm~\ref {one-phase-IPM}}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Convergence of aggressive steps}{15}{subsubsection.3.3.1}}
 \@writefile{loe}{\contentsline {lemma}{\numberline {3}Lemma}{15}{lemma.3}}
-\newlabel{lemma:agg-succeeds}{{3}{15}{}{lemma.3}{}}
-\@writefile{tdo}{\contentsline {todo}{check fraction to boundary rule}{15}{section*.3}}
-\pgfsyspdfmark {pgfid11}{6789735}{31981609}
-\pgfsyspdfmark {pgfid14}{38356583}{31993897}
-\pgfsyspdfmark {pgfid15}{40470119}{31769983}
-\@writefile{loe}{\contentsline {lemma}{\numberline {4}Lemma}{15}{lemma.4}}
-\newlabel{lem:compact-Q}{{4}{15}{}{lemma.4}{}}
-\citation{wachter2006implementation}
+\newlabel{lem:agg-finite}{{3}{15}{}{lemma.3}{}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {4}Lemma}{16}{lemma.4}}
+\newlabel{lemma:agg-succeeds}{{4}{16}{}{lemma.4}{}}
 \@writefile{loe}{\contentsline {lemma}{\numberline {5}Lemma}{16}{lemma.5}}
-\newlabel{lem:stbl-success}{{5}{16}{}{lemma.5}{}}
-\@writefile{loe}{\contentsline {theorem}{\numberline {6}Theorem}{16}{theorem.6}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation details}{16}{section.4}}
-\newlabel{sec:implementation-details}{{4}{16}{Implementation details}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Initialization}{16}{subsection.4.1}}
-\newlabel{sec:initialization}{{4.1}{16}{Initialization}{subsection.4.1}{}}
+\newlabel{lem:summary-agg}{{5}{16}{}{lemma.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Convergence of stabilization steps}{16}{subsubsection.3.3.2}}
+\newlabel{conv:stb}{{3.3.2}{16}{Convergence of stabilization steps}{subsubsection.3.3.2}{}}
+\@writefile{loe}{\contentsline {definition}{\numberline {6}Definition}{16}{definition.6}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {7}Lemma}{17}{lemma.7}}
+\newlabel{lem:compact-Q}{{7}{17}{}{lemma.7}{}}
+\@writefile{loe}{\contentsline {corollary}{\numberline {8}Corollary}{17}{corollary.8}}
+\newlabel{coro:bound-everything}{{8}{17}{}{corollary.8}{}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {9}Lemma}{17}{lemma.9}}
+\newlabel{lem:log-barrier-large-delta}{{9}{17}{}{lemma.9}{}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {10}Lemma}{18}{lemma.10}}
+\newlabel{lem:comp-large-delta}{{10}{18}{}{lemma.10}{}}
+\@writefile{tdo}{\contentsline {todo}{show that fraction to boundary rule is satisfied}{18}{section*.3}}
+\pgfsyspdfmark {pgfid11}{5719326}{25782713}
+\pgfsyspdfmark {pgfid14}{38356583}{25795001}
+\pgfsyspdfmark {pgfid15}{40470119}{25571087}
+\citation{wachter2006implementation}
+\@writefile{loe}{\contentsline {lemma}{\numberline {11}Lemma}{19}{lemma.11}}
+\newlabel{lem:stable-succeed-for-large-delta}{{11}{19}{}{lemma.11}{}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {12}Lemma}{19}{lemma.12}}
+\newlabel{lem:stbl-success}{{12}{19}{}{lemma.12}{}}
+\@writefile{tdo}{\contentsline {todo}{moves a little to quick}{19}{section*.4}}
+\pgfsyspdfmark {pgfid16}{35340106}{27649156}
+\pgfsyspdfmark {pgfid19}{38356583}{27661444}
+\pgfsyspdfmark {pgfid20}{40470119}{27437530}
+\@writefile{loe}{\contentsline {theorem}{\numberline {13}Theorem}{19}{theorem.13}}
+\newlabel{thm:global-convergence}{{13}{19}{}{theorem.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation details}{19}{section.4}}
+\newlabel{sec:implementation-details}{{4}{19}{Implementation details}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Initialization}{19}{subsection.4.1}}
+\newlabel{sec:initialization}{{4.1}{19}{Initialization}{subsection.4.1}{}}
 \citation{vanderbei1991splitting}
 \citation{lustig1991formulating}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Linear algebra}{17}{subsection.4.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Iterative refinement}{17}{subsection.4.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}To do}{17}{section.5}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Empirical results}{17}{section.6}}
-\newlabel{sec:empirical-results}{{6}{17}{Empirical results}{section.6}{}}
 \citation{dolan2002benchmarking}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Comparison of different algorithm options}{18}{subsection.6.1}}
-\newlabel{alg:comparison-options}{{6.1}{18}{Comparison of different algorithm options}{subsection.6.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparison of different line search options.\relax }}{18}{figure.caption.4}}
-\newlabel{fig:ls-options}{{1}{18}{Comparison of different line search options.\relax }{figure.caption.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Comparison of the maximum number of corrections for the one phase algorithm.\relax }}{18}{figure.caption.5}}
-\newlabel{fig:num-corrections}{{2}{18}{Comparison of the maximum number of corrections for the one phase algorithm.\relax }{figure.caption.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Comparison with IPOPT}{19}{subsection.6.2}}
-\newlabel{alg:comparison-IPOPT}{{6.2}{19}{Comparison with IPOPT}{subsection.6.2}{}}
-\@writefile{tdo}{\contentsline {todo}{Comparison on number of function/constraint evaluations (clearly admit algorithm is not optimized to minimize constraint violation/function evaluation)}{19}{section*.6}}
-\pgfsyspdfmark {pgfid16}{20112834}{44341841}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Pairwise comparison of outcomes for IPOPT and the one phase algorithm\relax }}{19}{table.2}}
-\newlabel{tbl:pairwise-outcomes}{{2}{19}{Pairwise comparison of outcomes for IPOPT and the one phase algorithm\relax }{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Termination status counts\relax }}{19}{table.3}}
-\newlabel{tbl:termination-status-counts}{{3}{19}{Termination status counts\relax }{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Failure reasons\relax }}{19}{table.4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Comparison of IPOPT and one phase on CUTEst for problems where at least one solver declared the problem optimal, infeasible or unbounded.\relax }}{20}{figure.caption.7}}
-\newlabel{fig:comparison-IPOPT-on-CUTEst}{{3}{20}{Comparison of IPOPT and one phase on CUTEst for problems where at least one solver declared the problem optimal, infeasible or unbounded.\relax }{figure.caption.7}{}}
-\@writefile{tdo}{\contentsline {todo}{table or plot of maximum dual variables?}{20}{section*.8}}
-\pgfsyspdfmark {pgfid17}{20112834}{32382225}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Comparison on infeasible problems}{20}{subsection.6.3}}
-\newlabel{sec:infeas}{{6.3}{20}{Comparison on infeasible problems}{subsection.6.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Termination status counts for perturbed CUTEst problems.\relax }}{20}{table.5}}
-\newlabel{tbl:termination-status-counts-peturbed}{{5}{20}{Termination status counts for perturbed CUTEst problems.\relax }{table.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Linear algebra}{20}{subsection.4.2}}
+\@writefile{tdo}{\contentsline {todo}{explain how equality constraints can be handled}{20}{section*.5}}
+\pgfsyspdfmark {pgfid21}{20112834}{31595642}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Iterative refinement}{20}{subsection.4.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Empirical results}{20}{section.5}}
+\newlabel{sec:empirical-results}{{5}{20}{Empirical results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Comparison of different algorithm options}{21}{subsection.5.1}}
+\newlabel{alg:comparison-options}{{5.1}{21}{Comparison of different algorithm options}{subsection.5.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparison of different line search options.\relax }}{21}{figure.caption.6}}
+\newlabel{fig:ls-options}{{1}{21}{Comparison of different line search options.\relax }{figure.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Comparison of the maximum number of corrections for the one phase algorithm.\relax }}{21}{figure.caption.7}}
+\newlabel{fig:num-corrections}{{2}{21}{Comparison of the maximum number of corrections for the one phase algorithm.\relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Comparison with IPOPT}{21}{subsection.5.2}}
+\newlabel{alg:comparison-IPOPT}{{5.2}{21}{Comparison with IPOPT}{subsection.5.2}{}}
+\@writefile{tdo}{\contentsline {todo}{Comparison on number of function/constraint evaluations (clearly admit algorithm is not optimized to minimize constraint violation/function evaluation)}{21}{section*.8}}
+\pgfsyspdfmark {pgfid22}{20112834}{5856785}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Pairwise comparison of outcomes for IPOPT and the one phase algorithm\relax }}{22}{table.2}}
+\newlabel{tbl:pairwise-outcomes}{{2}{22}{Pairwise comparison of outcomes for IPOPT and the one phase algorithm\relax }{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Termination status counts\relax }}{22}{table.3}}
+\newlabel{tbl:termination-status-counts}{{3}{22}{Termination status counts\relax }{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Failure reasons\relax }}{22}{table.4}}
+\newlabel{tbl:failure-reasons}{{4}{22}{Failure reasons\relax }{table.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Comparison of IPOPT and one phase on CUTEst for problems where at least one solver declared the problem optimal, infeasible or unbounded.\relax }}{23}{figure.caption.9}}
+\newlabel{fig:comparison-IPOPT-on-CUTEst}{{3}{23}{Comparison of IPOPT and one phase on CUTEst for problems where at least one solver declared the problem optimal, infeasible or unbounded.\relax }{figure.caption.9}{}}
+\@writefile{tdo}{\contentsline {todo}{table or plot of maximum dual variables?}{23}{section*.10}}
+\pgfsyspdfmark {pgfid23}{20112834}{32382225}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Comparison on infeasible problems}{23}{subsection.5.3}}
+\newlabel{sec:infeas}{{5.3}{23}{Comparison on infeasible problems}{subsection.5.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Termination status counts for perturbed CUTEst problems.\relax }}{23}{table.5}}
+\newlabel{tbl:termination-status-counts-peturbed}{{5}{23}{Termination status counts for perturbed CUTEst problems.\relax }{table.5}{}}
 \bibstyle{apalike}
 \bibdata{library-one-phase-2.bib}
 \bibcite{andersen1998computational}{Andersen and Ye, 1998}
 \bibcite{andersen1999homogeneous}{Andersen and Ye, 1999}
 \bibcite{benson2004interior}{Benson et\nobreakspace  {}al., 2004}
+\bibcite{bian2015complexity}{Bian et\nobreakspace  {}al., 2015}
 \bibcite{byrd2006knitro}{Byrd et\nobreakspace  {}al., 2006}
 \bibcite{chen2006interior}{Chen and Goldfarb, 2006}
 \bibcite{curtis2012penalty}{Curtis, 2012}
 \bibcite{dolan2002benchmarking}{Dolan and Mor{\'e}, 2002}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of IPOPT and one phase on perturbed CUTEst problems for which at least one solver declares the problem locally infeasible.\relax }}{24}{figure.caption.11}}
+\newlabel{fig:comparison-IPOPT-on-perturbed-CUTEst}{{4}{24}{Comparison of IPOPT and one phase on perturbed CUTEst problems for which at least one solver declares the problem locally infeasible.\relax }{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusions}{24}{section.6}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}To do}{24}{section.7}}
 \bibcite{fiacco1990nonlinear}{Fiacco and McCormick, 1990}
 \bibcite{fletcher2002nonlinear}{Fletcher and Leyffer, 2002}
 \bibcite{lagIPM}{Gabriel\nobreakspace  {}Haeser, 2017}
 \bibcite{gould2015cutest}{Gould et\nobreakspace  {}al., 2015a}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of IPOPT and one phase on perturbed CUTEst problems for which at least one solver declares the problem locally infeasible.\relax }}{21}{figure.caption.9}}
-\newlabel{fig:comparison-IPOPT-on-perturbed-CUTEst}{{4}{21}{Comparison of IPOPT and one phase on perturbed CUTEst problems for which at least one solver declares the problem locally infeasible.\relax }{figure.caption.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusions}{21}{section.7}}
 \bibcite{gould2015interior}{Gould et\nobreakspace  {}al., 2015b}
 \bibcite{huang2016solution}{Huang and Mehrotra, 2016}
 \bibcite{karmarkar1984new}{Karmarkar, 1984}
@@ -235,22 +275,23 @@
 \bibcite{wachter2000failure}{W{\"a}chter and Biegler, 2000}
 \bibcite{wachter2005line}{W{\"a}chter and Biegler, 2005}
 \bibcite{wachter2006implementation}{W{\"a}chter and Biegler, 2006}
+\bibcite{ye1998complexity}{Ye, 1998}
 \citation{wachter2006implementation}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Matrix factorization strategy}{23}{appendix.A}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Matrix factorization strategy\relax }}{23}{algorithm.5}}
-\newlabel{alg:mat-fact}{{5}{23}{Matrix factorization strategy\relax }{algorithm.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}The (non-existence) of a central path in non-convex optimization}{23}{appendix.B}}
-\newlabel{app:non-existence-of-central-path}{{B}{23}{The (non-existence) of a central path in non-convex optimization}{appendix.B}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}Old}{23}{appendix.C}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Intuition: penalty method versus infeasible start method}{23}{subsection.C.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Matrix factorization strategy}{26}{appendix.A}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Matrix factorization strategy\relax }}{26}{algorithm.5}}
+\newlabel{alg:mat-fact}{{5}{26}{Matrix factorization strategy\relax }{algorithm.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}The (non-existence) of a central path in non-convex optimization}{26}{appendix.B}}
+\newlabel{app:non-existence-of-central-path}{{B}{26}{The (non-existence) of a central path in non-convex optimization}{appendix.B}{}}
 \citation{wachter2000failure}
 \citation{wachter2005line}
 \citation{byrd2006knitro}
 \citation{nocedal2014interior}
 \citation{curtis2012penalty}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Discussion of Watcher and Biegler's example}{24}{subsection.C.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}Relevant literature}{24}{subsection.C.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.4}Old convergence proofs}{24}{subsection.C.4}}
-\@writefile{loe}{\contentsline {lemma}{\numberline {7}Lemma}{25}{lemma.7}}
-\@writefile{loe}{\contentsline {lemma}{\numberline {8}Lemma}{25}{lemma.8}}
-\newlabel{assume-alpha}{{48}{25}{Old convergence proofs}{equation.C.48}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Old}{27}{appendix.C}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Intuition: penalty method versus infeasible start method}{27}{subsection.C.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Discussion of Watcher and Biegler's example}{27}{subsection.C.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}Relevant literature}{27}{subsection.C.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.4}Old convergence proofs}{28}{subsection.C.4}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {14}Lemma}{28}{lemma.14}}
+\@writefile{loe}{\contentsline {lemma}{\numberline {15}Lemma}{28}{lemma.15}}
+\newlabel{assume-alpha}{{58}{28}{Old convergence proofs}{equation.C.58}{}}

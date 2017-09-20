@@ -17,6 +17,12 @@ Benson, H.~Y., Shanno, D.~F., and Vanderbei, R.~J. (2004).
   and numerical testing.
 \newblock {\em Mathematical programming}, 99(1):35--48.
 
+\bibitem[Bian et~al., 2015]{bian2015complexity}
+Bian, W., Chen, X., and Ye, Y. (2015).
+\newblock Complexity analysis of interior point algorithms for non-lipschitz
+  and nonconvex minimization.
+\newblock {\em Mathematical Programming}, 149(1-2):301--327.
+
 \bibitem[Byrd et~al., 2006]{byrd2006knitro}
 Byrd, R.~H., Nocedal, J., and Waltz, R.~A. (2006).
 \newblock Knitro: An integrated package for nonlinear optimization.
@@ -170,5 +176,11 @@ W{\"a}chter, A. and Biegler, L.~T. (2006).
 \newblock On the implementation of an interior-point filter line-search
   algorithm for large-scale nonlinear programming.
 \newblock {\em Mathematical programming}, 106(1):25--57.
+
+\bibitem[Ye, 1998]{ye1998complexity}
+Ye, Y. (1998).
+\newblock On the complexity of approximating a kkt point of quadratic
+  programming.
+\newblock {\em Mathematical programming}, 80(2):195--211.
 
 \end{thebibliography}

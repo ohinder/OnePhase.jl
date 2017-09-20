@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  1 SEP 2017 11:19
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  6 SEP 2017 14:32
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2135,6 +2135,8 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 16.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
+\myindent=\skip78
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2145,10 +2147,6 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 ]
 
-LaTeX Warning: Reference `sec:convergence-proofs' on page 2 undefined on input 
-line 118.
-
-
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
@@ -2156,33 +2154,27 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [2]
 
-LaTeX Warning: Citation `more' on page 3 undefined on input line 176.
-
-
-Overfull \hbox (17.6627pt too wide) in paragraph at lines 175--177
-\OT1/cmr/m/n/10 Equations [] and [] hold-ing is com-mon in many prac-ti-cal lin
--ear pro-gram-ming im-ple-men-ta-tions [[],
- []
+LaTeX Warning: Citation `more' on page 3 undefined on input line 194.
 
 Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
-ine 180.
+ine 198.
 
-Overfull \hbox (3.22235pt too wide) in paragraph at lines 180--180
+Overfull \hbox (3.22235pt too wide) in paragraph at lines 198--198
 [][][][]\OT1/cmr/m/n/10 interpretation 
  []
 
 
-Overfull \hbox (3.22235pt too wide) in paragraph at lines 180--180
+Overfull \hbox (3.22235pt too wide) in paragraph at lines 198--198
 [][][][]\OT1/cmr/m/n/10 interpretation 
  []
 
 
-Overfull \hbox (3.22235pt too wide) in paragraph at lines 180--180
+Overfull \hbox (3.22235pt too wide) in paragraph at lines 198--198
 [][][][]\OT1/cmr/m/n/10 interpretation 
  []
 
 
-Overfull \hbox (3.22235pt too wide) in paragraph at lines 180--180
+Overfull \hbox (3.22235pt too wide) in paragraph at lines 198--198
 [][][][]\OT1/cmr/m/n/10 interpretation 
  []
 
@@ -2207,12 +2199,9 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [5]
-
-LaTeX Warning: Reference `sec:convergence-proofs' on page 6 undefined on input 
-line 316.
-
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 351.
+put line 393.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2227,6 +2216,12 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [7]
+Underfull \hbox (badness 4595) in paragraph at lines 426--427
+[]\OT1/cmr/m/it/10 Perform a back-track-ing line search on the pri-mal step $\O
+ML/cmm/m/it/10 []$\OT1/cmr/m/it/10 . \OT1/cmr/m/n/10 Trial step sizes $\OML/cm
+m/m/it/10 [] \OMS/cmsy/m/n/10 2
+ []
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2234,12 +2229,6 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [8]
-Underfull \hbox (badness 4595) in paragraph at lines 442--443
-[]\OT1/cmr/m/it/10 Perform a back-track-ing line search on the pri-mal step $\O
-ML/cmm/m/it/10 []$\OT1/cmr/m/it/10 . \OT1/cmr/m/n/10 Trial step sizes $\OML/cm
-m/m/it/10 [] \OMS/cmsy/m/n/10 2
- []
-
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2247,14 +2236,11 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [9]
-Underfull \hbox (badness 4595) in paragraph at lines 486--487
+Underfull \hbox (badness 4595) in paragraph at lines 522--523
 []\OT1/cmr/m/it/10 Perform a back-track-ing line search on the pri-mal step $\O
 ML/cmm/m/it/10 []$\OT1/cmr/m/it/10 . \OT1/cmr/m/n/10 Trial step sizes $\OML/cm
 m/m/it/10 [] \OMS/cmsy/m/n/10 2
  []
-
-
-LaTeX Warning: Reference `' on page 10 undefined on input line 516.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2270,7 +2256,10 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [11]
-Underfull \hbox (badness 10000) in paragraph at lines 592--593
+Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
+line 629.
+
+Underfull \hbox (badness 10000) in paragraph at lines 653--654
 
  []
 
@@ -2281,9 +2270,6 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [12]
-Package hyperref Info: bookmark level for unknown theorem defaults to 0 on inpu
-t line 633.
-
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2291,10 +2277,8 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [13]
-Package hyperref Info: bookmark level for unknown assumption defaults to 0 on i
-nput line 668.
-Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
-line 671.
+Package hyperref Info: bookmark level for unknown theorem defaults to 0 on inpu
+t line 717.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2310,6 +2294,9 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [15]
+Package hyperref Info: bookmark level for unknown definition defaults to 0 on i
+nput line 841.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2317,7 +2304,31 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [16]
-Overfull \hbox (134.71411pt too wide) in paragraph at lines 927--928
+Package hyperref Info: bookmark level for unknown corollary defaults to 0 on in
+put line 890.
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[17]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[18]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[19]
+Overfull \hbox (134.71411pt too wide) in paragraph at lines 1173--1174
 []\OT1/cmr/m/n/10 Matrix Stretch-ing for Sparse Least Squares []$\OT1/cmtt/m/n/
 10 https : / / pdfs . semanticscholar . org / 0054 / 9cc96c29f24c9d55d76962676f
 e5993f2b11 .
@@ -2329,18 +2340,18 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[17] <figures/ls-options.png, id=630, 462.528pt x 346.896pt>
+[20] <figures/ls-options.png, id=754, 462.528pt x 346.896pt>
 File: figures/ls-options.png Graphic file (type png)
 
 <use figures/ls-options.png>
-Package pdftex.def Info: figures/ls-options.png used on input line 967.
+Package pdftex.def Info: figures/ls-options.png used on input line 1203.
 (pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
 
-<figures/num-corrections.png, id=635, 462.528pt x 346.896pt>
+<figures/num-corrections.png, id=759, 462.528pt x 346.896pt>
 File: figures/num-corrections.png Graphic file (type png)
 
 <use figures/num-corrections.png>
-Package pdftex.def Info: figures/num-corrections.png used on input line 975.
+Package pdftex.def Info: figures/num-corrections.png used on input line 1211.
 (pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
 
 
@@ -2349,22 +2360,22 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[18 <./figures/ls-options.png> <./figures/num-corrections.png>]
-<figures/ratios-IPOPT-one-phase.png, id=649, 462.528pt x 346.896pt>
-File: figures/ratios-IPOPT-one-phase.png Graphic file (type png)
+[21 <./figures/ls-options.png> <./figures/num-corrections.png>]
+<figures/ratios-IPOPT-one-phase.pdf, id=776, 462.52798pt x 346.89601pt>
+File: figures/ratios-IPOPT-one-phase.pdf Graphic file (type pdf)
 
-<use figures/ratios-IPOPT-one-phase.png>
-Package pdftex.def Info: figures/ratios-IPOPT-one-phase.png used on input line 
-1040.
-(pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
+<use figures/ratios-IPOPT-one-phase.pdf>
+Package pdftex.def Info: figures/ratios-IPOPT-one-phase.pdf used on input line 
+1278.
+(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
 
-<figures/iterations-IPOPT-one-phase.png, id=650, 462.528pt x 346.896pt>
-File: figures/iterations-IPOPT-one-phase.png Graphic file (type png)
+<figures/iterations-IPOPT-one-phase.pdf, id=777, 462.52798pt x 346.89601pt>
+File: figures/iterations-IPOPT-one-phase.pdf Graphic file (type pdf)
 
-<use figures/iterations-IPOPT-one-phase.png>
-Package pdftex.def Info: figures/iterations-IPOPT-one-phase.png used on input l
-ine 1041.
-(pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
+<use figures/iterations-IPOPT-one-phase.pdf>
+Package pdftex.def Info: figures/iterations-IPOPT-one-phase.pdf used on input l
+ine 1279.
+(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2372,11 +2383,11 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[19] <figures/infeas-ratios.png, id=663, 462.528pt x 346.896pt>
+[22] <figures/infeas-ratios.png, id=788, 462.528pt x 346.896pt>
 File: figures/infeas-ratios.png Graphic file (type png)
 
 <use figures/infeas-ratios.png>
-Package pdftex.def Info: figures/infeas-ratios.png used on input line 1071.
+Package pdftex.def Info: figures/infeas-ratios.png used on input line 1309.
 (pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
 
 
@@ -2385,43 +2396,27 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[20 <./figures/ratios-IPOPT-one-phase.png> <./figures/iterations-IPOPT-one-phas
-e.png>] (./one-phase.bbl
+[23 <./figures/ratios-IPOPT-one-phase.pdf> <./figures/iterations-IPOPT-one-phas
+e.pdf
+
+pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/iterations-IPOPT-o
+ne-phase.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+>] (./one-phase.bbl
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[21 <./figures/infeas-ratios.png>]
+[24 <./figures/infeas-ratios.png>]
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[22])
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[23]
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[24]
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[25]
+[25])
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2429,72 +2424,84 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [26]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1292.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1292.
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[27]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[28]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[29]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1539.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1539.
  (./one-phase.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1292.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1292.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1539.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1539.
 
+Package rerunfilecheck Info: File `one-phase.out' has not changed.
+(rerunfilecheck)             Checksum: EC85C753060E969017C884E78D3B12DC;2594.
 
-
-Package rerunfilecheck Warning: File `one-phase.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `one-phase.out':
-(rerunfilecheck)             Before: 39F49F576D5EC586002938C983187B48;2564
-(rerunfilecheck)             After:  83F5D4DA370F294FD3FD889CB8297A92;2471.
 
 LaTeX Warning: There were undefined references.
 
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1292.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1539.
  ) 
 Here is how much of TeX's memory you used:
- 26807 strings out of 493089
- 499877 string characters out of 6134842
- 559754 words of memory out of 5000000
- 29584 multiletter control sequences out of 15000+600000
+ 26886 strings out of 493089
+ 501128 string characters out of 6134842
+ 564220 words of memory out of 5000000
+ 29619 multiletter control sequences out of 15000+600000
  16920 words of font info for 63 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 64i,14n,80p,10406b,865s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{subsection.6.4} has been referenced but does not 
-exist, replaced by a fixed one
-
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></us
-r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/
-local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/
-local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/l
-ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/loc
-al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local
-/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/t
-exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/tex
-live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texli
-ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive
-/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/20
-15/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2015/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dist/font
-s/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/fonts/
-type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dist/fo
-nts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on one-phase.pdf (26 pages, 544776 bytes).
+ 64i,14n,80p,10406b,874s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></us
+r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></us
+r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local
+/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/t
+exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texli
+ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/
+2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/201
+5/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/font
+s/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dist/
+fonts/type1/public/amsfonts/symbols/msbm7.pfb>
+Output written on one-phase.pdf (29 pages, 545176 bytes).
 PDF statistics:
- 890 PDF objects out of 1000 (max. 8388607)
- 814 compressed objects within 9 object streams
- 269 named destinations out of 1000 (max. 500000)
+ 1087 PDF objects out of 1200 (max. 8388607)
+ 959 compressed objects within 10 object streams
+ 313 named destinations out of 1000 (max. 500000)
  318 words of extra memory for PDF output out of 10000 (max. 10000000)
 

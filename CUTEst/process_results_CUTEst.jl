@@ -9,17 +9,17 @@ results = Dict{String, Dict{String,problem_summary}}()
 #results["IPOPT"] = convert_JuMP(load("../results/ipopt/large/summary.jld", "summary"))
 #results["static"] = load("../results/one_phase/large/summary.jld", "summary")
 #results["large_dynamic"] = load("../results/one_phase/large_dynamic/summary.jld", "summary")
-#results["one phase"] = load("../results/one_phase/large_dynamic_1hr/summary.jld", "summary")
+#results["dynamic"] = load("../results/one_phase/large_dynamic_1hr/summary.jld", "summary")
 #results["one phase 2"] = load("../results/one_phase/plain/summary.jld", "summary")
 
 #=
-results["1"] = load("../results/one_phase/large_1_corrections/summary.jld", "summary")
-results["2"] = load("../results/one_phase/large_2_corrections/summary.jld", "summary")
-results["3"] = load("../results/one_phase/regularizer/summary.jld", "summary")
-results["4"] = load("../results/one_phase/large_4_corrections/summary.jld", "summary")
+results["1"] = load("../results/one_phase/sept_1_corrections/summary.jld", "summary")
+results["2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
+results["3"] = load("../results/one_phase/plain/summary.jld", "summary")
+#results["4"] = load("../results/one_phase/large_4_corrections/summary.jld", "summary")
 =#
 
-# infeasible porlbems
+# infeasible problems
 #=
 results["one phase"] = load("../results/one_phase/infeas-3/summary.jld", "summary")
 results["IPOPT"] = convert_JuMP(load("../results/ipopt/infeas-3/summary.jld", "summary"))
@@ -55,10 +55,11 @@ results["dynamic"] = load("../results/one_phase/dynamic/summary.jld", "summary")
 results["static"] = load("../results/one_phase/nodynamic/summary.jld", "summary")
 =#
 
-
+# compare one phase and ipopt
+# #=
 results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
-results["ipopt"] = convert_JuMP(load("../results/ipopt/large_no_perturb/summary.jld", "summary"))
-
+results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
+# =#
 
 
 
@@ -101,7 +102,7 @@ if true
 error_free_results = remove_errors(results, [])
 overlapping_results = overlap(error_free_results)
 #overlapping_results = restrict_to_set(overlapping_results,[:primal_infeasible])
-overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
+#overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
 
 elseif false
 overlapping_results = overlap(results)
@@ -137,6 +138,7 @@ for (method_name, sum_data) in overlapping_results
 end
 
 @show shared_failures(overlapping_results)
+@show list_combined_success(overlapping_results)
 
 #outcomes_table(overlapping_results)
 
@@ -151,7 +153,7 @@ end
 
 
 print_failure_problems(overlapping_results)
-its, best, ratios, times = compute_its_etc(overlapping_results)
+its, best, ratios, times = compute_its_etc(overlapping_results);
 
 
 ##
@@ -287,7 +289,7 @@ for (method_name, val) in its
   min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best))
 end
 ax = gca()
-ax[:set_xlim]([1.0,2^5.0])
+ax[:set_xlim]([1.0,2^8.0])
 ax[:set_ylim]([min_y,1.0])
 
 #ax[:xaxis][:ticker] = 0.5
