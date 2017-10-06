@@ -1,2 +1,6 @@
 # Untracked files:
 *.pdf
+*.out
+*.synctex.gz
+*.log
+*.bbl
