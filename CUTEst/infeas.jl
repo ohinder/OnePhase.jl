@@ -185,7 +185,7 @@ function run_infeas(test_name, problem_list, my_par, solve_func!)
     end
 end
 
-problem_list = get_problem_list(100,1000)
+problem_list = get_problem_list(100,10000)
 
-run_infeas("ipopt/infeas-3", problem_list, my_par, ipopt_solve!)
-run_infeas("one_phase/infeas-3", problem_list, my_par, one_phase_solve!)
+run_infeas("ipopt/infeas-4", problem_list, my_par, ipopt_solve!)
+run_infeas("one_phase/infeas-4", problem_list, my_par, one_phase_solve!)

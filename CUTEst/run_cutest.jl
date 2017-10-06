@@ -246,3 +246,25 @@ function get_problem_list(min_size::Int64, max_size::Int64)
 
   return get_problem_list(filter_cutest)
 end
+
+
+
+function get_problem_list(min_ncon::Int64, max_ncon::Int64, min_nvar::Int64, max_nvar::Int64)
+  function filter_cutest(problem)
+      min_size_ok = problem["constraints"]["number"] >= min_ncon && problem["variables"]["number"] >= min_nvar
+      max_size_ok = problem["constraints"]["number"] <= max_ncon && problem["variables"]["number"] <= max_nvar
+      #max_size_ok = problem["constraints"]["number"] + problem["variables"]["number"] <= max_size
+
+      correct_size = min_size_ok && max_size_ok
+
+      regular = problem["derivative_order"] >= 2 && problem["regular"] == true
+      if correct_size && regular
+          @show problem["constraints"]["number"], problem["variables"]["number"]
+          return true
+      else
+        return false
+      end
+  end
+
+  return get_problem_list(filter_cutest)
+end

@@ -236,13 +236,21 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
       @show densest_row(J)
       #@time H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
       n = size(J,2); m = size(J,1);
-      @time H = [speye(n) -J'; J 1e-4 * speye(m)]
-      #@show H, J
-      @time M = lufact( H );
-      rhs = [-g; zeros(m)];
-      #@show rhs
-      sol = M \ rhs
-      y = sol[(n+1):end]
+
+      lambda = 1e-4
+      if false
+        @time H = [speye(n) -J'; J lambda * speye(m)]
+        @time M = lufact( H );
+        rhs = [-g; zeros(m)];
+        sol = M \ rhs
+        y = sol[(n+1):end]
+      else # cholesky factor
+        @time H = lambda * speye(n) + J' * J;
+        @time M = cholfact( H );
+        dx = M \ -g
+        y = -J * dx
+      end
+
       println("linear system solved")
       return y
     catch (e)

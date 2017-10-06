@@ -15,8 +15,8 @@ results = Dict{String, Dict{String,problem_summary}}()
 #=
 results["1"] = load("../results/one_phase/sept_1_corrections/summary.jld", "summary")
 results["2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
-results["3"] = load("../results/one_phase/plain/summary.jld", "summary")
-#results["4"] = load("../results/one_phase/large_4_corrections/summary.jld", "summary")
+results["3"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+results["4"] = load("../results/one_phase/sept_4_corrections/summary.jld", "summary")
 =#
 
 # infeasible problems
@@ -25,16 +25,16 @@ results["one phase"] = load("../results/one_phase/infeas-3/summary.jld", "summar
 results["IPOPT"] = convert_JuMP(load("../results/ipopt/infeas-3/summary.jld", "summary"))
 =#
 
-#=
-results["max step"] = load("../results/one_phase/large_max_step_stable/summary.jld", "summary")
-results["log barrier"] = load("../results/one_phase/large_log_barrier_stable/summary.jld", "summary")
-results["filter"] = load("../results/one_phase/large_dynamic/summary.jld", "summary")
-=#
+# #=
+#results["max step"] = load("../results/one_phase/sept_max_step_stable/summary.jld", "summary")
+#results["log barrier"] = load("../results/one_phase/sept_log_barrier_stable/summary.jld", "summary")
+#results["filter"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+# =#
 
-#=
-results["regularizer"] = load("../results/one_phase/no_regularizer/summary.jld", "summary")
-results["no_regularizer"] = load("../results/one_phase/regularizer/summary.jld", "summary")
-=#
+# #=
+results["regularizer"] = load("../results/one_phase/sept_no_regularizer/summary.jld", "summary")
+results["no_regularizer"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+# =#
 
 #=
 results["norm tol"] = load("../results/one_phase/norm_tol/summary.jld", "summary")
@@ -50,16 +50,16 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 =#
 
 
-#=
-results["dynamic"] = load("../results/one_phase/dynamic/summary.jld", "summary")
-results["static"] = load("../results/one_phase/nodynamic/summary.jld", "summary")
-=#
+# #=
+#results["dynamic"] = load("../results/one_phase/sept_dynamic/summary.jld", "summary")
+#results["static"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+# =#
 
 # compare one phase and ipopt
-# #=
+#=
 results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
 results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
-# =#
+=#
 
 
 
@@ -102,7 +102,7 @@ if true
 error_free_results = remove_errors(results, [])
 overlapping_results = overlap(error_free_results)
 #overlapping_results = restrict_to_set(overlapping_results,[:primal_infeasible])
-#overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
+overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
 
 elseif false
 overlapping_results = overlap(results)

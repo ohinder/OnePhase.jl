@@ -3,7 +3,7 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #set a job name
-#SBATCH --job-name=CUTEst_IPOPT
+#SBATCH --job-name=CUTEst_infeas
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=../results/screen/log.%j.out
@@ -22,7 +22,7 @@
 # We are submitting to the dev partition, there are several on sherlock: normal, gpu, owners, hns, bigmem (jobs requiring >64Gigs RAM)
 # The more partitions you can submit to the less time you will wait, you can submit to multiple partitions with -p at once in comma separated format.
 # srun -p owners -c 8 --mem=32000 -t 2880 --mail-type=ALL --mail-user=ohinder  --epilog /home/wlaw/killvnc.sh /home/wlaw/sherlock-eznovnc.sh
-#SBATCH -p hns,normal,owners
+#SBATCH -p normal
 #################
 #number of nodes you are requesting, the more you ask for the longer you wait
 #SBATCH --nodes=1
