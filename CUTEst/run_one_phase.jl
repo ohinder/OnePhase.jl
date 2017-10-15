@@ -1,11 +1,16 @@
+# RUN_LIST as input
+
+
+
 include("run_cutest.jl")
-TIME_LIMIT = 60.0 * 60
+TIME_LIMIT = 10.0 * 60
+my_par = Class_parameters()
 my_par.MAX_TIME = TIME_LIMIT
 
 # :dynamic,
-RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
+RUN_LIST = ARGS #[:corrections, :step_style, :regularizer, :tol]
 
-problem_list = get_problem_list(100,10000)
+problem_list = get_problem_list(100,5000)
 #test_problems(problem_list,1)
 if false
 problem_list = get_problem_list(6000,7000)
@@ -21,20 +26,20 @@ for problem in problem_list
 end
 end
 
-if :test in RUN_LIST
+if "test" in RUN_LIST
     problem_list = ["PT","AGG","ROBOT"]
     folder_name = "one_phase/test_run"
     if_mkdir("../results/$folder_name")
     run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
-if :plain in RUN_LIST
+if "plain" in RUN_LIST
     folder_name = "one_phase/plain"
     if_mkdir("../results/$folder_name")
     run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
-if :dynamic in RUN_LIST
+if "dynamic" in RUN_LIST
     folder_name = "one_phase/sept_dynamic"
     if_mkdir("../results/$folder_name")
     my_par.adaptive_mu = :paper2
@@ -44,7 +49,7 @@ if :dynamic in RUN_LIST
     my_par.primal_bounds_dual_feas = false
 end
 
-if :corrections in RUN_LIST
+if "corrections" in RUN_LIST
     #folder_name = "one_phase/sept_1_corrections"
     #if_mkdir("../results/$folder_name")
     #my_par.max_it_corrections = 1
@@ -66,7 +71,7 @@ if :corrections in RUN_LIST
     run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
-if :step_style in RUN_LIST
+if "step_style" in RUN_LIST
     folder_name = "one_phase/sept_max_step_stable"
     if_mkdir("../results/$folder_name")
     my_par.adaptive_mu = :paper
@@ -93,7 +98,7 @@ if :step_style in RUN_LIST
     my_par.ls_mode_stable_correction = ls_mode
 end
 
-if :regularizer in RUN_LIST
+if "regularizer" in RUN_LIST
     folder_name = "one_phase/sept_no_regularizer"
     if_mkdir("../results/$folder_name")
     my_par.use_prox = false
@@ -101,9 +106,28 @@ if :regularizer in RUN_LIST
     my_par.use_prox = true
 end
 
-if :tol in RUN_LIST
+if "tol" in RUN_LIST
     folder_name = "one_phase/sept_high_tol"
     if_mkdir("../results/$folder_name")
     my_par.tol = 1e-8
     run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if "dual_ls_style" in RUN_LIST
+  folder_name = "one_phase/dual_ls_0"
+  if_mkdir("../results/$folder_name")
+  my_par.dual_ls = 0
+  run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+
+  folder_name = "one_phase/dual_ls_1"
+  if_mkdir("../results/$folder_name")
+  my_par.dual_ls = 1
+  run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+
+  folder_name = "one_phase/dual_ls_2"
+  if_mkdir("../results/$folder_name")
+  my_par.dual_ls = 2
+  run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

@@ -19,6 +19,12 @@ results["3"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summ
 results["4"] = load("../results/one_phase/sept_4_corrections/summary.jld", "summary")
 =#
 
+# #=
+#results["0"] = load("../results/one_phase/dual_ls_0/summary.jld", "summary")
+results["1"] = load("../results/one_phase/dual_ls_1/summary.jld", "summary")
+#results["2"] = load("../results/one_phase/dual_ls_2/summary.jld", "summary")
+# =#
+
 # infeasible problems
 #=
 results["one phase"] = load("../results/one_phase/infeas-3/summary.jld", "summary")
@@ -31,10 +37,10 @@ results["IPOPT"] = convert_JuMP(load("../results/ipopt/infeas-3/summary.jld", "s
 #results["filter"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
 # =#
 
-# #=
+#=
 results["regularizer"] = load("../results/one_phase/sept_no_regularizer/summary.jld", "summary")
 results["no_regularizer"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
-# =#
+=#
 
 #=
 results["norm tol"] = load("../results/one_phase/norm_tol/summary.jld", "summary")
@@ -56,10 +62,10 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 # =#
 
 # compare one phase and ipopt
-#=
+
 results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
-results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
-=#
+#results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
+
 
 
 
@@ -163,7 +169,7 @@ its, best, ratios, times = compute_its_etc(overlapping_results);
 using PyPlot
 
 plot_iteration_ratios(its, best, ratios)
-plot_iterations(its, best, ratios)
+plot_iterations(its, best, ratios, 3000)
 
 
 

@@ -38,13 +38,29 @@ function isbad(vec)
   return false
 end
 
+function eval_r(it::Class_iterate)
+    x = it.point.x
+    beta = it.x_norm_penalty_par
+    x_norm_pen = beta * sum(sqrt(x.^2 + 1.0 / beta^2))
+    a_norm_pen = it.a_norm_penalty_par * sum(get_cons(it))
+    return x_norm_pen + a_norm_pen
+end
+
+function eval_grad_r(it::Class_iterate)
+    x = it.point.x
+    beta = it.x_norm_penalty_par
+    #@show it.x_norm_penalty_par
+    x_norm_grad =  beta * x ./ sqrt(x.^2 + 1.0 / beta^2)
+    a_norm_grad = it.a_norm_penalty_par * get_jac(it)' * ones(length(get_cons(it)))
+    return x_norm_grad + a_norm_grad
+end
 
 function get_fval(it::Class_iterate)
     return it.cache.fval
 end
 
 function get_grad(it::Class_iterate)
-    return it.cache.grad
+    return it.cache.grad #+
 end
 
 function get_cons(it::Class_iterate)
@@ -64,12 +80,12 @@ function get_max_vio(it::Class_iterate)
 end
 
 function eval_phi(it::Class_iterate)
-    return it.cache.fval - it.point.mu * sum( log( it.point.s ) )
+    return get_fval(it) - it.point.mu * sum( log( it.point.s ) ) + use_prox(it) * it.point.mu * eval_r(it)
 end
 
 function eval_grad_phi(it::Class_iterate)
-    y_tilde = it.point.mu ./ it.point.s
-    return eval_grad_lag(it, y_tilde)
+    y_tilde = it.point.mu ./ it.point.s #
+    return eval_grad_lag(it, y_tilde) + use_prox(it) * it.point.mu * eval_grad_r(it)
 end
 
 
@@ -83,7 +99,7 @@ function eval_grad_lag(it::Class_iterate)
 end
 
 function eval_grad_lag(it::Class_iterate, y::Array{Float64,1})
-    return it.cache.grad - it.cache.J' * y
+    return get_grad(it) - it.cache.J' * y
 end
 
 function dynamic_eval_Jt_prod(it::Class_iterate)

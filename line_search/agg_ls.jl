@@ -9,7 +9,14 @@ type Class_agg_ls <: abstract_ls_info
 
     function Class_agg_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
         this = new()
+
+        this.step_size_D = 0.0
+        this.step_size_P = 0.0
+        this.num_steps = 0
         this.predict_red = -1.0
+        this.frac_progress = NaN
+        this.actual_red = NaN
+
         return this
     end
 end

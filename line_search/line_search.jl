@@ -1,5 +1,6 @@
 abstract abstract_ls_info;
 
+include("move.jl")
 include("filter_ls.jl")
 include("agg_ls.jl")
 include("stable_ls.jl")
@@ -42,39 +43,40 @@ function Blank_ls_info()
     return this
 end
 
-#=function ls_feasible_solution(iter::Class_iterate, orginal_dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
+#=function ls_feasible_solution(iter::Class_iterate, dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
 
 end=#
 
-function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
+# factor_it
+function simple_ls(iter::Class_iterate, dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
     start_advanced_timer(timer, "SIMPLE_LS")
 
     # compute fraction to boundary
     ex = pars.fraction_to_boundary_predict_exp
     s = iter.point.s
-    ds = orginal_dir.s
-    x_thres = max(2.0 * norm(orginal_dir.x,Inf)^2, norm(orginal_dir.x,Inf)^ex)
+    ds = dir.s
+    x_thres = max(2.0 * norm(dir.x,Inf)^2, norm(dir.x,Inf)^ex)
     lb_s = min(pars.fraction_to_boundary_predict * s, x_thres)
 
     if pars.max_step_primal_dual == true
-      step_size_P = max_step_primal_dual(iter, orginal_dir, frac_to_bound)
+      step_size_P = max_step_primal_dual(iter, dir, frac_to_bound)
     elseif pars.max_step_primal_dual == false
       step_size_P = simple_max_step(s, ds, lb_s)
-      #step_size_P = max_step_primal(iter, orginal_dir, frac_to_bound)
+      #step_size_P = max_step_primal(iter, dir, frac_to_bound)
     else
       error("SIMPLE_LS")
     end
 
     if accept_type == :accept_stable
-      accept_obj = Class_stable_ls(iter, orginal_dir, pars)
+      accept_obj = Class_stable_ls(iter, dir, pars)
     elseif accept_type == :accept_aggressive
-      accept_obj = Class_agg_ls(iter, orginal_dir, pars)
+      accept_obj = Class_agg_ls(iter, dir, pars)
     elseif accept_type == :accept_filter
-      accept_obj = Class_filter_ls(iter, orginal_dir, pars)
+      accept_obj = Class_filter_ls(iter, dir, pars)
     elseif accept_type == :accept_kkt
-      accept_obj = Class_kkt_ls(iter, orginal_dir, pars)
+      accept_obj = Class_kkt_ls(iter, dir, pars)
     elseif accept_type == :accept_comp
-      accept_obj = Class_comp_ls(iter, orginal_dir, pars)
+      accept_obj = Class_comp_ls(iter, dir, pars)
     else
       error("acceptance function not defined")
     end
@@ -97,30 +99,44 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
       status = :none
 
       if step_size_P >= min_step_size
-        start_advanced_timer(timer,"SIMPLE_LS/move")
-        candidate, move_status, step_size_D = move(iter, orginal_dir, step_size_P, pars, timer)
-        pause_advanced_timer(timer,"SIMPLE_LS/move")
-
-        #start_advanced_timer(timer,"SIMPLE_LS/move/dual")
-        #candidate, step_size_D = move_dual(candidate, orginal_dir, pars, timer)
-        #start_advanced_timer(timer,"SIMPLE_LS/move/dual")
+        start_advanced_timer(timer,"SIMPLE_LS/move/primal")
+        candidate, move_status = move_primal(iter, dir, step_size_P, pars, timer)
+        pause_advanced_timer(timer,"SIMPLE_LS/move/primal")
 
         accept_obj.step_size_P = step_size_P
-        accept_obj.step_size_D = step_size_D
         accept_obj.num_steps = i
 
+        start_advanced_timer(timer,"SIMPLE_LS/move/dual")
+        if move_status == :success
+            lb, ub = dual_bounds(candidate, candidate.point.y, dir.y, pars.comp_feas)
+            if lb >= ub
+              move_status = :dual_infeasible
+            end
+            if !pars.move_primal_seperate_to_dual && !(lb <= step_size_P && step_size_P <= ub)
+              move_status = :dual_infeasible
+            end
+        end
 
         if move_status == :success
-            #println("accept?")
-            start_advanced_timer(timer,"SIMPLE_LS/accept?")
-            no_nan = update_grad!(candidate, timer, pars) && update_obj!(candidate, timer, pars) && update_J!(candidate, timer, pars)
-
+            no_nan = update_J!(candidate, timer, pars) && update_grad!(candidate, timer, pars)
             if no_nan
-              status = accept_func!(accept_obj, iter, candidate, orginal_dir, step_size_P, filter, pars, timer)
+              candidate, move_status, step_size_D = move_dual(candidate, dir, step_size_P, lb, ub, pars)
+              accept_obj.step_size_D = step_size_D
             else
-              status = :NaN_ERR
+              move_status = :NaN_ERR
             end
-            pause_advanced_timer(timer,"SIMPLE_LS/accept?")
+        end
+        pause_advanced_timer(timer,"SIMPLE_LS/move/dual")
+
+        if move_status == :success
+          start_advanced_timer(timer,"SIMPLE_LS/accept?")
+          no_nan = update_obj!(candidate, timer, pars)
+          if no_nan
+            status = accept_func!(accept_obj, iter, candidate, dir, step_size_P, filter, pars, timer)
+          else
+            status = :NaN_ERR
+          end
+          pause_advanced_timer(timer,"SIMPLE_LS/accept?")
         else
           status = move_status
         end
@@ -143,7 +159,7 @@ function simple_ls(iter::Class_iterate, orginal_dir::Class_point, accept_type::S
           comp_diff = norm(comp(candidate),Inf) - norm(comp(iter), Inf)
           phi_diff = eval_phi(candidate) - eval_phi(iter)
 
-          dx = step_size_P * norm(orginal_dir.x,2); 
+          dx = step_size_P * norm(dir.x,2);
           dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
           kkt_diff = norm(eval_grad_lag(candidate),Inf) / norm(eval_grad_lag(iter),Inf)
           println(rd(step_size_P), rd(step_size_D), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
@@ -180,7 +196,7 @@ end
 
 
 
-function eigenvector_ls(iter::Class_iterate, orginal_dir::Class_point, pars::Class_parameters)
+function eigenvector_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
     step_size_P = 1.0
 
     best_candidate = iter;
@@ -191,8 +207,8 @@ function eigenvector_ls(iter::Class_iterate, orginal_dir::Class_point, pars::Cla
 
     i = 1;
     for i = 1:max_it
-      candidate_pos, is_feas, step_size_D = move(iter, orginal_dir, step_size_P, pars, timer)
-      candidate_neg, is_feas, step_size_D = move(iter, orginal_dir, -step_size_P, pars, timer)
+      candidate_pos, is_feas, step_size_D = move(iter, dir, step_size_P, pars, timer)
+      candidate_neg, is_feas, step_size_D = move(iter, dir, -step_size_P, pars, timer)
 
       better = false
 
@@ -217,7 +233,7 @@ function eigenvector_ls(iter::Class_iterate, orginal_dir::Class_point, pars::Cla
       step_size_P *= 6.0
     end
 
-    @show step_size_P, norm(orginal_dir.x), best_val - intial_val
+    @show step_size_P, norm(dir.x), best_val - intial_val
 
     if i == max_it
       my_warn("max it reached for eig search")

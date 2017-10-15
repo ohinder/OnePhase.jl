@@ -27,11 +27,11 @@ using Ipopt
 srand(1)
 n = 20
 
-A = 1:n
-B = 1:n
-T = [(i,j) for i in A for j in B]
-clb_ij = 1.0
-ylb_ij = 1.0
+A = 1:n;
+B = 1:n;
+T = [(i,j) for i in A for j in B];
+clb_ij = 1.0;
+ylb_ij = 1.0;
 
 lambda = rand(n,n);
 w = rand(n) + 1.0;
@@ -72,8 +72,15 @@ start_advanced_timer(timer)
 #include("include.jl")
 #intial_it = initial_point_satisfy_bounds(nlp, my_par)
 start_advanced_timer(timer, "INIT")
+my_par = Class_parameters()
 intial_it = init(nlp, my_par, timer);
 pause_advanced_timer(timer, "INIT")
+
+pause_advanced_timer(timer)
+print_timer_stats(timer)
+
+start_advanced_timer(timer)
+
 
 #intial_it = initial_point_generic(nlp, my_par, nlp_raw.meta.x0)
 

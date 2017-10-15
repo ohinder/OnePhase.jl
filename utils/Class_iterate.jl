@@ -29,6 +29,9 @@ type Class_local_info
     delta::Float64
     radius::Float64
     prev_step::Symbol
+    function Class_local_info()
+      return new(0.0,0.0,:blah)
+    end
 end
 
 
@@ -41,30 +44,48 @@ type Class_iterate
     ncon::Int64
     nvar::Int64
 
+    # regularizer info
+    x_norm_penalty_par::Float64
+    a_norm_penalty_par::Float64
+    is_stb::Bool
+    use_prox::Bool
+
+    function Class_iterate()
+        return new();
+    end
+
     function Class_iterate(intial_point::Class_point, nlp::abstract_nlp, local_info::Class_local_info, timer::class_advanced_timer, pars::Class_parameters)
-      this = new(zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
+      this = new() # zeros(length(intial_point.x)), intial_point, nlp, Class_cache(), local_info)
+      this.primal_residual_intial = zeros(length(intial_point.x))
+      this.point = intial_point
+      this.nlp = nlp
+      this.local_info = local_info
       this.nvar = length(intial_point.x)
       this.ncon = length(intial_point.y)
+      this.x_norm_penalty_par = pars.x_norm_penalty;
+      this.a_norm_penalty_par = pars.a_norm_penalty;
+      this.is_stb = true
+      this.use_prox = pars.use_prox
+
       @assert(this.ncon == length(intial_point.y))
 
       this.cache = Class_cache()
-      update_grad!(this, timer, pars)
-      update_cons!(this, timer, pars)
-      update_obj!(this, timer, pars)
-      update_H!(this, timer, pars)
-      update_J!(this, timer, pars)
+      update!(this, timer, pars)
+      #update_cons!(this, timer, pars)
+      #update_obj!(this, timer, pars)
+      #update_H!(this, timer, pars)
+      #update_J!(this, timer, pars)
 
       #update_primal_cache!(this, timer)
 
       this.primal_residual_intial = get_primal_res(this);
       return this
     end
-
-    function Class_iterate()
-      return new()
-    end
 end
 
+function use_prox(it::Class_iterate)
+    return  it.is_stb * it.use_prox
+end
 
 
 function validate(it::Class_iterate)
@@ -87,6 +108,11 @@ function copy(it::Class_iterate, timer::class_advanced_timer)
    new_it.nvar = it.nvar
    new_it.ncon = it.ncon
 
+   new_it.a_norm_penalty_par = it.a_norm_penalty_par;
+   new_it.x_norm_penalty_par = it.x_norm_penalty_par;
+   new_it.is_stb = it.is_stb
+   new_it.use_prox = it.use_prox
+
    new_it.cache = it.cache
    copy_cache!(new_it, timer)
 
@@ -106,308 +132,12 @@ function finite_diff_check(it::Class_iterate)
    end
 end
 
-function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1}, comp_feas::Float64)
-    lb = 0.0
-    ub = 1.0
-    mu = it.point.mu
-    for i = 1:length(y)
-        s = it.point.s[i]
-        @assert(s > 0.0)
-
-        safety_factor = 1.01
-        safety_add = 0.0
-
-        #ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
-        #lb_dyi = (mu * comp_feas / s - y[i]) / dy[i]
-        #@show mu * comp_feas / s, y[i]
-
-        ub_dyi = (mu / (comp_feas * s * dy[i]) - y[i] / dy[i])
-        lb_dyi = (mu * comp_feas / (s * dy[i]) - y[i]  / dy[i])
-
-        if dy[i] > 0.0
-          lb = max( lb_dyi * safety_factor + safety_add, lb)
-          ub = min( ub_dyi / safety_factor - safety_add, ub)
-
-          #if lb < ub
-          #  @assert( y[i] + ub * dy[i] <= mu / (comp_feas * s) )
-          #  @assert( y[i] + lb * dy[i] >= comp_feas * mu / s )
-          #end
-        elseif dy[i] < 0.0
-          lb = max(ub_dyi * safety_factor + safety_add, lb)
-          ub = min(lb_dyi / safety_factor - safety_add, ub)
-
-          #if lb < ub
-          #  @assert( y[i] + lb * dy[i] <= mu / (comp_feas * s) )
-          #  @assert( y[i] + ub * dy[i] >= comp_feas * mu / s )
-          #end
-        elseif lb_dyi >= 0.0 || ub_dyi <= 0.0
-          lb = 0.0
-          ub = -1.0
-        end
-
-        if lb < ub
-          mu_lb = (y[i] + lb * dy[i]) * s
-          mu_ub = (y[i] + ub * dy[i]) * s
-
-          if mu_lb > mu / comp_feas
-              println("HERE1")
-          end
-
-          if mu_ub > mu / comp_feas
-            println("HERE2")
-          end
-
-          if mu_ub < mu * comp_feas
-            println("HERE3")
-          end
-
-          if mu_lb < mu * comp_feas
-            println("HERE4")
-          end
-        end
-
-        #|| mu_lb < mu * comp_feas
-          #@show mu_lb, mu_ub
-          #@show comp_feas * mu, mu / comp_feas
-          #@show lb
-          #@show mu, dy[i]
-          #@assert(mu_lb <= mu / comp_feas)
-          #@assert(mu_ub <= mu / comp_feas)
-          #@assert(mu_lb >= comp_feas * mu)
-          #@assert(mu_ub >= comp_feas * mu)
-        #end
-    end
-
-    return lb, ub
-end
-
 function feasible_ls(it::Class_iterate, dir::Class_point, pars::Class_parameters, timer::class_advanced_timer)
 
 ccifg(io_err, n, icon, x, ci, gci, grad)
 
 end
 
-
-function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
-    if pars.move_type == :primal_dual
-      new_it = copy(it, timer)
-      new_it.point.x += dir.x * step_size
-
-      if !update_cons!(new_it, timer, pars)
-        return it, :NaN_ERR, step_size
-      end
-
-      new_a = get_cons(new_it)
-
-      #nl_s = new_it.point.s + step_size * dir.s
-      new_it.point.primal_scale += dir.primal_scale * step_size
-      nl_s = new_a - new_it.point.primal_scale * it.primal_residual_intial
-
-      if pars.s_update == :careful
-        new_it.point.s = nl_s
-      elseif pars.s_update == :loose
-        rf = 1.5
-        l_s = new_it.point.s + step_size * dir.s
-        new_it.point.s = min(nl_s * rf, max(nl_s / rf, l_s))
-      else
-        error("pars.s_update option $(pars.s_update) not avaliable")
-      end
-
-      lb_s = min(it.point.s * pars.fraction_to_boundary, norm(dir.x,Inf)^2)
-      if !all(new_it.point.s .>= lb_s)
-          return it, :s_bound, step_size
-      end
-
-      if pars.mu_update == :static || (pars.mu_update == :dynamic_agg && dir.mu == 0.0)
-        new_it.point.mu += dir.mu * step_size
-      elseif pars.mu_update == :dynamic || pars.mu_update == :dynamic_agg
-        new_it.point.mu = mean(new_it.point.s .* (new_it.point.y + step_size * dir.y))
-      else
-        error("this mu_update option is not valid")
-      end
-
-      if minimum(new_it.point.s) > 0.0
-        lb1, ub1 = dual_bounds(new_it, new_it.point.y, dir.y, pars.comp_feas)
-        lb2, ub2 = dual_bounds(new_it, new_it.point.y, dir.y, pars.comp_feas_agg)
-
-        if pars.move_primal_seperate_to_dual
-            if lb1 < ub1
-                theta = (1.0 - pars.fraction_to_boundary)
-                step_size_D_max = ub1
-
-                if pars.dual_ls
-                  scale_D = dual_scale(new_it, pars)
-                  scale_mu = dual_scale(new_it, pars)
-                  #scale = 1.0;
-                  ∇a = get_jac(new_it)
-                  q = [scale_D * ∇a' * dir.y; scale_mu * new_it.point.s .* dir.y];
-                  predicted_dual_res = step_size * (hess_product(it, dir.x) + get_delta(it) * dir.x) + eval_grad_lag(it)
-                  res = [scale_D * predicted_dual_res; -scale_mu * comp(new_it)]
-                  step_size_D = sum(res .* q) / sum(q.^2)
-                  step_size_D = max(lb1,min(step_size_D,step_size_D_max))
-                  #=@show sum(q.^2)
-                  @show norm(dir.x, 2)
-                  @show get_delta(it),  norm(eval_grad_lag(it)), norm(new_it.point.s,2)=#
-                else
-                  step_size_D = step_size_D_max
-                end
-
-                new_it.point.y += dir.y * step_size_D
-
-                if !is_feasible(new_it, pars.comp_feas)
-                  @show minimum(new_it.point.y), maximum(new_it.point.s)
-                  println("line=",@__LINE__, "file=",@__FILE__)
-                  my_warn("infeasibility should have been detected earlier!!!")
-                  @show step_size, step_size_D
-                  @show (lb1, ub1), (lb2, ub2)
-                  return it, :dual_infeasible, step_size_D
-                else
-                  return new_it, :success, step_size_D
-                end
-            else
-              return it, :dual_infeasible, step_size
-            end
-        else
-          if lb1 <= step_size && step_size <= ub1
-            new_it.point.y += dir.y * step_size
-
-            if !all(new_it.point.y .>= it.point.y * pars.fraction_to_boundary)
-                return it, false, step_size
-            end
-
-            if !is_feasible(new_it, pars.comp_feas)
-              return it, false, step_size
-            else
-              return new_it, true, step_size
-            end
-          else
-            return it, false, step_size
-          end
-        end
-      else
-          return it, false, step_size
-      end
-      #new_it.point.y = new_it.point.mu ./ new_it.point.s
-    elseif pars.move_type == :primal
-      new_it = copy(it)
-      new_it.point.mu += dir.mu * step_size
-      new_it.point.x += dir.x * step_size
-      new_a = eval_a(new_it)
-
-      new_it.point.primal_scale += dir.primal_scale * step_size
-      new_it.point.s = new_a - new_it.point.primal_scale * it.primal_residual_intial
-      #new_it.point.s += dir.s
-      new_it.point.y = new_it.point.mu ./ new_it.point.s
-
-      if is_feasible(new_it, pars.comp_feas)
-        return new_it, true, step_size
-      else
-        return it, false, step_size
-      end
-    end
-end
-#=
-function move(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
-    if pars.move_type == :primal_dual
-      new_it = copy(it)
-      new_it.point.x += dir.x * step_size
-      update_primal_cache!(new_it, timer)
-      new_a = get_cons(new_it)
-
-      #nl_s = new_it.point.s + step_size * dir.s
-      new_it.point.primal_scale += dir.primal_scale * step_size
-      nl_s = new_a - new_it.point.primal_scale * it.primal_residual_intial
-
-      if pars.s_update == :careful
-        new_it.point.s = nl_s
-      elseif pars.s_update == :loose
-        rf = 1.5
-        l_s = new_it.point.s + step_size * dir.s
-        new_it.point.s = min(nl_s * rf, max(nl_s / rf, l_s))
-      else
-        error("pars.s_update option $(pars.s_update) not avaliable")
-      end
-
-      if pars.mu_update == :static || (pars.mu_update == :dynamic_agg && dir.mu == 0.0)
-        new_it.point.mu += dir.mu * step_size
-      elseif pars.mu_update == :dynamic || pars.mu_update == :dynamic_agg
-        new_it.point.mu = mean(new_it.point.s .* (new_it.point.y + step_size * dir.y))
-      else
-        error("this mu_update option is not valid")
-      end
-
-      if minimum(new_it.point.s) > 0.0
-        lb1, ub1 = dual_bounds(it, new_it.point.y, dir.y, pars.comp_feas)
-        lb2, ub2 = dual_bounds(it, new_it.point.y, dir.y, pars.comp_feas_agg)
-
-        if pars.move_primal_seperate_to_dual
-            if lb1 < ub1 / 1.01
-                ∇a = get_jac(new_it)
-                scale = dual_scale(new_it, pars)
-
-                if lb2 < ub2
-                    q = [scale * ∇a' * dir.y; new_it.point.s .* dir.y];
-                    res = [scale * eval_grad_lag(new_it); -comp(new_it)]
-                    lb = lb2
-                    ub = ub2
-                else
-                    q = new_it.point.s .* dir.y;
-                    res = -comp(new_it);
-                    lb = lb1
-                    ub = ub1
-                end
-
-                step_size_D = sum(res .* q) / sum(q.^2)
-                step_size_D = min(ub, max(lb, step_size_D))
-
-
-                new_it.point.y += dir.y * step_size_D
-
-                #update_H!(it, timer)
-
-                if !is_feasible(new_it, pars.comp_feas)
-                  @show minimum(new_it.point.y), maximum(new_it.point.s)
-                  println("line=",@__LINE__, "file=",@__FILE__)
-                  my_warn("infeasibility should have been detected earlier!!!")
-                  @show (lb1, ub1), (lb2, ub2)
-                  return it, false, step_size_D
-                else
-                  return new_it, true, step_size_D
-                end
-            else
-              return it, false, step_size
-            end
-        else
-          if lb1 <= step_size && step_size <= ub1
-            new_it.point.y += dir.y * step_size
-
-            return new_it, true, step_size
-          else
-            return it, false, step_size
-          end
-        end
-      else
-          return it, false, step_size
-      end
-      #new_it.point.y = new_it.point.mu ./ new_it.point.s
-    elseif pars.move_type == :primal
-      new_it = copy(it)
-      new_it.point.mu += dir.mu * step_size
-      new_it.point.x += dir.x * step_size
-      new_a = eval_a(new_it)
-
-      new_it.point.primal_scale += dir.primal_scale * step_size
-      new_it.point.s = new_a - new_it.point.primal_scale * it.primal_residual_intial
-      #new_it.point.s += dir.s
-      new_it.point.y = new_it.point.mu ./ new_it.point.s
-
-      if is_feasible(new_it, pars.comp_feas)
-        return new_it, true, step_size
-      else
-        return it, false, step_size
-      end
-    end
-end=#
 
 function dim(it::Class_iterate)
     return length(it.point.x)
@@ -459,25 +189,27 @@ end
 
 function copy_cache!(it::Class_iterate, timer::class_advanced_timer)
     nlp = it.nlp
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/copy")
     cache = it.cache
 
     new_cache = Class_cache()
-    new_cache.J = copy(cache.J)
+    new_cache.J = deepcopy(cache.J)
     new_cache.J_updated = false
-    new_cache.H = copy(cache.H)
+    new_cache.H = deepcopy(cache.H)
     new_cache.H_updated = false
-    new_cache.cons = copy(cache.cons)
+    new_cache.cons = deepcopy(cache.cons)
     new_cache.cons_updated = false
-    new_cache.fval = copy(cache.fval)
+    new_cache.fval = deepcopy(cache.fval)
     new_cache.fval_updated = false
-    new_cache.grad = copy(cache.grad)
+    new_cache.grad = deepcopy(cache.grad)
     new_cache.grad_updated = false
 
 
     it.cache = new_cache
 
     pause_advanced_timer(timer, "CACHE/copy")
+    pause_advanced_timer(timer, "CACHE")
 end
 
 function update!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
@@ -496,6 +228,7 @@ function getbad(something::Array{Float64,1})
 end
 
 function update_cons!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/update_cons")
     it.cache.cons = eval_a(it.nlp, it.point.x)
     it.cache.cons_updated = true
@@ -510,11 +243,13 @@ function update_cons!(it::Class_iterate, timer::class_advanced_timer, pars::Clas
       no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_cons")
+    pause_advanced_timer(timer, "CACHE")
 
     return no_nan
 end
 
 function update_obj!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/update_obj")
     it.cache.fval = eval_f(it.nlp, it.point.x)
     it.cache.fval_updated = true
@@ -529,14 +264,29 @@ function update_obj!(it::Class_iterate, timer::class_advanced_timer, pars::Class
       no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_obj")
+    pause_advanced_timer(timer, "CACHE")
 
     return no_nan
 end
 
 function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/update_H")
-    it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
-    it.cache.H_updated = true
+
+    # regularizer
+    begin
+      lambda = it.point.mu #* use_prox(it)
+      y_rx = lambda * it.a_norm_penalty_par
+
+      x = it.point.x
+      beta = it.x_norm_penalty_par
+      denominator = (beta^2 * x.^2 + 1.0) .* sqrt( x.^2 + 1.0 / beta^2 )
+      H_x_norm = spdiagm( lambda ./ denominator)
+
+      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0) + H_x_norm
+      #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
+      it.cache.H_updated = true
+    end
 
     nzH = nonzeros(it.cache.H)
     if isbad(nzH)
@@ -550,11 +300,13 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
       no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_H")
+    pause_advanced_timer(timer, "CACHE")
 
     return no_nan
 end
 
 function update_grad!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/update_grad")
     it.cache.grad = eval_grad_f(it.nlp, it.point.x)
     it.cache.grad_updated = true
@@ -569,11 +321,13 @@ function update_grad!(it::Class_iterate, timer::class_advanced_timer, pars::Clas
       no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_grad")
+    pause_advanced_timer(timer, "CACHE")
 
     return no_nan
 end
 
 function update_J!(it::Class_iterate, timer::class_advanced_timer, pars::Class_parameters)
+    start_advanced_timer(timer, "CACHE")
     start_advanced_timer(timer, "CACHE/update_J")
     @assert(length(it.point.x) == length(it.cache.grad))
     it.cache.J = eval_jac(it.nlp, it.point.x)
@@ -589,6 +343,7 @@ function update_J!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
       no_nan = true
     end
     pause_advanced_timer(timer, "CACHE/update_J")
+    pause_advanced_timer(timer, "CACHE")
 
     return no_nan
 end

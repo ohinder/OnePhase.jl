@@ -11,7 +11,12 @@ type Class_stable_ls <: abstract_ls_info
     function Class_stable_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
         this = new()
 
+        this.step_size_D = 0.0
+        this.step_size_P = 0.0
+        this.num_steps = 0
         this.predict_red = merit_function_predicted_reduction(iter, dir, 1.0);
+        this.frac_progress = NaN
+        this.actual_red = NaN
         this.cur_merit = eval_merit_function(iter, pars)
 
         return this

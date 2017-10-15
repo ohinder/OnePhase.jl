@@ -223,7 +223,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     start_advanced_timer(timer, "INIT/construct_class")
     init_point = Class_point(x, y, s, mu)
     check_for_nan(init_point)
-    init_it = Class_iterate(init_point, nlp, Class_local_info(0.0, NaN, :init), timer, pars);
+    init_it = Class_iterate(init_point, nlp, Class_local_info(), timer, pars);
     pause_advanced_timer(timer, "INIT/construct_class")
 
     return init_it
@@ -238,6 +238,7 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
       n = size(J,2); m = size(J,1);
 
       lambda = 1e-4
+      @show lambda
       if false
         @time H = [speye(n) -J'; J lambda * speye(m)]
         @time M = lufact( H );
@@ -245,9 +246,10 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
         sol = M \ rhs
         y = sol[(n+1):end]
       else # cholesky factor
-        @time H = lambda * speye(n) + J' * J;
+        scaling = 1.0 #norm(J,Inf)^2
+        @time H = lambda * speye(n) + J' * J / scaling;
         @time M = cholfact( H );
-        dx = M \ -g
+        dx = scaling * (M \ -g)
         y = -J * dx
       end
 

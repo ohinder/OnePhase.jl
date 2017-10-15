@@ -42,7 +42,7 @@ type Class_parameters
     ls_mode_agg::Symbol
     agg_protect_factor::Float64
     move_primal_seperate_to_dual::Bool
-    dual_ls::Bool
+    dual_ls::Int64
     max_step_primal_dual::Bool
     s_update::Symbol
     stb_before_agg::Bool
@@ -121,7 +121,7 @@ type Class_parameters
         #this.comp_feas = 1/20.0
         #this.comp_feas_agg = 1/10.0 #1/70.0 #1/70.0 #1/50.0
         this.min_step_size_stable = 0.5^5.0
-        this.min_step_size_agg_ratio = 1e-2
+        this.min_step_size_agg_ratio = 1e-4
         this.LS_non_negative_predicted_gain = true
         this.use_delta_s = false
         this.adaptive_mu = :none
@@ -170,7 +170,7 @@ type Class_parameters
 
         this.move_type = :primal_dual
         this.move_primal_seperate_to_dual = true
-        this.dual_ls = true
+        this.dual_ls = 1
         this.max_step_primal_dual = false #false
         this.s_update = :careful # :careful :loose, use careful except for experimentation
         this.mu_update = :static #:dynamic #:static #:static #:static #:dynamic :dynamic_agg

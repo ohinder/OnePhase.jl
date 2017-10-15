@@ -19,7 +19,7 @@ function plot_iteration_ratios(its, best, ratios)
 
     legend()
 end
-function plot_iterations(its, best, ratios)
+function plot_iterations(its, best, ratios, max_it)
     min_y = 1.0
 
     y_vals = collect(1:length(best)) / length(best)
@@ -28,7 +28,7 @@ function plot_iterations(its, best, ratios)
       min_y = min(min_y,sum(its[method_name] .== 1.0) / length(best))
     end
     ax = gca()
-    ax[:set_xlim]([1.0,my_par.max_it])
+    ax[:set_xlim]([1.0, max_it])
     ax[:set_ylim]([min_y,1.0])
 
     #ax[:xaxis][:ticker] = 0.5
