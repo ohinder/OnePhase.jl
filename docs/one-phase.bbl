@@ -1,15 +1,9 @@
-\begin{thebibliography}{94}
+\begin{thebibliography}{33}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
-
-\bibitem[Andersen and Andersen(2000)]{andersen2000mosek}
-E.~D. Andersen and K.~D. Andersen.
-\newblock The mosek interior point optimizer for linear programming: an
-  implementation of the homogeneous algorithm.
-\newblock \emph{High performance optimization}, 33:\penalty0 197--232, 2000.
 
 \bibitem[Andersen and Ye(1998)]{andersen1998computational}
 E.~D. Andersen and Y.~Ye.
@@ -24,65 +18,6 @@ E.~D. Andersen and Y.~Ye.
 \newblock \emph{Mathematical Programming}, 84\penalty0 (2):\penalty0 375--399,
   1999.
 
-\bibitem[Andreani et~al.(2010)Andreani, Mart{\'\i}nez, and
-  Svaiter]{andreani2010new}
-R.~Andreani, J.~M. Mart{\'\i}nez, and B.~F. Svaiter.
-\newblock A new sequential optimality condition for constrained optimization
-  and algorithmic consequences.
-\newblock \emph{SIAM Journal on Optimization}, 20\penalty0 (6):\penalty0
-  3533--3554, 2010.
-
-\bibitem[Andreani et~al.(2011)Andreani, Haeser, and
-  Mart{\'\i}nez]{andreani2011sequential}
-R.~Andreani, G.~Haeser, and J.~Mart{\'\i}nez.
-\newblock On sequential optimality conditions for smooth constrained
-  optimization.
-\newblock \emph{Optimization}, 60\penalty0 (5):\penalty0 627--641, 2011.
-
-\bibitem[Andreani et~al.(2012{\natexlab{a}})Andreani, Haeser, Schuverdt, and
-  Silva]{cpg}
-R.~Andreani, G.~Haeser, M.~L. Schuverdt, and P.~J.~S. Silva.
-\newblock Two new weak constraint qualifications and applications.
-\newblock \emph{SIAM Journal on Optimization}, 22:\penalty0 1109--1135,
-  2012{\natexlab{a}}.
-
-\bibitem[Andreani et~al.(2012{\natexlab{b}})Andreani, Haeser, Schuverdt, and
-  Silva]{rcpld}
-R.~Andreani, G.~Haeser, M.~L. Schuverdt, and P.~J.~S. Silva.
-\newblock A relaxed constant positive linear dependence constraint
-  qualification and applications.
-\newblock \emph{Mathematical Programming}, 135:\penalty0 255--273,
-  2012{\natexlab{b}}.
-
-\bibitem[Andreani et~al.(2016)Andreani, Mart\'{\i}nez, Ramos, and Silva]{ccp}
-R.~Andreani, J.~M. Mart\'{\i}nez, A.~Ramos, and P.~J.~S. Silva.
-\newblock A cone-continuity constraint qualification and algorithmic
-  consequences.
-\newblock \emph{SIAM Journal on Optimization}, 26\penalty0 (1):\penalty0
-  96--110, 2016.
-
-\bibitem[Andreani et~al.(2017)Andreani, Mart\'{\i}nez, Ramos, and
-  Silva]{strict}
-R.~Andreani, J.~M. Mart\'{\i}nez, A.~Ramos, and P.~J.~S. Silva.
-\newblock Strict constraint qualifications and sequential optimality conditions
-  for constrained optimization.
-\newblock \emph{to appear in Mathematics of Operations Research}, 2017.
-
-\bibitem[Benhabib et~al.(1987)Benhabib, Fenton, and
-  GOLDENBERG]{benhabib1987analytical}
-B.~Benhabib, R.~Fenton, and A.~GOLDENBERG.
-\newblock Analytical trajectory optimization of 7 degrees of freedom redundant
-  robots.
-\newblock \emph{Transactions of the Canadian Society for Mechanical
-  Engineering}, 11\penalty0 (4):\penalty0 197--200, 1987.
-
-\bibitem[Benson and Shanno(2008)]{benson2008interior}
-H.~Y. Benson and D.~F. Shanno.
-\newblock Interior-point methods for nonconvex nonlinear programming:
-  regularization and warmstarts.
-\newblock \emph{Computational Optimization and Applications}, 40\penalty0
-  (2):\penalty0 143--189, 2008.
-
 \bibitem[Benson et~al.(2004)Benson, Shanno, and Vanderbei]{benson2004interior}
 H.~Y. Benson, D.~F. Shanno, and R.~J. Vanderbei.
 \newblock Interior-point methods for nonconvex nonlinear programming: jamming
@@ -90,47 +25,11 @@ H.~Y. Benson, D.~F. Shanno, and R.~J. Vanderbei.
 \newblock \emph{Mathematical programming}, 99\penalty0 (1):\penalty0 35--48,
   2004.
 
-\bibitem[Bian et~al.(2015)Bian, Chen, and Ye]{bian2015complexity}
-W.~Bian, X.~Chen, and Y.~Ye.
-\newblock Complexity analysis of interior point algorithms for non-lipschitz
-  and nonconvex minimization.
-\newblock \emph{Mathematical Programming}, 149\penalty0 (1-2):\penalty0
-  301--327, 2015.
-
-\bibitem[Birgin et~al.(2016)Birgin, Gardenghi, Mart{\'\i}nez, Santos, and
-  Toint]{birgin2016evaluation}
-E.~G. Birgin, J.~Gardenghi, J.~Mart{\'\i}nez, S.~Santos, and P.~L. Toint.
-\newblock Evaluation complexity for nonlinear constrained optimization using
-  unscaled kkt conditions and high-order models.
-\newblock \emph{SIAM Journal on Optimization}, 26\penalty0 (2):\penalty0
-  951--967, 2016.
-
-\bibitem[Burke et~al.(2014)Burke, Curtis, and Wang]{burke2014sequential}
-J.~V. Burke, F.~E. Curtis, and H.~Wang.
-\newblock A sequential quadratic optimization algorithm with rapid
-  infeasibility detection.
-\newblock \emph{SIAM Journal on Optimization}, 24\penalty0 (2):\penalty0
-  839--872, 2014.
-
-\bibitem[Byrd et~al.(2000)Byrd, Gilbert, and Nocedal]{byrd2000trust}
-R.~H. Byrd, J.~C. Gilbert, and J.~Nocedal.
-\newblock A trust region method based on interior point techniques for
-  nonlinear programming.
-\newblock \emph{Mathematical Programming}, 89\penalty0 (1):\penalty0 149--185,
-  2000.
-
 \bibitem[Byrd et~al.(2006)Byrd, Nocedal, and Waltz]{byrd2006knitro}
 R.~H. Byrd, J.~Nocedal, and R.~A. Waltz.
 \newblock Knitro: An integrated package for nonlinear optimization.
 \newblock In \emph{Large-scale nonlinear optimization}, pages 35--59. Springer,
   2006.
-
-\bibitem[Cartis et~al.(2015)Cartis, Gould, and Toint]{cartis2015evaluation}
-C.~Cartis, N.~I. Gould, and P.~L. Toint.
-\newblock On the evaluation complexity of constrained nonlinear least-squares
-  and general constrained nonlinear optimization using second-order methods.
-\newblock \emph{SIAM Journal on Numerical Analysis}, 53\penalty0 (2):\penalty0
-  836--851, 2015.
 
 \bibitem[Chen and Goldfarb(2006)]{chen2006interior}
 L.~Chen and D.~Goldfarb.
@@ -138,20 +37,6 @@ L.~Chen and D.~Goldfarb.
   strong global convergence properties.
 \newblock \emph{Mathematical Programming}, 108\penalty0 (1):\penalty0 1--36,
   2006.
-
-\bibitem[Costa and Fernandes(2011)]{costa2011minimizing}
-M.~F.~P. Costa and E.~M. Fernandes.
-\newblock On minimizing objective and kkt error in a filter line search
-  strategy for an interior point method.
-\newblock In \emph{Computational Science and Its Applications-ICCSA 2011},
-  pages 231--244. Springer, 2011.
-
-\bibitem[Coulibaly and Orban(2012)]{coulibaly2012ell_1}
-Z.~Coulibaly and D.~Orban.
-\newblock An $\backslash$ell\_1 elastic interior-point method for mathematical
-  programs with complementarity constraints.
-\newblock \emph{SIAM Journal on Optimization}, 22\penalty0 (1):\penalty0
-  187--211, 2012.
 
 \bibitem[Curtis(2012)]{curtis2012penalty}
 F.~E. Curtis.
@@ -166,14 +51,6 @@ E.~D. Dolan and J.~J. Mor{\'e}.
 \newblock \emph{Mathematical programming}, 91\penalty0 (2):\penalty0 201--213,
   2002.
 
-\bibitem[El-Bakry et~al.(1996)El-Bakry, Tapia, Tsuchiya, and
-  Zhang]{el1996formulation}
-A.~El-Bakry, R.~A. Tapia, T.~Tsuchiya, and Y.~Zhang.
-\newblock On the formulation and theory of the newton interior-point method for
-  nonlinear programming.
-\newblock \emph{Journal of Optimization Theory and Applications}, 89\penalty0
-  (3):\penalty0 507--541, 1996.
-
 \bibitem[Fiacco and McCormick(1990)]{fiacco1990nonlinear}
 A.~V. Fiacco and G.~P. McCormick.
 \newblock \emph{Nonlinear programming: sequential unconstrained minimization
@@ -186,39 +63,11 @@ R.~Fletcher and S.~Leyffer.
 \newblock \emph{Mathematical programming}, 91\penalty0 (2):\penalty0 239--269,
   2002.
 
-\bibitem[Fletcher et~al.(2002)Fletcher, Gould, Leyffer, Toint, and
-  W{\"a}chter]{fletcher2002global}
-R.~Fletcher, N.~I. Gould, S.~Leyffer, P.~L. Toint, and A.~W{\"a}chter.
-\newblock Global convergence of a trust-region sqp-filter algorithm for general
-  nonlinear programming.
-\newblock \emph{SIAM Journal on Optimization}, 13\penalty0 (3):\penalty0
-  635--659, 2002.
-
-\bibitem[Gauvin(1977)]{gauvin}
-J.~Gauvin.
-\newblock A necessary and sufficient regularity condition to have bounded
-  multipliers in nonconvex programming.
-\newblock \emph{Mathematical Programming}, \penalty0 (12):\penalty0 136--138,
-  1977.
-
 \bibitem[Gill et~al.(2015)Gill, Saunders, and Wong]{gill2015performance}
 P.~E. Gill, M.~A. Saunders, and E.~Wong.
 \newblock On the performance of sqp methods for nonlinear optimization.
 \newblock In \emph{Modeling and Optimization: Theory and Applications}, pages
   95--123. Springer, 2015.
-
-\bibitem[Giorgi et~al.(2016)Giorgi, Jim{\'e}nez, and Novo]{giorgi2016}
-G.~Giorgi, B.~Jim{\'e}nez, and V.~Novo.
-\newblock {A}pproximate {K}arush---{K}uhn---{T}ucker condition in
-  multiobjective optimization.
-\newblock \emph{Journal of Optimization Theory and Applications}, 171\penalty0
-  (1):\penalty0 70--89, 2016.
-
-\bibitem[Gould et~al.(2002)Gould, Orban, and Toint]{gould2002interior}
-N.~I. Gould, D.~Orban, and P.~Toint.
-\newblock \emph{An interior-point l1-penalty method for nonlinear
-  optimization}.
-\newblock Citeseer, 2002.
 
 \bibitem[Gould et~al.(2015{\natexlab{a}})Gould, Orban, and
   Toint]{gould2015cutest}
@@ -235,53 +84,11 @@ N.~I. Gould, D.~Orban, and P.~L. Toint.
 \newblock \emph{Numerical Analysis and Optimization}, pages 117--150,
   2015{\natexlab{b}}.
 
-\bibitem[G{\"u}ler and Ye(1993)]{guler1993convergence}
-O.~G{\"u}ler and Y.~Ye.
-\newblock Convergence behavior of interior-point algorithms.
-\newblock \emph{Mathematical Programming}, 60\penalty0 (1):\penalty0 215--228,
-  1993.
-
-\bibitem[Haeser(2016)]{cakkt2}
-G.~Haeser.
-\newblock A second-order optimality condition with first- and second-order
-  complementarity associated with global convergence of algorithms.
-\newblock \emph{Optimization online}, 2016.
-
-\bibitem[Haeser and Schuverdt(2011)]{haeser2011}
-G.~Haeser and M.~L. Schuverdt.
-\newblock On approximate {KKT} condition and its extension to continuous
-  variational inequalities.
-\newblock \emph{Journal of Optimization Theory and Applications}, 149\penalty0
-  (3):\penalty0 528--539, 2011.
-
 \bibitem[Haeser et~al.(2017)Haeser, Hinder, and Ye]{haeser2017behavior}
 G.~Haeser, O.~Hinder, and Y.~Ye.
 \newblock On the behavior of lagrange multipliers in convex and non-convex
   infeasible interior point methods.
 \newblock \emph{arXiv preprint arXiv:1707.07327}, 2017.
-
-\bibitem[Hager and Gowda(1999)]{hager1999stability}
-W.~W. Hager and M.~S. Gowda.
-\newblock Stability in the presence of degeneracy and error estimation.
-\newblock \emph{Mathematical Programming}, 85\penalty0 (1):\penalty0 181--192,
-  1999.
-
-\bibitem[Hager and Mico-Umutesi(2014)]{hager2014}
-W.~W. Hager and D.~Mico-Umutesi.
-\newblock Error estimation in nonlinear optimization.
-\newblock \emph{Journal of Global Optimization}, \penalty0 (59):\penalty0
-  327--341, 2014.
-
-\bibitem[Hinder(2017)]{HinderYe17}
-Y.~Hinder, O.;~Ye.
-\newblock A one phase {IPM} for non-convex optimization.
-\newblock \emph{In preparation}, 2017.
-
-\bibitem[Hoffman(2003)]{hoffman2003approximate}
-A.~J. Hoffman.
-\newblock On approximate solutions of systems of linear inequalities.
-\newblock In \emph{Selected Papers Of Alan J Hoffman: With Commentary}, pages
-  174--176. 2003.
 
 \bibitem[Huang and Mehrotra(2016)]{huang2016solution}
 K.-L. Huang and S.~Mehrotra.
@@ -289,35 +96,6 @@ K.-L. Huang and S.~Mehrotra.
   problems using a modified potential reduction interior point method.
 \newblock \emph{INFORMS Journal on Computing}, 29\penalty0 (1):\penalty0
   36--53, 2016.
-
-\bibitem[Hummel(1967)]{hummel1967}
-J.~A. Hummel.
-\newblock Multivalent starlike functions.
-\newblock \emph{Journal d'Analyse Math{\'e}matique}, 18\penalty0 (1):\penalty0
-  133--160, 1967.
-
-\bibitem[Jeyakumar et~al.(2003{\natexlab{a}})Jeyakumar, Lee, and
-  Dinh]{jeyakumar2003new}
-V.~Jeyakumar, G.~Lee, and N.~Dinh.
-\newblock New sequential lagrange multiplier conditions characterizing
-  optimality without constraint qualification for convex programs.
-\newblock \emph{SIAM Journal on Optimization}, 14\penalty0 (2):\penalty0
-  534--547, 2003{\natexlab{a}}.
-
-\bibitem[Jeyakumar et~al.(2003{\natexlab{b}})Jeyakumar, Lee, and
-  Dinh]{jeya2003}
-V.~Jeyakumar, G.~M. Lee, and N.~Dinh.
-\newblock New sequential lagrange multiplier conditions characterizing
-  optimality without constraint qualification for convex programs.
-\newblock \emph{SIAM Journal on Optimization}, 14\penalty0 (2):\penalty0
-  534--547, 2003{\natexlab{b}}.
-\newblock \doi{10.1137/S1052623402417699}.
-
-\bibitem[John(2014)]{john2014extremum}
-F.~John.
-\newblock Extremum problems with inequalities as subsidiary conditions.
-\newblock In \emph{Traces and Emergence of Nonlinear Programming}, pages
-  197--215. Springer, 2014.
 
 \bibitem[Karmarkar(1984)]{karmarkar1984new}
 N.~Karmarkar.
@@ -351,54 +129,11 @@ I.~J. Lustig.
 \newblock \emph{Mathematical Programming}, 49\penalty0 (1-3):\penalty0
   145--162, 1990.
 
-\bibitem[Lustig et~al.(1991{\natexlab{a}})Lustig, Marsten, and
-  Shanno]{lustig1991computational}
-I.~J. Lustig, R.~E. Marsten, and D.~F. Shanno.
-\newblock Computational experience with a primal-dual interior point method for
-  linear programming.
-\newblock \emph{Linear Algebra and Its Applications}, 152:\penalty0 191--222,
-  1991{\natexlab{a}}.
-
-\bibitem[Lustig et~al.(1991{\natexlab{b}})Lustig, Mulvey, and
+\bibitem[Lustig et~al.(1991)Lustig, Mulvey, and
   Carpenter]{lustig1991formulating}
 I.~J. Lustig, J.~M. Mulvey, and T.~J. Carpenter.
 \newblock Formulating two-stage stochastic programs for interior point methods.
-\newblock \emph{Operations Research}, 39\penalty0 (5):\penalty0 757--770,
-  1991{\natexlab{b}}.
-
-\bibitem[Lustig et~al.(1994)Lustig, Marsten, and Shanno]{lustig1994interior}
-I.~J. Lustig, R.~E. Marsten, and D.~F. Shanno.
-\newblock Interior point methods for linear programming: Computational state of
-  the art.
-\newblock \emph{ORSA Journal on Computing}, 6\penalty0 (1):\penalty0 1--14,
-  1994.
-
-\bibitem[Mangasarian and Fromovitz(1967)]{mangasarian1967fritz}
-O.~L. Mangasarian and S.~Fromovitz.
-\newblock The fritz john necessary optimality conditions in the presence of
-  equality and inequality constraints.
-\newblock \emph{Journal of Mathematical Analysis and Applications}, 17\penalty0
-  (1):\penalty0 37--47, 1967.
-
-\bibitem[Maratos(1978)]{maratos1978exact}
-N.~Maratos.
-\newblock \emph{Exact penalty function algorithms for finite dimensional and
-  control optimization problems}.
-\newblock PhD thesis, Imperial College London (University of London), 1978.
-
-\bibitem[Mart{\'\i}nez and Svaiter(2003)]{martinez2003practical}
-J.~M. Mart{\'\i}nez and B.~F. Svaiter.
-\newblock A practical optimality condition without constraint qualifications
-  for nonlinear programming.
-\newblock \emph{Journal of Optimization Theory and Applications}, 118\penalty0
-  (1):\penalty0 117--133, 2003.
-
-\bibitem[McLinden(1980)]{mclinden1980analogue}
-L.~McLinden.
-\newblock An analogue of {M}oreau's proximation theorem, with application to
-  the nonlinear complementarity problem.
-\newblock \emph{Pacific Journal of Mathematics}, 88\penalty0 (1):\penalty0
-  101--161, 1980.
+\newblock \emph{Operations Research}, 39\penalty0 (5):\penalty0 757--770, 1991.
 
 \bibitem[McShane et~al.(1989)McShane, Monma, and
   Shanno]{mcshane1989implementation}
@@ -420,12 +155,6 @@ S.~Mehrotra.
 \newblock \emph{SIAM Journal on optimization}, 2\penalty0 (4):\penalty0
   575--601, 1992.
 
-\bibitem[Mehrotra(1993)]{mehrotra1993quadratic}
-S.~Mehrotra.
-\newblock Quadratic convergence in a primal-dual method.
-\newblock \emph{Mathematics of Operations Research}, 18\penalty0 (3):\penalty0
-  741--751, 1993.
-
 \bibitem[Mizuno et~al.(1993)Mizuno, Todd, and Ye]{mizuno1993adaptive}
 S.~Mizuno, M.~J. Todd, and Y.~Ye.
 \newblock On adaptive-step primal-dual interior-point algorithms for linear
@@ -433,49 +162,12 @@ S.~Mizuno, M.~J. Todd, and Y.~Ye.
 \newblock \emph{Mathematics of Operations research}, 18\penalty0 (4):\penalty0
   964--981, 1993.
 
-\bibitem[Mizuno et~al.(1995)Mizuno, Todd, and Ye]{mizuno1995surface}
-S.~Mizuno, M.~J. Todd, and Y.~Ye.
-\newblock A surface of analytic centers and primal-dual
-  infeasible-interior-point algorithms for linear programming.
-\newblock \emph{Mathematics of Operations Research}, 20\penalty0 (1):\penalty0
-  135--162, 1995.
-
 \bibitem[Monteiro and Adler(1989)]{monteiro1989interior}
 R.~D. Monteiro and I.~Adler.
 \newblock Interior path following primal-dual algorithms. part i: Linear
   programming.
 \newblock \emph{Mathematical programming}, 44\penalty0 (1):\penalty0 27--41,
   1989.
-
-\bibitem[Mor{\'e}(1990)]{more1990collection}
-J.~J. Mor{\'e}.
-\newblock A collection of nonlinear model problems.
-\newblock \emph{Computational solution of nonlinear systems of equations},
-  1990.
-
-\bibitem[Mor{\'e} and Sorensen(1983)]{more1983computing}
-J.~J. Mor{\'e} and D.~C. Sorensen.
-\newblock Computing a trust region step.
-\newblock \emph{SIAM Journal on Scientific and Statistical Computing},
-  4\penalty0 (3):\penalty0 553--572, 1983.
-
-\bibitem[Nesterov and Polyak(2006)]{nesterov2006cubic}
-Y.~Nesterov and B.~T. Polyak.
-\newblock Cubic regularization of newton method and its global performance.
-\newblock \emph{Mathematical Programming}, 108\penalty0 (1):\penalty0 177--205,
-  2006.
-
-\bibitem[Nocedal and Wright(2006)]{nocedal2006numerical}
-J.~Nocedal and S.~Wright.
-\newblock \emph{Numerical optimization}.
-\newblock Springer Science \& Business Media, 2006.
-
-\bibitem[Nocedal et~al.(2009)Nocedal, W{\"a}chter, and
-  Waltz]{nocedal2009adaptive}
-J.~Nocedal, A.~W{\"a}chter, and R.~A. Waltz.
-\newblock Adaptive barrier update strategies for nonlinear interior methods.
-\newblock \emph{SIAM Journal on Optimization}, 19\penalty0 (4):\penalty0
-  1674--1693, 2009.
 
 \bibitem[Nocedal et~al.(2014)Nocedal, {\"O}ztoprak, and
   Waltz]{nocedal2014interior}
@@ -485,23 +177,6 @@ J.~Nocedal, F.~{\"O}ztoprak, and R.~A. Waltz.
 \newblock \emph{Optimization Methods and Software}, 29\penalty0 (4):\penalty0
   837--854, 2014.
 
-\bibitem[Qi and Wei(2000)]{qiwei}
-L.~Qi and Z.~Wei.
-\newblock On the constant positive linear dependence conditions and its
-  application to {SQP} methods.
-\newblock \emph{SIAM Journal on Optimization}, 10:\penalty0 963--981, 2000.
-
-\bibitem[Rockafellar and Wets~R.(1998)]{rockafellar}
-R.~Rockafellar and J.-B. Wets~R.
-\newblock \emph{Variational Analysis}.
-\newblock Springer, Berlin, 1998.
-
-\bibitem[Shanno and Simantiraki(1997)]{shanno1997interior}
-D.~F. Shanno and E.~M. Simantiraki.
-\newblock Interior point methods for linear and nonlinear programming.
-\newblock In \emph{INSTITUTE OF MATHEMATICS AND ITS APPLICATIONS CONFERENCE
-  SERIES}, volume~63, pages 339--362. Oxford University Press, 1997.
-
 \bibitem[Shanno and Vanderbei(2000)]{shanno2000interior}
 D.~F. Shanno and R.~J. Vanderbei.
 \newblock Interior-point methods for nonconvex nonlinear programming: orderings
@@ -509,46 +184,12 @@ D.~F. Shanno and R.~J. Vanderbei.
 \newblock \emph{Mathematical Programming}, 87\penalty0 (2):\penalty0 303--316,
   2000.
 
-\bibitem[Sonnevend(1986)]{sonnevend1986analytical}
-G.~Sonnevend.
-\newblock An ``analytical centre'' for polyhedrons and new classes of global
-  algorithms for linear (smooth, convex) programming.
-\newblock In \emph{System modelling and optimization}, pages 866--875.
-  Springer, 1986.
-
-\bibitem[Sorensen(1982)]{sorensen1982newton}
-D.~C. Sorensen.
-\newblock Newton's method with a model trust region modification.
-\newblock \emph{SIAM Journal on Numerical Analysis}, 19\penalty0 (2):\penalty0
-  409--426, 1982.
-
-\bibitem[Sturm(1999)]{sturm1999superlinear}
-J.~F. Sturm.
-\newblock Superlinear convergence of an algorithm for monotone linear
-  complementarity problems, when no strictly complementary solution exists.
-\newblock \emph{Mathematics of Operations Research}, 24\penalty0 (1):\penalty0
-  72--94, 1999.
-
 \bibitem[Todd(2003)]{todd2003detecting}
 M.~J. Todd.
 \newblock Detecting infeasibility in infeasible-interior-point methods for
   optimization.
 \newblock Technical report, Cornell University Operations Research and
   Industrial Engineering, 2003.
-
-\bibitem[Ulbrich et~al.(2004)Ulbrich, Ulbrich, and
-  Vicente]{ulbrich2004globally}
-M.~Ulbrich, S.~Ulbrich, and L.~N. Vicente.
-\newblock A globally convergent primal-dual interior-point filter method for
-  nonlinear programming.
-\newblock \emph{Mathematical Programming}, 100\penalty0 (2):\penalty0 379--410,
-  2004.
-
-\bibitem[Ulbrich(2004)]{ulbrich2004superlinear}
-S.~Ulbrich.
-\newblock On the superlinear local convergence of a filter-sqp method.
-\newblock \emph{Mathematical Programming}, 100\penalty0 (1):\penalty0 217--245,
-  2004.
 
 \bibitem[Vanderbei(1991)]{vanderbei1991splitting}
 R.~J. Vanderbei.
@@ -562,38 +203,12 @@ R.~J. Vanderbei.
 \newblock \emph{Optimization methods and software}, 11\penalty0 (1-4):\penalty0
   485--514, 1999.
 
-\bibitem[Vanderbei and Shanno(1999)]{vanderbei1999interior}
-R.~J. Vanderbei and D.~F. Shanno.
-\newblock An interior-point algorithm for nonconvex nonlinear programming.
-\newblock \emph{Computational Optimization and Applications}, 13\penalty0
-  (1):\penalty0 231--252, 1999.
-
-\bibitem[Vasko and Stott(1995)]{vasko1995optimizing}
-F.~J. Vasko and K.~L. Stott.
-\newblock Optimizing continuous caster product dimensions: an example of a
-  nonlinear design problem in the steel industry.
-\newblock \emph{SIAM review}, 37\penalty0 (1):\penalty0 82--84, 1995.
-
-\bibitem[Vicente and Wright(2002)]{vicente2002local}
-L.~N. Vicente and S.~J. Wright.
-\newblock Local convergence of a primal-dual method for degenerate nonlinear
-  programming.
-\newblock \emph{Computational Optimization and Applications}, 22:\penalty0
-  311---328, 2002.
-
 \bibitem[W{\"a}chter and Biegler(2000)]{wachter2000failure}
 A.~W{\"a}chter and L.~T. Biegler.
 \newblock Failure of global convergence for a class of interior point methods
   for nonlinear programming.
 \newblock \emph{Mathematical Programming}, 88\penalty0 (3):\penalty0 565--574,
   2000.
-
-\bibitem[W{\"a}chter and Biegler(2005)]{wachter2005line}
-A.~W{\"a}chter and L.~T. Biegler.
-\newblock Line search filter methods for nonlinear programming: Motivation and
-  global convergence.
-\newblock \emph{SIAM Journal on Optimization}, 16\penalty0 (1):\penalty0 1--31,
-  2005.
 
 \bibitem[W{\"a}chter and Biegler(2006)]{wachter2006implementation}
 A.~W{\"a}chter and L.~T. Biegler.
@@ -602,39 +217,11 @@ A.~W{\"a}chter and L.~T. Biegler.
 \newblock \emph{Mathematical programming}, 106\penalty0 (1):\penalty0 25--57,
   2006.
 
-\bibitem[Ye(1998)]{ye1998complexity}
-Y.~Ye.
-\newblock On the complexity of approximating a kkt point of quadratic
-  programming.
-\newblock \emph{Mathematical programming}, 80\penalty0 (2):\penalty0 195--211,
-  1998.
-
-\bibitem[Ye and Anstreicher(1993)]{ye1993quadratic}
-Y.~Ye and K.~Anstreicher.
-\newblock On quadratic and ${O}(\sqrt{n}{L})$ convergence of a
-  predictor--corrector algorithm for {LCP}.
-\newblock \emph{Mathematical Programming}, 62\penalty0 (1-3):\penalty0
-  537--551, 1993.
-
-\bibitem[Ye et~al.(1993)Ye, G{\"u}ler, Tapia, and Zhang]{ye1993quadratically}
-Y.~Ye, O.~G{\"u}ler, R.~A. Tapia, and Y.~Zhang.
-\newblock A quadratically convergent o ($\backslash$ sqrt n l)-iteration
-  algorithm for linear programming.
-\newblock \emph{Mathematical programming}, 59\penalty0 (1-3):\penalty0
-  151--162, 1993.
-
 \bibitem[Ye et~al.(1994)Ye, Todd, and Mizuno]{ye1994nl}
 Y.~Ye, M.~J. Todd, and S.~Mizuno.
 \newblock An ${O}(\sqrt{n}{L})$-iteration homogeneous and self-dual linear
   programming algorithm.
 \newblock \emph{Mathematics of Operations Research}, 19\penalty0 (1):\penalty0
   53--67, 1994.
-
-\bibitem[Zhang(1994)]{zhang1994convergence}
-Y.~Zhang.
-\newblock On the convergence of a class of infeasible interior-point methods
-  for the horizontal linear complementarity problem.
-\newblock \emph{SIAM Journal on Optimization}, 4\penalty0 (1):\penalty0
-  208--227, 1994.
 
 \end{thebibliography}

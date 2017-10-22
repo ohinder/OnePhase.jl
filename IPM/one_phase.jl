@@ -1,7 +1,7 @@
 function primal_update_of_dual!(iter, pars)
-    D1 = norm(eval_grad_lag(iter, iter.point.y), 2)
+    D1 = norm(eval_grad_lag(iter, iter.point.mu, iter.point.y), 2)
     y_primal = iter.point.mu ./ iter.point.s
-    D2 = norm(eval_grad_lag(iter, y_primal), 2)
+    D2 = norm(eval_grad_lag(iter, iter.point.mu, y_primal), 2)
     if D2 < D1
       iter.point.y = y_primal
     end
@@ -43,7 +43,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
              @assert(is_feasible(iter, pars.comp_feas))
 
              for i = 1:pars.max_it_corrections
+               tot_num_fac = 0; inertia_num_fac = 0;
+
+               start_advanced_timer(timer, "misc/terminate")
                status = terminate(iter, pars)
+               pause_advanced_timer(timer, "misc/terminate")
+
                if status != false
                  println("Terminated with ", status)
                  return iter, status, progress, t, false
@@ -54,18 +59,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  return iter, :MAX_TIME, progress, t, false
                end
 
+               start_advanced_timer(timer, "misc/checks")
                primal_inf = norm(iter.primal_residual_intial, Inf) * iter.point.primal_scale
 
                mu_est = iter.point.mu
 
                is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
-               #dual_progress = scaled_dual_feas(iter, pars) < threshold
-               #mu_est = iter.point.mu
-               #mu_est = mean(iter.point.y .* iter.point.s) * 0.5 + feas_obj * 0.5
-               #mu_est = max(min(100.0 * norm(get_primal_res(iter),Inf), iter.point.mu, mean(iter.point.y .* iter.point.s) ), feas_obj) + norm(get_primal_res(iter),Inf) * 0.01
-               #mu_est = mean(iter.point.y .* iter.point.s)
-               #mu_est = (mean(iter.point.y .* iter.point.s) + mean(-iter.point.y .* get_primal_res(iter))) / 4.0
-               mu_ub = (mean(iter.point.y) + 1.0) * mean(-get_primal_res(iter))
                #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
                dual_avg = scaled_dual_feas(iter, pars)
 
@@ -75,61 +74,27 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  dual_progress = dual_avg < get_mu(iter)
                end
                # * 10.0
-               #dual_progress = dual_avg < mu_ub * 10.0
-               delta_small = get_delta(iter) < sqrt(get_mu(iter)) * (1.0 + norm(get_y(iter),Inf))
+               delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
                #
-               lag_grad = norm(eval_grad_lag(iter),Inf) < get_mu(iter) + norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
+               #lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < get_mu(iter) + norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
+               lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < max(get_mu(iter)/ pars.comp_feas_agg, norm(get_grad(iter),Inf)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
+               #lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < max(get_mu(iter), norm(get_grad(iter),Inf)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
                #@show norm(get_grad(iter),Inf)
-
-               no_stall = true #(ls_info == false || ls_info.step_size_P > 0.1)
-               be_aggressive = no_stall && is_feas && (lag_grad || !pars.lag_grad_test) && dual_progress && (delta_small || !pars.inertia_test)
-
-
-                 if be_aggressive
-                     iter.is_stb = false
-                     if norm(get_primal_res(iter),Inf) > pars.tol || !pars.pause_primal
-                       # HOW THE ALGORTHIM NORMALLY OPERATES
-                       reduct_factors = pars.aggressive_reduct_factors
-                       #reduct_factors = Class_reduction_factors(0.2, 0.2, 0.2)
-                     else
-                       # IF WE WANT TO USE AN IPOPT STYLE `PAUSE'
-                       reduct_factors = Class_reduction_factors(1.0, 0.0, 0.0)
-                     end
-                     #reduct_factors = Class_reduction_factors(0.5, 0.5, 0.5)
-                     #ls_mode = pars.ls_mode_agg;
-                     ls_mode = pars.ls_mode_agg;
-
-                     q = pars.min_step_size_agg_ratio * min(1.0, 1.0 / maximum(- get_primal_res(iter) ./ iter.point.s))
-                     actual_min_step_size = q
-                     #@show q
-                     iter.point.mu = mu_est
-                     centre_dual!(iter.point, (pars.comp_feas_agg + pars.comp_feas)/2.0) # ??????
-                 else
-                      iter.is_stb = true
-                      reduct_factors = pars.stable_reduct_factors #Reduct_stable()
-                      #step_type = "stb"
-                      actual_min_step_size = pars.min_step_size_stable
-
-                      if get_delta(iter) == 0.0
-                        ls_mode = pars.ls_mode_stable_delta_zero
-                        #pars.ls_mode_stable_correction;
-                        #;
-                      else
-                        ls_mode = pars.ls_mode_stable_correction;
-                      end
-                 end
-
+               #&& lag_grad
+               be_aggressive = is_feas && dual_progress && lag_grad && (delta_small || !pars.inertia_test)
+               #@show is_feas, dual_progress, lag_grad
+               pause_advanced_timer(timer, "misc/checks")
 
                if i == 1
                    update_H!(iter, timer, pars)
-                   #update_J!(iter, timer, pars)
-                   #primal_update_of_dual!(iter, pars)
-
-                   #update!(iter, timer, pars)
                    @assert(is_updated(iter.cache))
 
-                   ipopt_strategy!(iter, kkt_solver, pars, timer)
+                   start_advanced_timer(timer, "ipopt_strategy")
+                   fact_succeed, inertia_num_fac = ipopt_strategy!(iter, kkt_solver, pars, timer)
+                   tot_num_fac = inertia_num_fac
+                   pause_advanced_timer(timer, "ipopt_strategy")
 
+                   start_advanced_timer(timer, "STEP")
                    start_advanced_timer(timer, "STEP/first")
 
                    if pars.output_level >= 5
@@ -137,7 +102,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                    end
 
                    for k = 1:100
-                     status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+                     #status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+                     status, new_iter, ls_info, reduct_factors = take_step2!(be_aggressive, iter, kkt_solver, filter, pars, timer)
+
 
                      if pars.output_level >= 6
                        println(pd("**"), pd(status), rd(get_delta(iter)), rd(ls_info.step_size_P), rd(norm(kkt_solver.dir.x,Inf)), rd(norm(kkt_solver.dir.y,Inf)), rd(norm(kkt_solver.dir.s,Inf)))
@@ -146,38 +113,33 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      if status == :success
                        #@assert(norm(iter.point.x - new_iter.point.x) > 0)
                        break
-                     elseif i < 100
+                     elseif i < 100 && get_delta(iter) < pars.delta.max
                        #8.0
                        #println("increase delta")
                        set_delta(iter, max(get_delta(iter) * 20.0, 1e-8))
                        inertia = factor!(kkt_solver, get_delta(iter), timer)
+                       tot_num_fac += 1
                      else
                        pause_advanced_timer(timer, "STEP/first")
-                       println("Terminated due to max delta")
-                       println("inertia=$(inertia)")
-                       println("delta=$(get_delta(iter)), be_aggressive=$be_aggressive, min_step_size=$actual_min_step_size, status=$status")
+                       println("Terminated due to max delta while attempting to take step")
+                       println("delta=$(get_delta(iter)), be_aggressive=$be_aggressive, status=$status")
                        println("dx = $(norm(kkt_solver.dir.x,2)), dy = $(norm(kkt_solver.dir.y,2)), ds = $(norm(kkt_solver.dir.s,2))")
-                       @show reduct_factors, ls_mode
+                       @show reduct_factors #, ls_mode
                        @show ls_info
                        return iter, :MAX_DELTA, progress, t, false
                      end
                    end
 
                    pause_advanced_timer(timer, "STEP/first")
+                   pause_advanced_timer(timer, "STEP")
                else
+                   start_advanced_timer(timer, "STEP")
                    start_advanced_timer(timer, "STEP/correction")
-                   if be_aggressive
-                     ls_mode = pars.ls_mode_agg;
-                   elseif get_delta(iter) == 0.0
-                     #ls_mode = pars.ls_mode_stable_correction;
-                     ls_mode = pars.ls_mode_stable_delta_zero;
-                   else
-                     ls_mode = pars.ls_mode_stable_correction;
-                   end
 
-                   status, new_iter, ls_info = take_step!(iter, reduct_factors, kkt_solver, ls_mode, filter, pars, actual_min_step_size, timer)
+                   status, new_iter, ls_info, reduct_factors = take_step2!(be_aggressive, iter, kkt_solver, filter, pars, timer)
 
                    pause_advanced_timer(timer, "STEP/correction")
+                   pause_advanced_timer(timer, "STEP")
                end
 
                if status == :success
@@ -192,7 +154,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                end
 
                add!(filter, iter, pars)
-               record_progress!(t, be_aggressive ? "agg" : "stb", iter, kkt_solver, ls_info, reduct_factors, progress, pars)
+               start_advanced_timer(timer, "misc/record_progress")
+               record_progress!(t, be_aggressive ? "agg" : "stb", iter, kkt_solver, ls_info, reduct_factors, progress, inertia_num_fac, tot_num_fac, pars)
+               pause_advanced_timer(timer, "misc/record_progress")
                @assert(is_updated_correction(iter.cache))
                check_for_nan(iter.point)
 
@@ -201,16 +165,6 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                end
              end
       end
-    #=
-    catch(e)
-      if isa(e, Eval_NaN_error)
-        println("Terminated with Eval_NaN_error")
-        return iter, :NaN_ERR, progress, t, e
-      else
-        println("Terminated with unknown error")
-        return iter, :UNKNOWN_ERR, progress, t, e
-      end
-    end=#
 
   println("Terminated due to max iterations reached")
   return iter, :MAX_IT, progress, pars.max_it, false

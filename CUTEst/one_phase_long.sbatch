@@ -13,7 +13,9 @@
 #################
 #time you think you need; default is 2 hours
 #format could be dd-hh:mm:ss, hh:mm:ss, mm:ss, or mm
-#SBATCH --time=2880
+#SBATCH --qos=long
+#SBATCH --time=10000
+###2880
 #################
 #Quality of Service (QOS); think of it as job priority, there is also --qos=long for with a max job length of 7 days, qos normal is 48 hours.
 # REMOVE "normal" and set to "long" if you want your job to run longer than 48 hours,

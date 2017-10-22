@@ -6,7 +6,7 @@ function move_primal(it::Class_iterate, dir::Class_point, step_size::Float64, pa
       new_it.point.x += dir.x * step_size
 
       if !update_cons!(new_it, timer, pars)
-        return it, :NaN_ERR
+        return new_it, :NaN_ERR
       end
 
       new_a = get_cons(new_it)
@@ -27,7 +27,7 @@ function move_primal(it::Class_iterate, dir::Class_point, step_size::Float64, pa
 
       lb_s = min(it.point.s * pars.fraction_to_boundary, norm(dir.x,Inf)^2)
       if !all(new_it.point.s .>= lb_s)
-          return it, :s_bound
+          return new_it, :s_bound
       end
 
       new_it.point.mu += dir.mu * step_size
@@ -98,12 +98,13 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         end
     end
 
+    #boundary = min(0.01 * y, abs(dy) .* abs(dy) ./ it.point.s
+    #ub = min(ub, simple_max_step(y, dy, 10.0^(-3.0) * y))
+
     return lb, ub
 end
 
-function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64, lb::Float64, ub::Float64, pars::Class_parameters)
-    theta = (1.0 - pars.fraction_to_boundary)
-
+function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64, lb::Float64, ub::Float64, pars::Class_parameters, timer::class_advanced_timer)
     if pars.move_primal_seperate_to_dual
       small_step = max(lb,min(ub,step_size_P))
       if pars.dual_ls == 2
@@ -127,9 +128,9 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
         scale_mu = dual_scale(new_it, pars)
         #scale = 1.0;
 
-        ∇a = get_jac(new_it)
-        dual_res = eval_grad_lag(new_it)
-        q = [scale_D * ∇a' * dir.y; scale_mu * new_it.point.s .* dir.y];
+        #∇a = get_jac(new_it)
+        dual_res = eval_grad_lag(new_it, get_mu(new_it))
+        q = [scale_D * eval_jac_T_prod(new_it,dir.y); scale_mu * new_it.point.s .* dir.y];
         prox_dual_res = dual_res + get_delta(new_it) * dir.x * step_size_P * (pars.dual_ls == 3)
         #@show get_delta(new_it)
         res = [scale_D * dual_res; -scale_mu * comp(new_it)]

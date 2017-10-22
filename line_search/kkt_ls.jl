@@ -14,6 +14,7 @@ type Class_kkt_ls <: abstract_ls_info
         this.step_size_P = 0.0
         this.num_steps = 0
         this.predict_red = merit_function_predicted_reduction(iter, dir, 1.0);
+        this.do_ls = this.predict_red >= 0.0
         this.frac_progress = NaN
         this.actual_red = NaN
         this.cur_merit = eval_merit_function(iter, pars)

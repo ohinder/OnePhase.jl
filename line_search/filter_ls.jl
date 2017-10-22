@@ -1,4 +1,8 @@
 
+function merit_function_anticipated_reduction(iter, dir)
+    return norm(comp(iter),Inf)^3 / (iter.point.mu)^2 + norm(dir.x,2)^2 * get_delta(iter)
+end
+
 type Class_filter_ls <: abstract_ls_info
     step_size_P::Float64
     step_size_D::Float64
@@ -7,15 +11,23 @@ type Class_filter_ls <: abstract_ls_info
     predict_red::Float64
     actual_red::Float64
     cur_merit::Float64
+    do_ls::Bool
 
     function Class_filter_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
         this = new()
         this.step_size_D = 0.0
         this.step_size_P = 0.0
         this.num_steps = 0
-        
-        this.predict_red = merit_function_predicted_reduction(iter, dir, 1.0);
+
+        g = eval_grad_phi(iter, get_mu(iter))
+        this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * norm(dir.x,2)^2)
+        #merit_function_predicted_reduction(iter, dir, 1.0);
         this.cur_merit = eval_merit_function(iter, pars)
+        sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * norm(g,2)^2 / norm(get_lag_hess(iter),2)^2
+        #comp_sufficient = -get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 100.0 * get_mu(iter)
+        comp_sufficient = -get_mu(iter) * pars.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.comp_feas_agg - 1.0)
+        this.do_ls = sufficient_descent && comp_sufficient
+        #-0.5 * merit_function_anticipated_reduction(iter, dir)
 
         return this
     end
@@ -35,7 +47,7 @@ type Class_filter
       this = new()
       this.fval = eval_merit_function(iter, pars)
 
-      kkt_err = norm(eval_grad_lag(iter),Inf)
+      kkt_err = norm(eval_grad_lag(iter, get_mu(iter)),Inf)
       if pars.kkt_include_comp
          kkt_err += norm(comp(iter),Inf)
       end
@@ -53,6 +65,8 @@ end
 function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
     p = Class_filter(can, pars)
 
+    failure = false
+
     for i = 1:length(ar)
         #tol = 1e-3 * max(1.0, p.scaled_kkt_err)
         expected_reduction = pars.kkt_reduction_factor
@@ -63,19 +77,18 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
         net_reduction = p.scaled_kkt_err + p.fval < ar[i].fval + ar[i].scaled_kkt_err - (p.scaled_kkt_err)^2
 
         if pars.filter_type == :default
-            accept = !(p.mu < ar[i].mu || kkt_reduction)
+            failure = !(p.mu < ar[i].mu || kkt_reduction)
         elseif pars.filter_type == :test1
-            accept = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
+            failure = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
         elseif pars.filter_type == :test2
-            accept = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase)) # || fval_reduction)
+            failure = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase)) # || fval_reduction)
         elseif pars.filter_type == :test3
-            accept = !(p.mu < ar[i].mu || net_reduction)
+            failure = !(p.mu < ar[i].mu || net_reduction)
         else
             error("unknown filter type!!!")
         end
 
-
-        if accept #&& p.fval < ar[i].fval + (p.scaled_kkt_err) ))
+        if failure #&& p.fval < ar[i].fval + (p.scaled_kkt_err) ))
           # && p.fval < ar[i].fval + (p.scaled_kkt_err)))
             #println(p.scaled_kkt_err / ar[i].scaled_kkt_err)
             # p.fval < ar[i].fval - (p.scaled_kkt_err)^2 ||
@@ -89,7 +102,12 @@ end
 
 
 function accept_func!(accept::Class_filter_ls, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
+    if scaled_dual_feas(candidate, pars) > pars.agg_protect_factor * scaled_dual_feas(iter, pars)
+      return :dual_blow_up
+    end
+
     status = accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
+
     if status == :success || status == :infeasible
       return status
     else

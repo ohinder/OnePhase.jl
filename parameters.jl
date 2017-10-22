@@ -10,6 +10,25 @@ type Class_termination_parameters
 
 end
 
+type Class_delta_parameters
+    max::Float64
+    max_it::Int64
+    start::Float64
+    zero::Float64 #get_mu(iter) / ((1e2 + norm(get_x(iter),Inf)) * 1e2)
+    min::Float64
+
+    function Class_delta_parameters()
+        this = new()
+        this.max = 10.0^(40.0)
+        this.max_it = 200
+        this.start = 1e-6
+        this.zero = 0.0
+        this.min = 1e-12
+
+        return this
+    end
+end
+
 abstract abstract_reduct_factors;
 
 type Class_parameters
@@ -76,6 +95,7 @@ type Class_parameters
 
     proximal_style::Symbol
     use_prox::Bool
+    use_reg::Bool
     ##
     x_norm_penalty::Float64
     a_norm_penalty::Float64
@@ -88,12 +108,17 @@ type Class_parameters
     linear_solver_type::Symbol
     linear_solver_safe_mode::Bool
     move_type::Symbol
+    agg_eta::Symbol
 
     stable_reduct_factors::abstract_reduct_factors
     aggressive_reduct_factors::abstract_reduct_factors
 
+    delta::Class_delta_parameters
+
     function Class_parameters()
         this = new()
+
+        this.delta = Class_delta_parameters()
 
         # init
         #this.start_satisfying_bounds = true #true #true
@@ -114,7 +139,7 @@ type Class_parameters
         #this.dual_scale_mode = :exact
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
-        this.max_it_corrections = 3 ######
+        this.max_it_corrections = 2 #3 ######
         this.comp_feas_agg_inf = Inf
         this.comp_feas = 1/100.0 #1/100.0
         this.comp_feas_agg = 1/50.0 #1/50.0 #1/70.0 #1/50.0
@@ -162,7 +187,11 @@ type Class_parameters
         this.ls_mode_stable_delta_zero = ls_mode
         this.ls_mode_stable_correction = ls_mode
         this.ls_mode_agg = :accept_aggressive
-        this.agg_protect_factor = Inf
+        this.agg_protect_factor = 10.0^6.0
+        #this.agg_eta = :affine
+        this.agg_eta = :mehrotra_stb
+        #this.agg_eta = :mehrotra
+        #this.agg_eta = :constant
         #this.protect_factor_boundary_threshold = ...
         #this.filter_type = :default
         this.filter_type = :test2
@@ -178,10 +207,11 @@ type Class_parameters
         this.saddle_err_tol = Inf
         this.ItRefine_Num = 3
         this.ItRefine_BigFloat = false
-        this.use_prox = true #true
+        this.use_prox = true # i.e. modify the hessian
+        this.use_reg = true # i.e. modify the gradient/phi/lag
         this.proximal_style = :fixed
 
-        this.x_norm_penalty = 1e-8
+        this.x_norm_penalty = 1e-16 #1e-8
         this.a_norm_penalty = 1e-4
 
         # Don't change these parameters except for experimentation
@@ -189,13 +219,14 @@ type Class_parameters
         this.aggressive_reduct_factors = Reduct_affine()
 
         if true
-          this.kkt_solver_type = :schur
+          this.kkt_solver_type = :schur #_direct
           this.linear_solver_type = :julia
+          #this.linear_solver_type = :mumps
         else
           this.kkt_solver_type = :symmetric
           this.linear_solver_type = :mumps
         end
-        this.linear_solver_safe_mode = true
+        this.linear_solver_safe_mode = false #true
 
         return this
     end

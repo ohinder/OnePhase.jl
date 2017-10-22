@@ -28,7 +28,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
           redirect_stdout(file)
           nlp_raw = CUTEstModel(problem_name)
           summary[problem_name] = problem_summary()
-          start_time = time()
+          tic()
 
           try
             t = 0
@@ -55,7 +55,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
             summary[problem_name].it_count = -1;
           end
 
-          summary[problem_name].total_time = time() - start_time;
+          summary[problem_name].total_time = toc();
 
           redirect_stdout(ORG_STDOUT)
           finalize(nlp_raw)
@@ -102,7 +102,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           summary[problem_name] = problem_summary()
-          start_time = time()
+
+          tic()
 
           nlp_raw = false
 
@@ -152,7 +153,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
                 summary[problem_name].it_count = -1;
               end
           end
-          summary[problem_name].total_time = time() - start_time;
+          summary[problem_name].total_time = toc();
 
           redirect_stdout(ORG_STDOUT)
           finalize(nlp_raw)
@@ -247,8 +248,6 @@ function get_problem_list(min_size::Int64, max_size::Int64)
   return get_problem_list(filter_cutest)
 end
 
-
-
 function get_problem_list(min_ncon::Int64, max_ncon::Int64, min_nvar::Int64, max_nvar::Int64)
   function filter_cutest(problem)
       min_size_ok = problem["constraints"]["number"] >= min_ncon && problem["variables"]["number"] >= min_nvar
@@ -267,4 +266,36 @@ function get_problem_list(min_ncon::Int64, max_ncon::Int64, min_nvar::Int64, max
   end
 
   return get_problem_list(filter_cutest)
+end
+
+function select_problem_with_sparse_rows(problem_list::Array{String,1},max_density::Int64)
+    sparse_names = Array{String,1}()
+    dense_names = Array{String,1}()
+    for problem_name in problem_list
+        nlp_raw = CUTEstModel(problem_name)
+
+        J = jac(nlp_raw, nlp_raw.meta.x0)
+        if densest_row(J) <= max_density
+          push!(sparse_names, problem_name)
+        else
+          push!(dense_names, problem_name)
+        end
+
+        finalize(nlp_raw)
+    end
+
+    return sparse_names, dense_names
+end
+
+function default_list()
+    problem_list = get_problem_list(1000,10000)
+    # only run problems with max row density 1000.
+    sparse_names, dense_names = select_problem_with_sparse_rows(problem_list, 1000)
+    problem_list = sparse_names
+    println("these problems are included ...")
+    @show sparse_names
+    println("these problems are excluded ...")
+    @show dense_names
+
+    return problem_list
 end

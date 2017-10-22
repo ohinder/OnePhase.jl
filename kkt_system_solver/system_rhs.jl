@@ -44,7 +44,7 @@ type System_rhs
     end
 
     function System_rhs(it::Class_iterate, reduct::Class_reduction_factors)
-      dual_target = -eval_grad_lag(it) * (1.0 - reduct.D)
+      dual_target = -eval_grad_lag(it, it.point.mu * reduct.mu) * (1.0 - reduct.D)
       primal_target = -get_primal_res(it) * (1.0 - reduct.P)
       mu_target = get_mu(it) * reduct.mu
       s = get_s(it)

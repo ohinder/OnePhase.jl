@@ -5,14 +5,16 @@ include("../include.jl")
 
 # LARGE dual variables
 #nlp_raw2 = CUTEstModel("HVYCRASH")
-
+#nlp_raw2 = CUTEstModel("MSS1")
 # INFEASIBLE PROBLEMS
 #nlp_raw2 = CUTEstModel("10FOLDTR")
-#nlp_raw2 = CUTEstModel("NCVXQP8")
+#nlp_raw2 = CUTEstModel("NCVXQP8","-param","N=1000")
 #nlp_raw2 = CUTEstModel("JUNKTURN")
+#nlp_raw2 = CUTEstModel("CATENARY")
 #nlp_raw2 = CUTEstModel("DRCAVTY3") # seems to be feasible, IPOPT struggles
 #nlp_raw2 = CUTEstModel("MODEL")
 #nlp_raw2 = CUTEstModel("FLOSP2HL")
+#nlp_raw2 = CUTEstModel("FLOSP2HH")
 #nlp_raw2 = CUTEstModel("WOODSNE")
 #nlp_raw2 = CUTEstModel("FLOSP2HM")
 #nlp_raw2 = CUTEstModel("CHNRSBNE")
@@ -27,13 +29,16 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("BRAINPC1")
 #nlp_raw2 = CUTEstModel("BRAINPC7")
 #nlp_raw2 = CUTEstModel("SYNPOP24")
-#nlp_raw2 = CUTEstModel("SPINOP")
+#nlp_raw2 = CUTEstModel("SPIN2OP")
 #nlp_raw2 = CUTEstModel("AIRPORT")
+#nlp_raw2 = CUTEstModel("CONT6-QQ")
+#nlp_raw2 = CUTEstModel("HAIFAL")
+#nlp_raw2 = CUTEstModel("HELSBY")
 
 #nlp_raw2 = CUTEstModel("QPCBOEI1")
 #nlp_raw2 = CUTEstModel("PT") # 13 ITS
-nlp_raw2 = CUTEstModel("AGG") # 153 ITS
-#nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
+#nlp_raw2 = CUTEstModel("AGG") # 153 ITS
+nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw2 = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw2 = CUTEstModel("FLETCHCR")
 #nlp_raw2 = CUTEstModel("GENHUMPS")
@@ -42,7 +47,7 @@ nlp_raw2 = CUTEstModel("AGG") # 153 ITS
 #nlp_raw2 = CUTEstModel("TRAINF") # 140 ITS or 81 ITS if AGG starts
 #nlp_raw2 = CUTEstModel("ARTIF") # 14 ITS, IPOPT infeasible
 #nlp_raw2 = CUTEstModel("AVGASB") # 9 ITS
-#####nlp_raw2 = CUTEstModel("HYDROELM")
+#nlp_raw2 = CUTEstModel("HYDROELM")
 #nlp_raw2 = CUTEstModel("STEENBRC")
 #nlp_raw2 = CUTEstModel("QPCSTAIR")
 #nlp_raw2 = CUTEstModel("QPNBOEI2")
@@ -54,7 +59,8 @@ nlp_raw2 = CUTEstModel("AGG") # 153 ITS
 #nlp_raw2 = CUTEstModel("DISC2")
 #nlp_raw2 = CUTEstModel("OET7")
 #nlp_raw2 = CUTEstModel("ACOPR57")
-#nlp_raw2 = CUTEstModel("GPP")
+#nlp_raw2 = CUTEstModel("NET4")
+#nlp_raw2 = CUTEstModel("GPP","-param","N=2000")
 #nlp_raw2 = CUTEstModel("ANTWERP")
 #nlp_raw2 = CUTEstModel("HYDCAR20")
 #nlp_raw2 = CUTEstModel("STEENBRE")
@@ -69,7 +75,7 @@ nlp_raw2 = CUTEstModel("AGG") # 153 ITS
 #nlp_raw2 = CUTEstModel("ELATTAR")
 #nlp_raw2 = CUTEstModel("A4X12")
 
-#nlp_raw2 = CUTEstModel("CRESC100")
+#nlp_raw2 = CUTEstModel("CRESC50")
 #nlp_raw2 = CUTEstModel("LHAIFAM")
 #nlp_raw2 = CUTEstModel("MPC10")
 #nlp_raw2 = CUTEstModel("ELEC")
@@ -99,7 +105,7 @@ nlp_raw2 = CUTEstModel("AGG") # 153 ITS
 #finalize(nlp_raw2)
 
 ## HARD PROBLEMS
-#nlp_raw2 = CUTEstModel("MSS1")
+#nlp_raw2 = CUTEstModel("STEENBRD")
 #nlp_raw2 = CUTEstModel("ACOPR14")
 #nlp_raw2 = CUTEstModel("ACOPR118")
 #nlp_raw2 = CUTEstModel("ACOPP57")
@@ -114,6 +120,7 @@ nlp_raw2 = CUTEstModel("AGG") # 153 ITS
 #nlp_raw2 = CUTEstModel("AVION2")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
 #nlp_raw2 = CUTEstModel("YORKNET")
+
 function compare_objects(obj1,obj2)
   for n in fieldnames(obj1)
      if(getfield(obj1,n) != getfield(obj2,n))
@@ -124,6 +131,7 @@ function compare_objects(obj1,obj2)
 end
 
 if false
+tic()
 using Ipopt
 solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none")
 #,mehrotra_algorithm="yes") #, tol_dual_abs=1e-6)
@@ -134,6 +142,7 @@ MathProgBase.optimize!(mp)
 #y = MathProgBase.getdual(mp)
 solver = MathProgBase.getrawsolver(mp)
 #finalize(nlp_raw2)
+toc();
 end
 srand(1)
 #begin

@@ -7,6 +7,7 @@ type Class_stable_ls <: abstract_ls_info
     frac_progress::Float64
     actual_red::Float64
     cur_merit::Float64
+    do_ls::Bool
 
     function Class_stable_ls(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
         this = new()
@@ -18,6 +19,7 @@ type Class_stable_ls <: abstract_ls_info
         this.frac_progress = NaN
         this.actual_red = NaN
         this.cur_merit = eval_merit_function(iter, pars)
+        this.do_ls = this.predict_red >= 0.0
 
         return this
     end
@@ -38,7 +40,8 @@ function accept_func_stable!(accept::abstract_ls_info, iter::Class_iterate, cand
     accept.actual_red = new_merit - old_merit
 
     #@show accept.predict_red, accept.actual_red
-    predict_red = merit_function_predicted_reduction(iter, dir, step_size);
+    #predict_red = merit_function_predicted_reduction(iter, dir, step_size);
+    predict_red = accept.predict_red * step_size
 
     if accept.actual_red > 0.0
       return :negative_progress

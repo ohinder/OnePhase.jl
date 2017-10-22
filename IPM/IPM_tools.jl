@@ -20,7 +20,7 @@ function dual_scale(iter::Class_iterate, pars::Class_parameters)
 end
 
 function scaled_dual_feas(iter::Class_iterate, pars::Class_parameters)
-    return norm(eval_grad_lag(iter),Inf) * dual_scale(iter, pars)
+    return norm(eval_grad_lag(iter, iter.point.mu),Inf) * dual_scale(iter, pars)
 end
 
 function check_for_nan(point::Class_point)
@@ -55,44 +55,4 @@ function is_feasible(it::Class_iterate, comp_feas::Float64)
     else
       return true
     end
-end
-
-function terminate(iter::Class_iterate, par::Class_parameters)
-    tol = par.tol
-    #a_neg_part = max(-eval_a(iter),0.0)
-    #y = get_y(iter)
-    #J = eval_jac(iter)
-    fark_feas1 = eval_farkas(iter)
-    #fark_feas1 = norm(y' * J, Inf) / min(norm(y, Inf), maximum(a_neg_part .* y))
-    #fark_feas2 = norm(eval_grad_lag(iter, 0.0), Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
-    #fark_feas3 = norm(eval_grad_lag(iter, 1.0), Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
-
-    #@show fark_feas1, fark_feas2, fark_feas3
-    max_vio = get_max_vio(iter)
-
-    comp_scaled = maximum(iter.point.s .* iter.point.y) * dual_scale(iter, par)
-
-    if scaled_dual_feas(iter, par) < tol && comp_scaled < tol && max_vio < tol
-        return :optimal
-    elseif fark_feas1 < tol && max_vio > tol && norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
-        return :primal_infeasible
-    elseif max( 1.0, max_vio )/ min(max(1.0,-get_fval(iter)),norm(get_x(iter),Inf)) < tol # TMP!!!
-        return :dual_infeasible
-    else
-        return false
-    end
-end
-
-function take_step!(iter::Class_iterate, eta::Class_reduction_factors, kkt_solver::abstract_KKT_system_solver, ls_mode::Symbol, filter::Array{Class_filter,1}, pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
-    kkt_associate_rhs!(kkt_solver, iter, eta, timer)
-    compute_direction!(kkt_solver, timer)
-
-    if false #kkt_solver.kkt_err_norm.ratio > 1e-1
-        @show kkt_solver.kkt_err_norm
-        return :failure, iter, Class_ls_info()
-    end
-
-    success, iter, step_info = simple_ls(iter, kkt_solver.dir, ls_mode, filter, pars, min_step_size, timer)
-
-    return success, iter, step_info
 end

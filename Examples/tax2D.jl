@@ -18,14 +18,14 @@ subject to
 Technology:
    sum{i in A, j in B} lambda[i,j]*(y[i,j] - c[i,j]) >= 0;
 =#
-include("include.jl")
+include("../include.jl")
 
 using JuMP
 using Ipopt
 
 
 srand(1)
-n = 20
+n = 10
 
 A = 1:n;
 B = 1:n;

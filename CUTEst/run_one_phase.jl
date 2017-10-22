@@ -8,9 +8,12 @@ my_par = Class_parameters()
 my_par.MAX_TIME = TIME_LIMIT
 
 # :dynamic,
-RUN_LIST = ARGS #[:corrections, :step_style, :regularizer, :tol]
+#RUN_LIST = ARGS
+#RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
+RUN_LIST = []
 
-problem_list = get_problem_list(100,5000)
+problem_list = default_list()
+
 #test_problems(problem_list,1)
 if false
 problem_list = get_problem_list(6000,7000)
@@ -24,6 +27,12 @@ for problem in problem_list
 
     finalize(nlp_raw)
 end
+end
+
+if true
+folder_name = "one_phase/Oct21"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if "test" in RUN_LIST
@@ -129,5 +138,26 @@ if "dual_ls_style" in RUN_LIST
   folder_name = "one_phase/dual_ls_2"
   if_mkdir("../results/$folder_name")
   my_par.dual_ls = 2
+  run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+
+
+if "eta_strategy" in RUN_LIST
+  #folder_name = "one_phase/eta/mehotra"
+  #if_mkdir("../results/$folder_name")
+  #my_par.agg_eta = :mehrotra
+  #run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+
+  folder_name = "one_phase/eta/mehrotra_stb"
+  if_mkdir("../results/$folder_name")
+  my_par.agg_eta = :mehrotra_stb
+  run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+
+  folder_name = "one_phase/eta/affine"
+  if_mkdir("../results/$folder_name")
+  my_par.agg_eta = :affine
   run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

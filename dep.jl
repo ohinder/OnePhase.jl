@@ -4,7 +4,7 @@ ssh ohinder@sherlock.stanford.edu
 sdev
 ml load CUTEst/linux-cutest
 ml load julia/precompiled/0.5.0
-ml load hdf5x
+ml load hdf5
 julia main.jl
 
 # sync to sherlock

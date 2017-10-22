@@ -1,4 +1,5 @@
 abstract abstract_KKT_system_solver;
+abstract abstract_schur_solver <: abstract_KKT_system_solver;
 
 function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_iterate)
     initialize!(kkt_solver.ls_solver)
@@ -6,15 +7,17 @@ function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_it
 end
 
 function predicted_lag_change(kkt_solver::abstract_KKT_system_solver)
-    J = get_jac(kkt_solver.factor_it)
+    #J = get_jac(kkt_solver.factor_it)
+    fi = kkt_solver.factor_it
+
     dir_x = kkt_solver.dir.x
     dir_y = kkt_solver.dir.y
 
-    tmp1 = J * dir_x
+    tmp1 = eval_jac_prod(fi, dir_x)
     tmp2 = kkt_solver.delta_s_vec .* tmp1
-    tmp3 = J' * tmp2
+    tmp3 = eval_jac_T_prod(fi, tmp2)
     delta_err = kkt_solver.delta_x_vec .* dir_x + tmp3
-    J_err = J' * dir_y
+    J_err = eval_jac_T_prod(fi, dir_y)
     H_err = hess_product(kkt_solver.factor_it, dir_x)
     return delta_err + H_err - J_err
 end
@@ -48,7 +51,7 @@ function update_kkt_error!(ss::abstract_KKT_system_solver, p::Float64, timer::cl
     pause_advanced_timer(timer, "update_kkt_error/compute/D")
 
     start_advanced_timer(timer, "update_kkt_error/compute/P")
-    error_P = get_jac(factor_iter) * dir.x - dir.s - rhs.primal_r;
+    error_P = eval_jac_prod(factor_iter,dir.x) - dir.s - rhs.primal_r;
     pause_advanced_timer(timer, "update_kkt_error/compute/P")
 
     start_advanced_timer(timer, "update_kkt_error/compute/mu")
@@ -201,6 +204,13 @@ function pick_KKT_solver(pars::Class_parameters)
     end
   elseif kkt_solver_type == :schur
     my_kkt_solver = Schur_KKT_solver()
+    if linear_solver_type == :julia
+      my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe)
+    elseif linear_solver_type == :mumps
+      my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe)
+    end
+  elseif kkt_solver_type == :schur_direct
+    my_kkt_solver = Schur_KKT_solver_direct()
     if linear_solver_type == :julia
       my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe)
     elseif linear_solver_type == :mumps

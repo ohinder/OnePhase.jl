@@ -4,8 +4,9 @@ type Class_cache
     fval::Float64
     cons::Array{Float64,1}
     grad::Array{Float64,1}
-    J::SparseMatrixCSC{Float64,Int32}
-    H::SparseMatrixCSC{Float64,Int32}
+    J::SparseMatrixCSC{Float64,Int64}
+    J_T::SparseMatrixCSC{Float64,Int64}
+    H::SparseMatrixCSC{Float64,Int64}
     fval_updated::Bool
     cons_updated::Bool
     grad_updated::Bool
@@ -47,8 +48,7 @@ type Class_iterate
     # regularizer info
     x_norm_penalty_par::Float64
     a_norm_penalty_par::Float64
-    is_stb::Bool
-    use_prox::Bool
+    use_reg::Bool
 
     function Class_iterate()
         return new();
@@ -64,8 +64,7 @@ type Class_iterate
       this.ncon = length(intial_point.y)
       this.x_norm_penalty_par = pars.x_norm_penalty;
       this.a_norm_penalty_par = pars.a_norm_penalty;
-      this.is_stb = true
-      this.use_prox = pars.use_prox
+      this.use_reg = pars.use_reg
 
       @assert(this.ncon == length(intial_point.y))
 
@@ -82,11 +81,6 @@ type Class_iterate
       return this
     end
 end
-
-function use_prox(it::Class_iterate)
-    return  it.is_stb * it.use_prox
-end
-
 
 function validate(it::Class_iterate)
     @assert(it.nvar == length(it.point.x))
@@ -110,8 +104,7 @@ function copy(it::Class_iterate, timer::class_advanced_timer)
 
    new_it.a_norm_penalty_par = it.a_norm_penalty_par;
    new_it.x_norm_penalty_par = it.x_norm_penalty_par;
-   new_it.is_stb = it.is_stb
-   new_it.use_prox = it.use_prox
+   new_it.use_reg = it.use_reg
 
    new_it.cache = it.cache
    copy_cache!(new_it, timer)
@@ -121,7 +114,7 @@ end
 
 function finite_diff_check(it::Class_iterate)
    approx_grad = Calculus.gradient(it.nlp.eval_f, it.point.x)
-   actual_grad = it.nlp.eval_grad_lag(it.point.x, zeros(length(it.point.y)))
+   actual_grad = it.nlp.eval_grad_lag(it.point.x, 0.0, zeros(length(it.point.y)))
    @assert(norm(approx_grad -  actual_grad, 2) < 1e-3)
 
    actual_jac = it.nlp.eval_jac(it.point.x)
@@ -195,6 +188,7 @@ function copy_cache!(it::Class_iterate, timer::class_advanced_timer)
 
     new_cache = Class_cache()
     new_cache.J = deepcopy(cache.J)
+    new_cache.J_T = deepcopy(cache.J_T)
     new_cache.J_updated = false
     new_cache.H = deepcopy(cache.H)
     new_cache.H_updated = false
@@ -283,7 +277,7 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
       denominator = (beta^2 * x.^2 + 1.0) .* sqrt( x.^2 + 1.0 / beta^2 )
       H_x_norm = spdiagm( lambda ./ denominator)
 
-      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0) + H_x_norm
+      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0) + H_x_norm * pars.use_prox
       #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
       it.cache.H_updated = true
     end
@@ -331,6 +325,7 @@ function update_J!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
     start_advanced_timer(timer, "CACHE/update_J")
     @assert(length(it.point.x) == length(it.cache.grad))
     it.cache.J = eval_jac(it.nlp, it.point.x)
+    it.cache.J_T = it.cache.J'
     it.cache.J_updated = true
     if isbad(nonzeros(it.cache.J))
         println("NaN or Inf in J")

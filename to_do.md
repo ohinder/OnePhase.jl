@@ -1,7 +1,16 @@
-Short term:
-- *remove need for additional function evaluations on proximal term*
-- *improve efficiency of schur complement and eval_jac*
+Current changes:
+- replaced proximal crap etc
+- dual fraction to boundary
+- dual line search
+- aggressive switch
 
+Changes:
+- descent direction for ls
+-
+
+Short term:
+- *add criterion to ensure is descent direction on agg merit function*
+- *improve efficiency of schur complement and eval_jac*
 
 - deal correctly with exceptions
 - add parameters for termination criterion
@@ -14,7 +23,6 @@ Short term:
 *- mu stuff *
 
 *- initialization scheme*
-
 - *fix error with predicted reduction of complementarity*
 - **stabilization should prioritize complementarity if dual is small and comp not satisfied**
 - *measure complementarity in output in relative terms*

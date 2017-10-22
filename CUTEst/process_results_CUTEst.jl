@@ -21,7 +21,7 @@ results["4"] = load("../results/one_phase/sept_4_corrections/summary.jld", "summ
 
 # #=
 #results["0"] = load("../results/one_phase/dual_ls_0/summary.jld", "summary")
-results["1"] = load("../results/one_phase/dual_ls_1/summary.jld", "summary")
+#results["1"] = load("../results/one_phase/dual_ls_1/summary.jld", "summary")
 #results["2"] = load("../results/one_phase/dual_ls_2/summary.jld", "summary")
 # =#
 
@@ -41,6 +41,11 @@ results["IPOPT"] = convert_JuMP(load("../results/ipopt/infeas-3/summary.jld", "s
 results["regularizer"] = load("../results/one_phase/sept_no_regularizer/summary.jld", "summary")
 results["no_regularizer"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
 =#
+
+
+#results["eta_affine"] = load("../results/one_phase/eta/affine/summary.jld", "summary")
+#results["eta_mehrotra_stb"] = load("../results/one_phase/eta/mehrotra_stb/summary.jld", "summary")
+
 
 #=
 results["norm tol"] = load("../results/one_phase/norm_tol/summary.jld", "summary")
@@ -63,14 +68,14 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 
 # compare one phase and ipopt
 
-results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
+#results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
 #results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
 
+results["sept 2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
+results["Oct21"] = load("../results/one_phase/Oct21/summary.jld", "summary")
 
-
-
-#min_num = 0
-min_num = 100
+min_num = 0
+#min_num = 100
 max_num = 10000
 function lrg_problems(problem)
     regular = problem["derivative_order"] >= 2 && problem["regular"] == true && problem["constraints"]["number"] >= 1
