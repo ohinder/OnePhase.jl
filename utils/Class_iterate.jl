@@ -270,12 +270,12 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
     # regularizer
     begin
       lambda = it.point.mu #* use_prox(it)
-      y_rx = lambda * it.a_norm_penalty_par
+      y_rx = lambda * it.a_norm_penalty_par * pars.use_prox
 
       x = it.point.x
       beta = it.x_norm_penalty_par
-      denominator = (beta^2 * x.^2 + 1.0) .* sqrt( x.^2 + 1.0 / beta^2 )
-      H_x_norm = spdiagm( lambda ./ denominator)
+      denominator = ( x.^2 + 1.0 / beta^2 ).^(3/2)
+      H_x_norm = spdiagm( beta^2 *  lambda ./ denominator)
 
       it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0) + H_x_norm * pars.use_prox
       #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)

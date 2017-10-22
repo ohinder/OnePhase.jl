@@ -8,11 +8,12 @@ my_par = Class_parameters()
 my_par.MAX_TIME = TIME_LIMIT
 
 # :dynamic,
-#RUN_LIST = ARGS
+RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = []
+#RUN_LIST = []
 
 problem_list = default_list()
+#problem_list = get_problem_list(100,200)
 
 #test_problems(problem_list,1)
 if false
@@ -29,8 +30,22 @@ for problem in problem_list
 end
 end
 
-if true
-folder_name = "one_phase/Oct21"
+if "penalty_prox" in RUN_LIST
+folder_name = "one_phase/Oct21_penalty_prox"
+my_par.x_norm_penalty = 1e-8
+my_par.a_norm_penalty = 1e-4
+my_par.use_prox = true
+my_par.use_reg = true
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if "penalty_full" in RUN_LIST
+folder_name = "one_phase/Oct21_penalty_full"
+my_par.x_norm_penalty = 1e-8
+my_par.a_norm_penalty = 1e-4
+my_par.use_prox = false
+my_par.use_reg = true
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

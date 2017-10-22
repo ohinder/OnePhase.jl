@@ -38,7 +38,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("QPCBOEI1")
 #nlp_raw2 = CUTEstModel("PT") # 13 ITS
 #nlp_raw2 = CUTEstModel("AGG") # 153 ITS
-nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
+#nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw2 = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw2 = CUTEstModel("FLETCHCR")
 #nlp_raw2 = CUTEstModel("GENHUMPS")
@@ -104,6 +104,7 @@ nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
 #mean(abs(jac(nlp_raw2, nlp_raw2.meta.x0)))
 #finalize(nlp_raw2)
 
+nlp_raw2 = CUTEstModel("MANNE")
 ## HARD PROBLEMS
 #nlp_raw2 = CUTEstModel("STEENBRD")
 #nlp_raw2 = CUTEstModel("ACOPR14")

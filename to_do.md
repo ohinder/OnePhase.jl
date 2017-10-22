@@ -3,6 +3,7 @@ Current changes:
 - dual fraction to boundary
 - dual line search
 - aggressive switch
+- fix max delta so it doesn't cause error
 
 Changes:
 - descent direction for ls

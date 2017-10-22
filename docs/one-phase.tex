@@ -244,7 +244,7 @@ The idea is to solve sequence of these subproblems with $\mu \rightarrow 0$ and 
 \end{flalign}
 with some vector $\conWeight \ge 0$ that remains fixed for all subproblems, and some $\vioVar > 0$ that measures the size of the shift. The function $\regularizer : \R^{\nvar} \rightarrow \R$ is define by
 \begin{flalign}\label{def:regularizer}
-\regularizer(x) := \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} - \parConRegularizer e^T \cons(x),
+\regularizer(x) := \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} + \parConRegularizer e^T \cons(x),
 \end{flalign}
 where $\parRegularizer, \parConRegularizer \in (0,1)$ are constants with default values $\parRegularizerValue$ and $\parConRegularizerValue$ respectively. Note that as $\mu \rightarrow 0$ the impact of the regularizer $\regularizer$ diminishes. The regularizer enables us to guarantee that if the norm of the primal iterates diverges toward infinity then the function $\obj(x)$ tends toward negative infinity (Theorem~\ref{thm:global-convergence}). Without the regularizer the primal iterates may diverge. For example, consider the problem $\min{ 0 } \text{ s.t. }  x \le 0$. With $\parRegularizer  = \parConRegularizer = 0$, the function $\barrier_{\mu}(x) = - \mu \log(\mu - x)$ has an optimal solution at $x = -\infty$. We remark with $\parRegularizer = 0$ and $\parConRegularizer > 0$ that this modification of the log barrier function is similar to previous works \hinder{more refs} \cite[Section 3.7]{wachter2006implementation}.
 %\todo{say something more vague or cite theorem}
@@ -307,6 +307,7 @@ where $\delta > 0$ ensures $\schur + \delta I$ is positive definite and the matr
 \begin{flalign}\label{eq:schur-matrix}
 \schur = \grad^2_{x} \Lag_{\hat{\mu}} (\hat{x}, \hat{y}) + \hat{\mu} \grad^2 r(\hat{x})  + \grad \cons(\hat{x})^T \hat{Y} \hat{S}^{-1} \grad \cons(\hat{x}).
 \end{flalign}
+\hinder{maybe make this a zero???}
 We factorize the matrix $\schur + \delta I$ using a Cholesky decomposition, with $\delta$ chosen to ensure $\schur$ is positive definite. This factorization $\schur + \delta I$ is computed at the beginning of each outer iteration and is recycled during the inner iterations of the algorithm. This reduces the number of factorizations our algorithm requires.
 
 The direction for the slack variables and dual variables is
@@ -397,7 +398,7 @@ $$
 $$
 hence $\schur$ is a primal-dual approximation of the hessian of the log barrier function.
 
-We emphasize that is similar to forming the schur complement in linear programming, however, we are forming the primal schur complement, i.e., the system is written in terms of the primal variables instead of the dual variables. This is a critical distinction for non linear programming because the dual schur complement may involved forming a dense matrix and if this matrix is dense. Furthermore, unlike reduced Hessian methods  \cite{}, the matrix $\schur$ is generally system sparse.
+We emphasize that is similar to forming the schur complement in linear programming, however, we are forming the primal schur complement, i.e., the system is written in terms of the primal variables instead of the dual variables. This is a critical distinction for non linear programming because the dual schur complement may involved forming a dense matrix and if this matrix is dense. Furthermore, unlike reduced Hessian methods  \cite{walterThesis1,walterThesis2}, the matrix $\schur$ is generally system sparse. In fact, a likely reason that $\schur$ is not sparse is that the Jacobin $\grad \cons(x)$ has a dense row. This, however, could be eliminated through row stretching of the original problem, as is done for columns in linear programming \cite{grcar2012matrix,vanderbei1991splitting,lustig1991formulating}.
 
 
 

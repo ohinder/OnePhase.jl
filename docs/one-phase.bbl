@@ -1,4 +1,4 @@
-\begin{thebibliography}{33}
+\begin{thebibliography}{36}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -51,6 +51,11 @@ E.~D. Dolan and J.~J. Mor{\'e}.
 \newblock \emph{Mathematical programming}, 91\penalty0 (2):\penalty0 201--213,
   2002.
 
+\bibitem[Doyle(2003)]{walterThesis1}
+M.~Doyle.
+\newblock \emph{A barrier algorithm for large nonlinear optimization problems}.
+\newblock PhD thesis, Stanford, 2003.
+
 \bibitem[Fiacco and McCormick(1990)]{fiacco1990nonlinear}
 A.~V. Fiacco and G.~P. McCormick.
 \newblock \emph{Nonlinear programming: sequential unconstrained minimization
@@ -84,6 +89,11 @@ N.~I. Gould, D.~Orban, and P.~L. Toint.
 \newblock \emph{Numerical Analysis and Optimization}, pages 117--150,
   2015{\natexlab{b}}.
 
+\bibitem[Grcar(2012)]{grcar2012matrix}
+J.~F. Grcar.
+\newblock Matrix stretching for linear equations.
+\newblock \emph{arXiv preprint arXiv:1203.2377}, 2012.
+
 \bibitem[Haeser et~al.(2017)Haeser, Hinder, and Ye]{haeser2017behavior}
 G.~Haeser, O.~Hinder, and Y.~Ye.
 \newblock On the behavior of lagrange multipliers in convex and non-convex
@@ -102,6 +112,12 @@ N.~Karmarkar.
 \newblock A new polynomial-time algorithm for linear programming.
 \newblock In \emph{Proceedings of the sixteenth annual ACM symposium on Theory
   of computing}, pages 302--311. ACM, 1984.
+
+\bibitem[Kaustuv(2008)]{walterThesis2}
+Kaustuv.
+\newblock \emph{IPSOL: AN INTERIOR POINT SOLVER FOR NONCONVEX OPTIMIZATION
+  PROBLEMS}.
+\newblock PhD thesis, Stanford, 2008.
 
 \bibitem[Kojima et~al.(1989)Kojima, Mizuno, and Yoshise]{kojima1989primal}
 M.~Kojima, S.~Mizuno, and A.~Yoshise.

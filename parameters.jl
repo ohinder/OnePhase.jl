@@ -19,7 +19,7 @@ type Class_delta_parameters
 
     function Class_delta_parameters()
         this = new()
-        this.max = 10.0^(40.0)
+        this.max = 10.0^(60.0)
         this.max_it = 200
         this.start = 1e-6
         this.zero = 0.0
@@ -211,7 +211,7 @@ type Class_parameters
         this.use_reg = true # i.e. modify the gradient/phi/lag
         this.proximal_style = :fixed
 
-        this.x_norm_penalty = 1e-16 #1e-8
+        this.x_norm_penalty = 1e-8 #1e-8
         this.a_norm_penalty = 1e-4
 
         # Don't change these parameters except for experimentation

@@ -24,9 +24,9 @@ type Class_agg_ls <: abstract_ls_info
         eta = - dir.mu / get_mu(iter)
         gamma = 1.0 - eta
         y_tilde = (gamma * get_mu(iter) - eta * iter.point.y .* get_primal_res(iter)) ./ iter.point.s
-        #this.do_ls = dot(eval_grad_lag(iter, get_mu(iter) * gamma, y_tilde), dir.x) < 0.0
-        
-        this.do_ls = true
+        this.do_ls = dot(eval_grad_lag(iter, get_mu(iter) * gamma, y_tilde), dir.x) < 0.0
+
+        #this.do_ls = true
         #norm(comp_predicted(iter,dir,1.0),Inf) < get_mu(iter) / pars.comp_feas_agg
         return this
     end
