@@ -1,7 +1,7 @@
 
-function merit_function_anticipated_reduction(iter, dir)
-    return norm(comp(iter),Inf)^3 / (iter.point.mu)^2 + norm(dir.x,2)^2 * get_delta(iter)
-end
+#function merit_function_anticipated_reduction(iter, dir)
+#    return norm(comp(iter),Inf)^3 / (iter.point.mu)^2 + norm(dir.x,2)^2 * get_delta(iter)
+#end
 
 type Class_filter_ls <: abstract_ls_info
     step_size_P::Float64

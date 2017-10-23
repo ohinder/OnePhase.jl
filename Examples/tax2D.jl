@@ -25,7 +25,7 @@ using Ipopt
 
 
 srand(1)
-n = 10
+n = 5
 
 A = 1:n;
 B = 1:n;

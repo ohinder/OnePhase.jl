@@ -14,8 +14,20 @@
 
 \maketitle
 
+%\def\inProgress{1}
+\def\inProgress{0}
+
+\if\inProgress1
+\newcommand{\inProgressHide}[1]{} % hide
+\newcommand{\yinyu}[1]{}
+\newcommand{\hinder}[1]{}
+\else
+\newcommand{\inProgressHide}[1]{#1} % show
 \newcommand{\yinyu}[1]{{\color{red} Yinyu: #1}}
 \newcommand{\hinder}[1]{{\color{red}{Hinder: #1}}}
+\fi
+
+
 
 \newcommand{\algorithmicbreak}{\textbf{break}}
 \newcommand{\obj}{f}
@@ -26,6 +38,8 @@
 
 \newcommand{\eye}{I}
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %% BEGIN ALG PARS
@@ -33,7 +47,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\newcommand{\parNumCor}{c_{\max}}
+\newcommand{\parNumCor}{j_{\max}}
 \newcommand{\parNumCorValue}{2}
 
 
@@ -94,17 +108,25 @@
 %\newcommand{\parFilterReduceBarrier}{\beta_{13}}
 %\newcommand{\parMaxRatioPrimalMu}{\beta_{14}}
 
-\newcommand{\parDeltaMin}{\delta_{\min}}
+\newcommand{\parDeltaMin}{\Delta_{\min}}
 \newcommand{\parDeltaMinValue}{10^{-8}}
 \newcommand{\parDeltaMinInterval}{(0,\infty)}
 
-\newcommand{\parDeltaIncreaseFailure}{\delta_{\text{inc}}}
+\newcommand{\parDeltaIncreaseFailure}{\Delta_{\text{inc}}}
 \newcommand{\parDeltaIncreaseFailureValue}{8}
 \newcommand{\parDeltaIncreaseFailureInterval}{(0,\infty)}
 
-\newcommand{\parDeltaMax}{\delta_{\max}}
-\newcommand{\parDeltaMaxValue}{10^{20}}
+\newcommand{\parDeltaDecrease}{\Delta_{\text{dec}}}
+\newcommand{\parDeltaDecreaseValue}{8}
+\newcommand{\parDeltaDecreaseInterval}{(0,\infty)}
+
+
+\newcommand{\parDeltaMax}{\Delta_{\max}}
+\newcommand{\parDeltaMaxValue}{10^{40}}
 \newcommand{\parDeltaMaxInterval}{(\parDeltaMin,\infty)}
+
+\newcommand{\deltaPrev}{\delta_{\text{prev}}}
+
 
 % tol
 
@@ -140,8 +162,8 @@
 \newcommand{\barrier}{\psi}
 \newcommand{\regularizer}{r}
 \renewcommand{\R}{\mathbb{R}}
-\newcommand{\schur}{\mathcal{M}}
-%\newcommand{\schur}[1]{\mathcal{M}#1}
+\newcommand{\Schur}{\mathcal{M}}
+%\newcommand{\Schur}[1]{\mathcal{M}#1}
 \newcommand{\MatrixSchur}[2]{\mathcal{H}_{#1}(#2)}
 
 
@@ -177,6 +199,10 @@
 
 \newcommand{\backtrackBlurb}{\emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha_{P} \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, \parBacktracking^2 \alpha^{\max}_{P}, \dots \}$ computing the trial point $(x^{+}, y^{+}, s^{+}, \mu^{+})$ as described in \eqref{eq:iterate-update} and \eqref{eq:alpha-D}. Terminate with $\status = \success$ and return the trial point the first time each of the following conditions hold:}
 
+\begin{center}
+\color{red}
+\large Draft: Please do not distribute
+\end{center}
 
 \begin{abstract}
 The work of \citeauthor*{wachter2000failure} suggests that infeasible-start interior point methods (IPMs) developed for linear programming cannot be adapted to non linear optimization without significant modification, i.e., using a two-phase or penalty method. We propose an IPM that, by careful initialization and updates of the slack variables, is guaranteed to find a first-order certificate of local infeasibility, local optimality or unboundedness. Our proposed algorithm differs from other IPM methods for non-convex programming because we reduce primal feasibility at the same rate as the barrier parameter. This gives an algorithm with more robust convergence properties and closely resembles successful algorithms from linear programming. We implement the algorithm and compare with IPOPT on a subset of CUTEst problems. Our algorithm requires a similar median number of iterations, but fails on only 9\% compared with 16\% for IPOPT. Experiments on infeasible variants of the CUTEst problems indicate superior performance for detecting infeasibility. Finally, a major benefit of our approach is that instead of using LDL we can use a Cholesky decomposition on sparse linear systems with dimension equal to the number of variables.
@@ -200,7 +226,15 @@ This paper develops an interior point method for finding stationary points of th
 \end{flalign}
 where the functions $a : \R^{\nvar} \rightarrow \R^{\ncon}$ and $f : \R^{\nvar} \rightarrow \R$ are twice differentiable and might be non-convex. Examples of real-world problems in this framework include truss design, robot control, aircraft control, and aircraft design, e.g., the problems TRO11X3, ROBOT, AIRCRAFTA, AVION2 in CUTEst \cite{gould2015cutest}. 
 
-Interior point methods were first developed by \citeauthor*{karmarkar1984new} for linear programming. The idea for primal-dual interior point methods originates with \citeauthor*{megiddo1989pathways}. Initially, algorithms that required a feasible starting point were studied \cite{kojima1989primal,monteiro1989interior}. However, generally one is not given an initial point that is feasible. A naive solution to this issue is to move the constraints into the objective  by adding a large penalty for constraint violation (Big-M method) \cite{mcshane1989implementation}. A method to avoid the penalty approach, with a strong theoretical foundation for linear programming, is the homogeneous algorithm \cite{ye1994nl,andersen1999homogeneous,andersen1998computational}. This algorithm measures progress in terms of the KKT error, which may not monotonically decrease in the presence of non-convexity \hinder{ref appendix or something}. It is therefore difficult to generalize the homogeneous algorithm is difficult to non linear optimization. An alternate to the homogeneous algorithm is the infeasible-start algorithm of Lustig \cite{lustig1990feasibility}, which has fewer numerical issues and a smaller iteration count than the big-M method of \cite{mcshane1989implementation}. This approach also simplifies the algorithm by avoiding the need to make a good initial guess for the size of the penalty parameters. Lustig's approach was further improved in the predictor-corrector algorithm of \cite{mehrotra1992implementation}. This algorithm reduced complementarity, duality and primal feasibility at the same rate, using an adaptive heuristic. This class of methods was shown by \cite{todd2003detecting} to converge to optimality or infeasibility certificates (of the primal or dual). 
+Interior point methods were first developed by \citeauthor*{karmarkar1984new} for linear programming. The idea for primal-dual interior point methods originates with \citeauthor*{megiddo1989pathways}. Initially, algorithms that required a feasible starting point were studied \cite{kojima1989primal,monteiro1989interior}. However, generally one is not given an initial point that is feasible. A naive solution to this issue is to move the constraints into the objective  by adding a large penalty for constraint violation (Big-M method) \cite{mcshane1989implementation}. A method to avoid the penalty approach, with a strong theoretical foundation for linear programming, is the homogeneous algorithm \cite{ye1994nl,andersen1999homogeneous,andersen1998computational}. This algorithm measures progress in terms of the KKT error, which may not monotonically decrease in the presence of non-convexity\footnote{This occurs even in the one-dimensional unconstrained case this is a problem, .e.g., consider minimizing the function $f(x)=-9 x - 3 x^2 + x^4/4$ starting from zero we the gradient norm increases then decreases before reaching the minimizer and only stationary point at $x = 2$.}. It is therefore difficult to generalize the homogeneous algorithm is difficult to non linear optimization. An alternate to the homogeneous algorithm is the infeasible-start algorithm of Lustig \cite{lustig1990feasibility}, which has fewer numerical issues and a smaller iteration count than the big-M method of \cite{mcshane1989implementation}. This approach also simplifies the algorithm by avoiding the need to make a good initial guess for the size of the penalty parameters. Lustig's approach was further improved in the predictor-corrector algorithm of \cite{mehrotra1992implementation}. This algorithm reduced complementarity, duality and primal feasibility at the same rate, using an adaptive heuristic. This class of methods was shown by \cite{todd2003detecting} to converge to optimality or infeasibility certificates (of the primal or dual). 
+
+\hinder{ explain that one should view our work as operating on the dual.
+\begin{flalign}
+c^T x \\
+Ax = b \\
+x \ge 0
+\end{flalign}
+}
 
 %This infeasible-start algorithm was combined with predictor-corrector technique of Mehrotra \cite{ye1993quadratic} into an algorithm with excellent practical performance. 
 
@@ -270,10 +304,16 @@ where $\conWeight \ge 0$ is a vector for which $\cons(x^{0}) + s^{0} = \vioVar^0
 \begin{flalign}
 \frac{\| \grad_{x} \Lag_{\mu^k}(x^{k}, y^{k}) \|_{\infty}}{\mu^k(\| y^{k} \|_{\infty} + 1)} &\le 1, \label{eq:dual-feas}
 \end{flalign}
-where $\Lag_{\mu} (x, y) := \obj(x) + y^T \cons(x) + \mu r(x)$ is the regularized Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in many practical linear programming implementations \cite{mehrotra1992implementation, more}. These conditions are is desirable because they imply the dual variables are likely to remained bounded. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then as shown our related paper \cite{haeser2017behavior} the dual variables will remain bounded. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{megiddo1989pathways,andersen1999homogeneous}. Unfortunately, in non-convex optimization there may not exist a continuous central path (see Appendix~\ref{app:non-existence-of-central-path}).
+where $\Lag_{\mu} (x, y) := \obj(x) + y^T \cons(x) + \mu r(x)$ is the regularized Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in many practical linear programming implementations \cite{mehrotra1992implementation, more}. These conditions are is desirable because they imply the dual variables are likely to remained bounded. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables will remain bounded. We refer reader to our paper \cite{haeser2017behavior} for further understanding of how numericial issues.
 
-Related to this property of the dual multipliers being well-behaved, is that that our algorithm is explicitly designed for inequality constraints only (see Section~\ref{sec:linear-algebra} to explain how to incorporate lower and upper bounds). The advantage of this approach is that it: (i) enables us to satisfy \eqref{eq:barrier-primal-sequence-nice}  and (ii) we avoid the need for a second inertia modification parameter to ensure non-singularity of the linear system, i.e., $\delta_{c}$ in equation~(13) in \cite{wachter2006implementation}. Avoiding using $\delta_{c}$ removes issues where large modifications to the linear system may not provide a descent direction for the constraint violation. Furthermore, our algorithm is simpler because we do not need a scheme for choosing $\delta_{c}$. 
-%Furthermore, our approach naturally allows two options for computing the factorization and search directions, we can either (i) directly factorize the symmetric system~\eqref{eq:ldl-system} to compute $(d_{x},d_{y})$ using LDL, as is traditionally chosen by non linear programming solvers or (ii) perform a Cholesky factorization of equation \eqref{eq:schur-matrix}, the primal schur complement. 
+Related to this property of the dual multipliers being well-behaved, is that that our algorithm is explicitly designed for inequality constraints only. Nonetheless, we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise in other solvers \cite{haeser2017behavior}  (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation). The advantage of only using inequalities is that: 
+\begin{enumerate}
+\item It enables us to generate sequences satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas}.
+\item It allows us use a Cholesky factorization, instead of LDL (see end of Section~\ref{sub:direction-computation} for further discussion).
+\item We avoid the need for a second inertia modification parameter to ensure non-singularity of the linear system, i.e., $\delta_{c}$ in equation~(13) in \cite{wachter2006implementation}.  We can avoid using $\delta_{c}$ removes issues where large modifications to the linear system may not provide a descent direction for the constraint violation. 
+\end{enumerate}
+%Furthermore, our algorithm is simpler because we do not need a scheme for choosing $\delta_{c}$. 
+%Furthermore, our approach naturally allows two options for computing the factorization and search directions, we can either (i) directly factorize the symmetric system~\eqref{eq:ldl-system} to compute $(d_{x},d_{y})$ using LDL, as is traditionally chosen by non linear programming solvers or (ii) perform a Cholesky factorization of equation \eqref{eq:Schur-matrix}, the primal Schur complement. 
 
 %For an explanation on how to efficiently incorporate lower and upper bounds (or equalities) read Section~\ref{sec:linear-algebra}. 
 
@@ -281,6 +321,9 @@ Related to this property of the dual multipliers being well-behaved, is that tha
 %\todo{
 %interpretation of equality v.s. inequality constraints primal-dual methods 
 %}
+
+Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{megiddo1989pathways,andersen1999homogeneous}. Unfortunately, in non-convex optimization there may not exist a continuous central path (see Appendix~\ref{app:non-existence-of-central-path}).
+
 
 \subsection{Direction computation}\label{sub:direction-computation}
 Let:
@@ -295,20 +338,19 @@ b_{\mu}
 Y s - \gamma \mu e 
 \end{bmatrix} \label{def:b}
 \end{flalign}
-be aimed target change in the KKT residual error. The scalar $\gamma \in [0,1]$ represents the target reduction in constraint violation and barrier parameter $\mu$. When $\gamma = 1$ corresponds stabilization steps and $\gamma < 1$ aggressive steps. Our algorithm (Algorithm~\ref{one-phase-IPM}) consists of inner iterations and outer iterations. The inner iterations recycle the factorization of the matrix $\schur + \delta I$ that we compute on each outer iteration.
+be aimed target change in the KKT residual error. The scalar $\gamma \in [0,1]$ represents the target reduction in constraint violation and barrier parameter $\mu$. When $\gamma = 1$ corresponds stabilization steps and $\gamma < 1$ aggressive steps. Our algorithm (Algorithm~\ref{one-phase-IPM}) consists of inner iterations and outer iterations. The inner iterations recycle the factorization of the matrix $\Schur + \delta I$ that we compute on each outer iteration.
 The point $(\mu, x, s, y)$ denotes the iterate at the current inner iteration. Let the point $(\hat{x}, \hat{s}, \hat{y}, \hat{\mu})$ which is the iterate at beginning of the current outer iteration. 
 
 To compute the direction for the $x$ variables in the algorithm during an inner iteration, we solve
-\begin{flalign}\label{eq:schur-complement-system}
-(\schur + \delta I)  d_{x} = -\left( b_{D} + \grad \cons(\hat{x})^T \hat{S}^{-1} \left( \hat{Y} b_{P} - b_{\mu} \right) \right),
+\begin{flalign}\label{eq:Schur-complement-system}
+(\Schur + \delta I)  d_{x} = -\left( b_{D} + \grad \cons(\hat{x})^T \hat{S}^{-1} \left( \hat{Y} b_{P} - b_{\mu} \right) \right),
 %- \grad \obj(x) - \grad \cons(x)^T (\gamma \mu S^{-1} e + \eta Y ( e +  \mu S^{-1}\conWeight ) - \mu \gamma \grad r(x).
 \end{flalign}
-where $\delta > 0$ ensures $\schur + \delta I$ is positive definite and the matrix $\schur$ is
-\begin{flalign}\label{eq:schur-matrix}
-\schur = \grad^2_{x} \Lag_{\hat{\mu}} (\hat{x}, \hat{y}) + \hat{\mu} \grad^2 r(\hat{x})  + \grad \cons(\hat{x})^T \hat{Y} \hat{S}^{-1} \grad \cons(\hat{x}).
+where $\delta > 0$ ensures $\Schur + \delta I$ is positive definite and the matrix $\Schur$ is
+\begin{flalign}\label{eq:Schur-matrix}
+\Schur = \grad^2_{x} \Lag_{\hat{\mu}} (\hat{x}, \hat{y}) + \hat{\mu} \grad^2 r(\hat{x})  + \grad \cons(\hat{x})^T \hat{Y} \hat{S}^{-1} \grad \cons(\hat{x}).
 \end{flalign}
-\hinder{maybe make this a zero???}
-We factorize the matrix $\schur + \delta I$ using a Cholesky decomposition, with $\delta$ chosen to ensure $\schur$ is positive definite. This factorization $\schur + \delta I$ is computed at the beginning of each outer iteration and is recycled during the inner iterations of the algorithm. This reduces the number of factorizations our algorithm requires.
+We factorize the matrix $\Schur + \delta I$ using a Cholesky decomposition, with $\delta$ chosen to ensure $\Schur$ is positive definite. This factorization $\Schur + \delta I$ is computed at the beginning of each outer iteration and is recycled during the inner iterations of the algorithm. This reduces the number of factorizations our algorithm requires.
 
 The direction for the slack variables and dual variables is
 \begin{flalign}
@@ -385,25 +427,28 @@ b_{P} - Y^{-1} b_{\mu}
 \end{bmatrix}.
 \end{flalign}
 
-%Aside from performing a Cholesky factorization of $\schur + \delta I$, we can also determine that the matrix is positive definite by computing the number of positive and negative elements in the diagonal of the LDL factorization of \eqref{eq:ldl-system}. A more in-depth discussion of the linear algebra details will be given in Section~\ref{sec:linear-algebra}.
+%Aside from performing a Cholesky factorization of $\Schur + \delta I$, we can also determine that the matrix is positive definite by computing the number of positive and negative elements in the diagonal of the LDL factorization of \eqref{eq:ldl-system}. A more in-depth discussion of the linear algebra details will be given in Section~\ref{sec:linear-algebra}.
 
 %One could factorize this system using an LDL factorization. However, we further reduce the system to a problem only involving the $d_{x}$ variable.
-This is similar to the system typically factorized by non linear programming solvers using LDL \cite{wachter2006implementation,byrd2006knitro}. However, due to the $Y^{-1} S$ block we can further reduce the system. By taking the primal schur complement we see solving \eqref{primal-dual-Newton-direction} for $d_{x}$ is equivalent to solving:
+This is similar to the system typically factorized by non linear programming solvers using LDL \cite{wachter2006implementation,byrd2006knitro,vanderbei1999loqo,andersen1998computational}. However, due to the $Y^{-1} S$ block we can further reduce the system. By taking the primal Schur complement we see solving \eqref{primal-dual-Newton-direction} for $d_{x}$ is equivalent to solving:
 \begin{flalign*}
-(\schur + \delta I)  d_{x} = -\left( b_{D} + \grad \cons(x)^T S^{-1} \left( Y b_{P} - b_{\mu} \right) \right).
+(\Schur + \delta I)  d_{x} = -\left( b_{D} + \grad \cons(x)^T S^{-1} \left( Y b_{P} - b_{\mu} \right) \right).
 \end{flalign*}
-Note that if the matrix $\schur + \delta I$ is positive definite and $\gamma = 1$, then the right-hand side of \eqref{eq:schur-complement-system} becomes $-\grad \barrier_{\mu}(x)$ hence  $d_{x}$ is a descent direction for the function $\barrier_{\mu}(x)$. Consequently, during our algorithm we pick $\delta > 0$ such that $\schur + \delta I$ is positive definite. Furthermore, note that if $Y = S^{-1} \mu$ then the previous expression reduces to
+Note that if the matrix $\Schur + \delta I$ is positive definite and $\gamma = 1$, then the right-hand side of \eqref{eq:Schur-complement-system} becomes $-\grad \barrier_{\mu}(x)$ hence  $d_{x}$ is a descent direction for the function $\barrier_{\mu}(x)$. Consequently, during our algorithm we pick $\delta > 0$ such that $\Schur + \delta I$ is positive definite. Furthermore, note that if $Y = S^{-1} \mu$ then the previous expression reduces to
 $$
 (\hess \psi_{\mu}(x) + \delta I) d_{x}  = - \grad \psi_{\mu}(x),
 $$
-hence $\schur$ is a primal-dual approximation of the hessian of the log barrier function.
+hence $\Schur$ is a primal-dual approximation of the hessian of the log barrier function.
 
-We emphasize that is similar to forming the schur complement in linear programming, however, we are forming the primal schur complement, i.e., the system is written in terms of the primal variables instead of the dual variables. This is a critical distinction for non linear programming because the dual schur complement may involved forming a dense matrix and if this matrix is dense. Furthermore, unlike reduced Hessian methods  \cite{walterThesis1,walterThesis2}, the matrix $\schur$ is generally system sparse. In fact, a likely reason that $\schur$ is not sparse is that the Jacobin $\grad \cons(x)$ has a dense row. This, however, could be eliminated through row stretching of the original problem, as is done for columns in linear programming \cite{grcar2012matrix,vanderbei1991splitting,lustig1991formulating}.
+We emphasize that is similar to forming the dual Schur complement in linear programming, however, we are forming the primal Schur complement, i.e., the system is written in terms of the primal variables instead of the dual variables. This is a critical distinction for non linear programming because the dual Schur complement may involved forming a dense matrix and if this matrix is dense. Furthermore, unlike reduced Hessian methods  \cite{walterThesis1,walterThesis2}, the matrix $\Schur$ is generally system sparse. In fact, a likely reason that $\Schur$ is not sparse is that the Jacobin $\grad \cons(x)$ has a dense row. This, however, could be eliminated through row stretching of the original problem, as is done for columns in linear programming \cite{grcar2012matrix,vanderbei1991splitting,lustig1991formulating}. 
+
+%Of course in many situations an LDL factorization might be faster, but having both options available enables.
+
+\hinder{importance of boundedness of dual multipliers for Cholesky factorization to be numerically stable, instability of LDL}
 
 
 
-
-%Let us comment on the choice of the matrix $\schur$. First note if $Y = \mu S^{-1}$ then ...
+%Let us comment on the choice of the matrix $\Schur$. First note if $Y = \mu S^{-1}$ then ...
 
 
 
@@ -412,8 +457,8 @@ We emphasize that is similar to forming the schur complement in linear programmi
 
 
 % old strategy
-%\begin{flalign}\label{eq:schur-complement-system}
-%(\schur + \delta I)  d_{x} &= - \grad \Lag_{\gamma \mu}(x, \tilde{y}) \\
+%\begin{flalign}\label{eq:Schur-complement-system}
+%(\Schur + \delta I)  d_{x} &= - \grad \Lag_{\gamma \mu}(x, \tilde{y}) \\
 %\tilde{y} &= \gamma \mu S^{-1} e + (1 - \gamma) Y ( e + S^{-1} \mu w)
 %\end{flalign}
 %
@@ -521,7 +566,7 @@ $$
 $$
 with $\conWeight \ge 0$ and $\vioVar^{0} > 0$. For any fixed $x^{0}$ one can always pick sufficiently large $\conWeight$ and $\mu^{0}$ such that $\mu^{0} \conWeight > \cons(x^{0})$, and setting $s^{0} \gets \conWeight \vioVar^{0} - \cons(x^{0})$ meets our requirements. For the details of how to initialize the variables in the practical implementation, see Section~\ref{sec:initialization}.
 
-The general idea of Algorithm~\ref{one-phase-IPM} follows. At each outer iteration we factorize the matrix $\schur_{\delta}$ with an appropriate choice of $\delta$ using Algorithm~\ref{alg:mat-fact}. With this factorization fixed, we attempt to take multiple inner iterations (at most $\parNumCor$), which corresponds to solving system~\eqref{primal-dual-Newton-direction} with different right-hand side choices, but the same matrix $\schur_{\delta}$. Each inner iteration is either an aggressive or a stabilization step. If, on the first inner iteration, the step fails (i.e. due to a too small step size), we increase $\delta$ to address this failure and refactorize $\schur_{\delta}$. Note that we evaluate the Hessian of the Lagrangian once per outer iteration. The selection of the initial point $(x^{0}, y^{0}, s^{0}, \mu^{0})$ is described in Section~\ref{sec:initialization}.
+The general idea of Algorithm~\ref{one-phase-IPM} follows. At each outer iteration we factorize the matrix $\Schur_{\delta}$ with an appropriate choice of $\delta$ using Algorithm~\ref{alg:mat-fact}. With this factorization fixed, we attempt to take multiple inner iterations (at most $\parNumCor$), which corresponds to solving system~\eqref{primal-dual-Newton-direction} with different right-hand side choices, but the same matrix $\Schur_{\delta}$. Each inner iteration is either an aggressive or a stabilization step. If, on the first inner iteration, the step fails (i.e. due to a too small step size), we increase $\delta$ to address this failure and refactorize $\Schur_{\delta}$. Note that we evaluate the Hessian of the Lagrangian once per outer iteration. The selection of the initial point $(x^{0}, y^{0}, s^{0}, \mu^{0})$ is described in Section~\ref{sec:initialization}.
 
 %\hinder{explain that the selection of the initial point is addressed later}
 %it is suffices to choose $\mu^{0} \conWeight > \cons(x^{0})$, although we choose $\conWeight_i = 1$ for
@@ -534,24 +579,24 @@ The general idea of Algorithm~\ref{one-phase-IPM} follows. At each outer iterati
 \begin{enumerate}[label*=A.{\arabic*}]
 %\item \label{step-1}  \emph{Evaluate the Hessian of the Lagrangian $\grad^2_{x} \Lag(x,y)$.} % and the Jacobian of the constraints $\grad \cons(x)$.}
 \item \label{line:form-K}  \emph{New outer iteration.} \\
-Set $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y}) \gets (\mu, x, s, y)$. Form the matrix $\schur$ using \eqref{eq:schur-matrix}.
-%\item \emph{Form primal schur complement at the current point $\schur$ via \eqref{}.}
-\item \emph{Select $\delta$ and factorize the matrix $\schur_{\delta}$,} \\
+Set $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y}) \gets (\mu, x, s, y)$. Form the matrix $\Schur$ using \eqref{eq:Schur-matrix}. Set $\deltaPrev \gets \delta$.
+%\item \emph{Form primal Schur complement at the current point $\Schur$ via \eqref{}.}
+\item \emph{Select $\delta$ and factorize the matrix $\Schur_{\delta}$,} \\
 i.e., run Algorithm~\ref{alg:mat-fact} with: \\
-\hspace*{0.1cm}  \textbf{Input:} $\schur_{0}$, $\delta$. \\
-\hspace*{0.1cm} \textbf{Output:} New value for $\delta$, factorization of $\schur_{\delta}$.
-\item \label{take-steps}  \emph{Perform inner iterations where we recycle the factorization of $\schur_{\delta}$.} \\
+\hspace*{0.1cm}  \textbf{Input:} $\Schur_{0}$, $\delta$. \\
+\hspace*{0.1cm} \textbf{Output:} New value for $\delta$, factorization of $\Schur_{\delta}$.
+\item \label{take-steps}  \emph{Perform inner iterations where we recycle the factorization of $\Schur_{\delta}$.} \\
 For $j \in \{ 1, \dots , \parNumCor \}$ do:
 \begin{enumerate}[label*=.{\arabic*}]
 \item \emph{Take step}\label{line:take-step}
 \begin{enumerate}[label=-Case {\Roman*}]
 \item If the aggressive step criterion~\eqref{agg-criteron} is satisfied, do an aggressive step, \\
 i.e., run Algorithm~\ref{alg:aggressive} with: \\
-\hspace*{0.1cm}  \textbf{Input:} $\schur_{\delta}$, factorization of $\schur_{\delta}$, the point $(\mu, x, s, y)$ and $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y})$. \\
+\hspace*{0.1cm}  \textbf{Input:} $\Schur_{\delta}$, factorization of $\Schur_{\delta}$, the point $(\mu, x, s, y)$ and $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y})$. \\
 \hspace*{0.1cm}  \textbf{Output:} A $\status$ and a new point $(x^{+},y^{+},s^{+}, \mu^{+})$.
 \item Otherwise, do a stabilization step, \\
 i.e., run Algorithm~\ref{alg:stable} with: \\
-\hspace*{0.1cm} \textbf{Input:} $\schur_{\delta}$, factorization of $\schur_{\delta}$, the point $(\mu, x, s, y)$ and $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y})$. \\
+\hspace*{0.1cm} \textbf{Input:} $\Schur_{\delta}$, factorization of $\Schur_{\delta}$, the point $(\mu, x, s, y)$ and $(\hat{\mu}, \hat{x}, \hat{s}, \hat{y})$. \\
 \hspace*{0.1cm} \textbf{Output:} A $\status$ and a new point $(x^{+},y^{+},s^{+}, \mu^{+})$.
 \end{enumerate}
 \item \emph{Deal with failures}. \\
@@ -562,7 +607,7 @@ If any of the inequalities \termination{} hold at the point $(x,y,s,\mu)$ termin
 \item 
 Go to \eqref{line:form-K}.
 \item \label{increase-delta-for-failure} \emph{Increase $\delta$ to address failure.} \\
-Set $\delta = \max\{\parDeltaIncreaseFailure \delta, \parDeltaMin \}$ and factorize the matrix $\schur_{\delta}$. \\
+Set $\delta = \max\{\parDeltaIncreaseFailure \delta, \parDeltaMin, \deltaPrev \parDeltaDecrease \}$ and factorize the matrix $\Schur_{\delta}$. \\
 If $\delta \le \parDeltaMax$ go to step \eqref{take-steps}, otherwise terminate with $\status = \maxDelta$.
 \end{enumerate}
 \caption{High-level description of one-phase IPM}\label{one-phase-IPM}
@@ -583,18 +628,19 @@ corresponding to the right-hand side of \eqref{fracBoundaryPrimalMax} and \eqref
 
 Recall that when computing aggressive search directions we solve system~\eqref{primal-dual-Newton-direction} with $\gamma = 0$, that is, we aim for both feasibility and optimality simultaneously. We accept any step size assuming it satisfies the fraction to the boundary rule \eqref{fracBoundary-primal} and the set of valid dual step sizes are non-empty: $B( s^{+}, d_{y} ) \neq \emptyset$ (see equations~\eqref{subeq:set-B}). 
 
-To ensure that we do not perform unnecessary line searches, we only attempt an aggressive line search if the following inequalities holds:
+To ensure that we do not perform unnecessary line searches, we only attempt an aggressive line search if the following inequality holds:
 %\begin{flalign}
 %\tilde{\Delta}^{\phi_{\mu}}_{(\hat{x},\hat{y})}(d_{x}, d_{y}) < 0. \label{eq:obj-could-improve}
 %\end{flalign}
 
 \begin{flalign}
-\grad \Lag_{\mu \gamma}(x,\tilde{y})^T d_{x} < 0 \label{eq:comp-not-terrible}
+\grad \Lag_{\mu \gamma}(x,\tilde{y})^T d_{x} < 0 \label{eq:agg-could-improve}
 \end{flalign}
 where
-\begin{flalign}
+\begin{flalign*}
 \tilde{y} = S^{-1} \mu ( e \gamma  - (1 - \gamma ) Y \conWeight ).
-\end{flalign}
+\end{flalign*}
+Note that \eqref{eq:agg-could-improve} always holds if $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu}) = (\mu, x, s, y)$.
 
 The backtracking line search of the aggressive step has a minimum step size. If during the backtracking line search (line~\ref{line:agg-back-too-small} of Algorithm~\ref{alg:aggressive}) the step size $\alpha_{P}$ satisfies
  \begin{flalign}\label{min-step-size-aggresssive}
@@ -605,12 +651,13 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Fol
 
 
 \begin{algorithm}[H]
-\textbf{Input:} The current point $(\mu, x, s, y)$, the matrix $\schur_{\delta}$, its factorization and the iterate $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the current outer iteration.  \\
+\textbf{Input:} The current point $(\mu, x, s, y)$, the matrix $\Schur_{\delta}$, its factorization and the iterate $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the current outer iteration.  \\
 %Some point $p = (\mu, x, s, y)$. The matrix from the linear system~\eqref{primal-dual-Newton-direction} factorized (not necessarily at the point $p$) and a corresponding inertia modification $\delta$. \\
 \textbf{Output:} A new point $(x^{+}, y^{+}, s^{+}, \mu^{+})$ and a $\status$ of either $\success$ or $\failure$
 \begin{enumerate}[label*=A.{\arabic*}]
-\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.
-\item Compute the search direction $(d_{x}, d_{s}, d_{y})$ by solving \eqref{eq:schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} respectively.
+\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.\hinder{fix!!!}
+\item Compute the search direction $(d_{x}, d_{s}, d_{y})$ by solving \eqref{eq:Schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} respectively.
+\item \emph{Check that the direction has a reasonable chance of being accepted.} If \eqref{eq:agg-could-improve} is not satisfied then terminate with $\status = \failure$.
 \item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
 %\item \label{agg:back-track} \backtrackBlurb
 %\begin{enumerate}[label=({\roman*})] 
@@ -661,11 +708,11 @@ In the stabilization search directions we accept steps that make progress on one
 \begin{flalign}\label{merit-KKT}
 \meritKKT_{\mu} ( x, s, y )  = \sigma( y ) \max\{ \| \grad \Lag_{\mu}(x, y ) \|_{\infty} ,  \| S y - \mu \|_{\infty} \}.
 \end{flalign}
-This merit function measures progress effectively in regimes where the matrix $\schur$, given in \eqref{eq:schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:schur-complement-system} will be a descent direction on this merit function\footnote{For inner iteration $j=1$}. This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in non-convex optimization it has serious issues. In particular, the search direction \eqref{eq:schur-complement-system} might not be a descent direction on this merit function. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function.}. For further discussion of these issues see \cite{shanno2000interior}.
+This merit function measures progress effectively in regimes where the matrix $\Schur$, given in \eqref{eq:Schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:Schur-complement-system} will be a descent direction on this merit function\footnote{For inner iteration $j=1$}. This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in non-convex optimization it has serious issues. In particular, the search direction \eqref{eq:Schur-complement-system} might not be a descent direction on this merit function. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function.}. For further discussion of these issues see \cite{shanno2000interior}.
 %\cite{shanno1997interior}.
 
 
-While it is sufficient to guarantee convergence by accepting steps if \eqref{phi-sufficient-progress} is satisfied, in some regimes e.g., when $\schur$ is positive definite, this may select step sizes $\alpha_{P}$ that are too conservative.  For example, near points satisfying the sufficient conditions for local optimality. In these situations the KKT error often is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility. Furthermore, from our experience, during convergence towards an optimal solution numerical errors in the function $\phi_{\mu}$ may cause the algorithm to fail to make sufficient progress on the merit function $\phi_{\mu}$, i.e., \eqref{phi-sufficient-progress} is not satisfied for any $\alpha_{P}$. For these reasons we decide to use a filter approach \cite{fletcher2002nonlinear,wachter2006implementation}. Typical filter methods \cite{fletcher2002nonlinear} require progress on either the constraint violation or objective function. Our approach is distinctly different, because we accept steps that make progress on either the merit function $\phi_{\mu}$ or the merit function $\meritKKT_{\mu}$.
+While it is sufficient to guarantee convergence by accepting steps if \eqref{phi-sufficient-progress} is satisfied, in some regimes e.g., when $\Schur$ is positive definite, this may select step sizes $\alpha_{P}$ that are too conservative.  For example, near points satisfying the sufficient conditions for local optimality. In these situations the KKT error often is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility. Furthermore, from our experience, during convergence towards an optimal solution numerical errors in the function $\phi_{\mu}$ may cause the algorithm to fail to make sufficient progress on the merit function $\phi_{\mu}$, i.e., \eqref{phi-sufficient-progress} is not satisfied for any $\alpha_{P}$. For these reasons we decide to use a filter approach \cite{fletcher2002nonlinear,wachter2006implementation}. Typical filter methods \cite{fletcher2002nonlinear} require progress on either the constraint violation or objective function. Our approach is distinctly different, because we accept steps that make progress on either the merit function $\phi_{\mu}$ or the merit function $\meritKKT_{\mu}$.
 % where we accept any step that makes sufficient progress on the function $\phi$, i.e., \eqref{phi-sufficient-progress}  or sufficient progress is made on the KKT merit function relative to historical iterates. 
 To be precise, we accept any iterate $(\mu^{+}, x^{+}, s^{+}, y^{+})$ that makes sufficient progress on the augmented log barrier function $\phi_{\mu}$, or satisfies the two equations
 \begin{subequations}\label{eq:filter}
@@ -688,24 +735,24 @@ During the backtracking line search we terminate with $\status = \failure$ if
 \end{flalign}
 We then exit Algorithm~\ref{alg:stable} and go to line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM}, where we increase the size of $\delta$ and a new stabilization step is attempted. From Lemma~\ref{coroConsecutiveStable} we know for sufficiently large $\delta$ the stabilization step will succeed.
 
-To ensure that we do not perform unnecessary line searches, we only attempt a stabilization line search if the following inequalities holds:
+To ensure that we do not perform unnecessary line searches, we only attempt a stabilization line search if the following inequality holds:
 %\begin{flalign}
 %\tilde{\Delta}^{\phi_{\mu}}_{(\hat{x},\hat{y})}(d_{x}, d_{y}) < 0. \label{eq:obj-could-improve}
 %\end{flalign}
 \begin{flalign}
-\grad \psi_{\mu}(x)^T d_{x} < 0, S y + Y d_{s} + S d_{y} \in [\parCompAgg \mu, \mu / \parCompAgg]. \label{eq:obj-could-improve}
+\grad \psi_{\mu}(x)^T d_{x} < 0. \label{eq:obj-could-improve}
 \end{flalign}
 
-The idea of this equation is to take steps only when it is possible that $\phi$ can be decreased. This equation is always satisfied if Algorithm~\ref{alg:stable} is called from the first inner iteration of Algorithm~\ref{one-phase-IPM}. It may not be satisfied when the inner iteration is greater than one because we recycle the factorization of $\mathcal{K}_{\delta}$.
+The idea of this equation is to take steps only when it is possible that $\phi$ can be decreased. This equation is always satisfied if Algorithm~\ref{alg:stable} is called from the first inner iteration of Algorithm~\ref{one-phase-IPM}. It may not be satisfied when the inner iteration is greater than one because we recycle the factorization of $\Schur_{\delta}$.
 %\delta \| d_{x} \|_{\infty} &\le (1 - \parKKTReductFactor) \max\{ \| \grad \Lag(x, y ) \|_{\infty}, \| S y - \mu \|_{\infty} \} \label{eq:KKT-could-improve} \\
 
 
 \begin{algorithm}[H]
-\textbf{Input:} The current point $(\mu, x, s, y)$, the matrix $\schur_{\delta}$, its factorization and the iterate $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the current outer iteration.  \\
+\textbf{Input:} The current point $(\mu, x, s, y)$, the matrix $\Schur_{\delta}$, its factorization and the iterate $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the current outer iteration.  \\
 \textbf{Output:} A new point $(\mu^{+}, x^{+}, s^{+}, y^{+})$ and a $\status$ of either $\success$ or $\failure$
 \begin{enumerate}[label*=A.{\arabic*}]
 \item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.
-\item Compute the search direction $(d_{x}, d_{s}, d_{y})$ by solving \eqref{eq:schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} respectively.
+\item Compute the search direction $(d_{x}, d_{s}, d_{y})$ by solving \eqref{eq:Schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} respectively.
 \item \emph{Check that the direction has a reasonable chance of being accepted.} If \eqref{eq:obj-could-improve} is not satisfied then terminate with $\status = \failure$.
 \item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
 %\item \backtrackBlurb \label{line:sbl-backtrack}
@@ -770,6 +817,8 @@ $\parConRegularizer$ & Used in the regularizer defined in \eqref{def:regularizer
 $\parInitialize$  & Used in the initialization & The interval $\parInitializeInterval$ & ??? \\
 \hline
 $\parDeltaMin$ &  & The interval $(0,\infty)$ & $\parDeltaMinValue$ \\
+\hline
+$\parDeltaDecrease$ & &The interval $\parDeltaIncreaseFailureInterval$. & $\parDeltaIncreaseFailureValue$ \\
 \hline
 $\parDeltaIncreaseFailure$ & &The interval $\parDeltaIncreaseFailureInterval$. & $\parDeltaIncreaseFailureValue$ \\
 \hline
@@ -1017,10 +1066,7 @@ This subsection is devoted to showing that consecutive stabilization steps event
 Define the set $\mathbb{Q}_{\mu, C}$ for constants $\mu, C > 0$ as the set of points $(x,y,s) \in  \R^{\nvar} \times \R^{\ncon++} \times \R^{\ncon++}$ such that
 \begin{enumerate}
 \item The function $\phi_{\mu}$ is bounded above, i.e., $\phi_{\mu}(x,y,s) \le C$.
-\item The unboundedness termination criterion~\eqref{terminate-dual-infeasible} is not satisfied, i.e.,
-\begin{flalign*}
-\frac{ \|\max\{ \cons(x), e \} \|_{\infty}  }{\max\{1,-\obj(x) \} } \ge \TOLunbounded. 
-\end{flalign*} \hinder{does this match the termination criterion??}
+\item The unboundedness termination criterion~\eqref{terminate-dual-infeasible} is not satisfied.
 \item The dual and slack variables are strictly positive i.e $y, s > 0$. Furthermore, equation~\eqref{eq:primal-feasibility} and \eqref{eq:comp-slack} are satisfied
 \begin{flalign*}
 a(x) + s &= \mu \conWeight \\
@@ -1068,7 +1114,7 @@ Corollary~\ref{coroConsecutiveStable} shows that the algorithm terminates or an 
 \subsection{Initialization}\label{sec:initialization}
 
 
-This section explains how given a starting point $x_{\text{start}}$, how to select the initial variable values $(x^0, y^0, s^0, \mu^0)$ before calling Algorithm~\ref{one-phase-IPM}.
+This section explains how given a starting point $x_{\text{start}}$, how to select the initial variable values $(\mu^0,x^0, y^0, s^0)$ before calling Algorithm~\ref{one-phase-IPM}.
 
 The first goal is to modify the starting point such that it satisfies any bounds on the variables e.g., $l \le x \le u$. Let $\mathcal{B} \subseteq \{ 1, \dots, \ncon \}$ be the set of constraints indices corresponding to bound constraints. More precisely, $i \in \mathcal{B}$ if and only if there exists $c \in \R$ such that $a_i(x) = e_j^T x + c$ or $a_i(x) = -e_j^T x + c$. We project onto the variable bounds in the same way as IPOPT \cite[Section 3.7]{wachter2006implementation}. Furthermore, we set $w_i = 0$ and $s_i^{0} = -a_i(x^0)$ for each $i \in \mathcal{B}$. This ensures that the variable bounds are satisfied throughout the algorithm, and is useful because often the constraints or objective may not be defined outside the bound constraints. Note that in general to guarantee that any constraint $a_i(x)$ that was strictly feasible at the initial point $x^{0}$ remains feasible throughout the algorithm we could simply set $\conWeight_i = 0$ and $s_i^{0} = -a_i(x^0)$.
  
@@ -1111,6 +1157,7 @@ s^{0} &\gets \tilde{s} + \varepsilon_{s} \\
 \end{flalign}
 Finally, we project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},10^{5}]$ and project the dual variables $y^{0}$ onto the interval $\mu S^{-1} e [\parComp, 1/\parComp]$.
 
+\inProgressHide{
 
 %The default value is $\kappa = 10^{-3}$.
 
@@ -1123,9 +1170,12 @@ Finally, we project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},
 %\vioVar^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
 %s^{1} &\gets \vioVar^{1} e - \cons(x^{1}) 
 %\end{flalign*}   
-\subsection{Linear algebra}\label{sec:linear-algebra}
+
+\subsection{Handling bound constraints}
 
 \todo[inline]{explain how equality and lower/upper bounds can be handled}
+
+\subsection{Linear algebra}\label{sec:linear-algebra}
 
 \begin{enumerate}
 \item Splitting dense columns in sparse linear systems. Linear Algebra and its Applications. Robert J. Vanderbei. \cite{vanderbei1991splitting}
@@ -1138,7 +1188,9 @@ National Laboratories, Nov. 1990.
 
 \subsection{Iterative refinement}
 
-\section{Empirical results}\label{sec:empirical-results}
+}
+
+\section{Empirical results on CUTEst}\label{sec:empirical-results}
 
 % and (ii) the NETLIB linear programming
 For the empirical results we use the CUTEst non linear programming test sets. The empirical results are structured as follows. Section~\ref{alg:comparison-options} explores different algorithm options on CUTEst.  Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems constructed from CUTEst. %Section~\ref{sec:netlib} compares our algorithm and IPOPT on the NETLIB linear programming test set.
@@ -1151,6 +1203,22 @@ We do not currently compare the number of function value evaluations, but in gen
 %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
 
 \hinder{Ideally, we would like to compare the number of factorizations. But this is not reported by IPOPT.}
+
+\begin{table}[H]
+\begin{tabular}{l  l}
+&   \# \\ 
+Hessian & 1 \\  
+Jacobian/Objective/Gradient & 1.7 \\
+Constraints & 9.4 \\
+Factorizations & 2.4 \\
+Successful inner iterations & 1.7 \\
+\end{tabular}
+\caption{Average per outer iteration of the one-phase algorithm}
+\end{table}
+
+\hinder{commentary - we check for feasibility before accepting steps, this means we almost always accept the step!}
+
+
 
 \subsection{Comparison of different algorithm options}\label{alg:comparison-options}
 
@@ -1165,23 +1233,17 @@ Comparing algorithms in the following sections we use the performance profiling 
 In Figure~\ref{fig:ls-options} we trial different line search conditions for the stabilization steps. In particular, we compare the default setting of a `filter' as described in line~\ref{line:filter} of Algorithm~\ref{alg:stable} against other possible conditions. The first baseline to replace this filter condition with  \eqref{phi-sufficient-progress}, i.e., check that sufficient progress is made on the `log barrier' merit function. The other baseline is removing the filter condition entirely and simple taking the maximum step possible. Figure~\ref{fig:ls-options} indicates that the filter has superior performance of these three options.
 
 \begin{figure}[H]
-\includegraphics[scale=0.5]{ls-options.pdf}
-\caption{Comparison of different line search options.}\label{fig:ls-options}
+\includegraphics[scale=0.35]{ls-options.pdf}
+\includegraphics[scale=0.35]{num-corrections.pdf}
+\includegraphics[scale=0.35]{regularizer-ratios.pdf}
+\caption{Comparison of different algorithm options for the one-phase algorithm. Left, comparison of different line search options. Center, comparison of choice of for the parameter $\parNumCor$. Right, the algorithm with and without the regularizer}
+\label{fig:alg-options}
 \end{figure}
 
-In Figure~\ref{fig:num-corrections} we compare different choices of the parameter $c_{\max}$, the maximum number of corrections ($c_{\max}$ is used on line~\ref{take-steps} in Algorithm~\ref{one-phase-IPM}). As one would expect, increasing the number of corrections decreases the iteration count, but has little impact on the failure rate. In the actual implementation of our one-phase algorithm we chose $c_{\max}=3$.
+In Figure~\ref{fig:num-corrections} we compare different choices of the parameter $\parNumCor$, the maximum number of corrections ($\parNumCor$ is used on line~\ref{take-steps} in Algorithm~\ref{one-phase-IPM}). As one would expect, increasing the number of corrections decreases the iteration count, but has little impact on the failure rate. In the actual implementation of our one-phase algorithm we chose $\parNumCor=\parNumCorValue$.
 %can see the number of iterations is
 
-\begin{figure}[H]
-\includegraphics[scale=0.5]{num-corrections.pdf}
-\caption{Comparison of the maximum number of corrections for the one-phase algorithm.}\label{fig:num-corrections}
-\end{figure}
 
-
-\begin{figure}[H]
-\includegraphics[scale=0.5]{regularizer-ratios.pdf}
-\caption{Comparison of the algorithm with and without the regularizer.}\label{fig:num-corrections}
-\end{figure}
 
 
 \subsection{Comparison with IPOPT}\label{alg:comparison-IPOPT}
@@ -1296,6 +1358,31 @@ Next, in Figure~\ref{fig:comparison-IPOPT-on-perturbed-CUTEst} we compare IPOPT 
 %\caption{Comparison of IPOPT and one-phase on the NETLIB linear programming test set.}
 %\end{figure}
 
+\section{Comparison on selected large scale problems}
+
+Here we compare IPOPT and the one-phase solver on two large-scale problems. The sizes of the problems are given in Table~\ref{large-scale:basic-info}. The first problem NET4 is the largest CUTEst problem (in terms of number of variables and constraints) with non-linear constraints based on a real application. NET4 is a gas network problem for the British NTS system. Both IPOPT and the one-phase solve declare the problem infeasible, however, it takes the one-phase solver only 2 minutes ($29$ iterations) versus $>>30$ minutes for IPOPT ($>>360$ iterations). This runtime difference can be put down to (i) the superior performance of the one-phase algorithm on infeasible problems and (ii) the sparse constraints which means  $\Schur$ is very sparse, hence the factorizations of the one-phase algorithm is cheap.
+
+\begin{table}[H]
+\begin{tabular}{l l l l l l}
+name &  \# vars & \# cons & \# nnz Hess & \# nnz Jac & \# nnz densest con  \\ 
+NET4 & 61,488 & 75,024  & 151,056 & 247,557 & 12 \\  
+ECON1 &  1,000 & 1,000,000 & 1,000,000  &  \\
+ECON2 & 1,000 & 1,000,000 & 1,000,000  & 
+\end{tabular}
+\caption{Basic information on large-scale test problems}\label{large-scale:basic-info}
+\end{table}
+
+\begin{tabular}{|c| c c | c c |}
+  \hline
+  \multirow{2}{*}{Title} 
+      & \multicolumn{2}{c|}{Time (s)} 
+          & \multicolumn{2}{|c|}{\# iterations} \\             \cline{2-5}
+  & one-phase & IPOPT & one-phase & IPOPT \\  \hline
+  NET4 & 124 &  & 29   & \\      \hline
+  ECON1 &  &  & & \\      \hline
+  ECON2 &  &  & & \\      \hline
+\end{tabular}
+
 
 \section{Conclusions}
 \begin{enumerate}
@@ -1351,7 +1438,7 @@ Therefore we reduce $\mu$ by at least $\alpha_{P} \mu$ each call to Algorithm~\r
 \lemAggSucceeds*
 
 \begin{proof}
-First, observe that as $\delta \rightarrow \infty$ the direction $d_{x}$ computed from \eqref{eq:schur-complement-system} tends to zero. Consider any $\alpha_{P} \in (0,1)$, since the function $a$ is continuous for sufficiently large $\delta$ we have
+First, observe that as $\delta \rightarrow \infty$ the direction $d_{x}$ computed from \eqref{eq:Schur-complement-system} tends to zero. Consider any $\alpha_{P} \in (0,1)$, since the function $a$ is continuous for sufficiently large $\delta$ we have
 \begin{flalign}\label{eq:a-bound}
 \| \cons(x) - \cons(x + \alpha_{P} d_{x}) \|_{\infty} \le \frac{\theta}{2} \min\{ s_{i} \}
 \end{flalign}
@@ -1420,7 +1507,7 @@ $$
 s_i, y_i \ge 1/L
 $$
 $$
-\| x \|, \| y \|, \| s \|, \| \grad \barrier_{\mu}(x) \|, \| \schur \|, \| \grad \cons(x) \| \le L
+\| x \|, \| y \|, \| s \|, \| \grad \barrier_{\mu}(x) \|, \| \Schur \|, \| \grad \cons(x) \| \le L
 $$
 and for any $d$ s.t. $\| d \| < 1 / L$
 \begin{subequations}\label{lipschitz-continuous}
@@ -1473,7 +1560,7 @@ Suppose in order to obtain a contradiction there is a infinite sequence of conse
 
 Since the unboundedness termination criterion~\eqref{terminate-dual-infeasible} is not met, we know by Lemma~\ref{lem:compact-Q} there exists some compact set $\mathbb{Q}_{\mu,C}$ that contains all the iterates.
 
-Consider case (i). Consider any $\bar{\delta} > 0$ as defined in Lemma~\ref{lem:stable-succeed-for-large-delta}. Lemma~\ref{lem:stable-succeed-for-large-delta} implies a step will be taken with $\delta \le \parDeltaIncreaseFailure \bar{\delta}$. Now, consider any such step $(x,y,s)$ to $(x^{+}, s^{+}, y^{+})$ with step size $\alpha_{P}$. Using that the aggressive criterion~\eqref{agg-criteron} is not satisfied and that $\| \schur(\mu, x, s, y) \|$ is bounded on the compact set $\mathbb{Q}_{\mu,C}$, we deduce there exists some constant $K > 0$ such that $\tilde{\Delta}^{\phi_{\mu}}_{(x,y)}(\alpha_{P} d_{x}, \alpha_{P} d_{y}) < K$ for all $\delta \le \parDeltaIncreaseFailure \bar{\delta}$ and $\alpha_{P} > \parMinStableStepSize$ \todo{moves a little to quick}. Since the criterion for sufficient progress on the augmented log barrier function \eqref{phi-sufficient-progress} is satisfied, we deduce there exists some constant $K > 0$ such that $\phi_{\mu}(x^{+}, s^{+}, y^{+}) \le \phi_{\mu}(x, s, y) - K$ at each iteration, which implies eventually the unboundedness criterion~\eqref{terminate-dual-infeasible} is met. 
+Consider case (i). Consider any $\bar{\delta} > 0$ as defined in Lemma~\ref{lem:stable-succeed-for-large-delta}. Lemma~\ref{lem:stable-succeed-for-large-delta} implies a step will be taken with $\delta \le \parDeltaIncreaseFailure \bar{\delta}$. Now, consider any such step $(x,y,s)$ to $(x^{+}, s^{+}, y^{+})$ with step size $\alpha_{P}$. Using that the aggressive criterion~\eqref{agg-criteron} is not satisfied and that $\| \Schur(\mu, x, s, y) \|$ is bounded on the compact set $\mathbb{Q}_{\mu,C}$, we deduce there exists some constant $K > 0$ such that $\tilde{\Delta}^{\phi_{\mu}}_{(x,y)}(\alpha_{P} d_{x}, \alpha_{P} d_{y}) < K$ for all $\delta \le \parDeltaIncreaseFailure \bar{\delta}$ and $\alpha_{P} > \parMinStableStepSize$ \todo{moves a little to quick}. Since the criterion for sufficient progress on the augmented log barrier function \eqref{phi-sufficient-progress} is satisfied, we deduce there exists some constant $K > 0$ such that $\phi_{\mu}(x^{+}, s^{+}, y^{+}) \le \phi_{\mu}(x, s, y) - K$ at each iteration, which implies eventually the unboundedness criterion~\eqref{terminate-dual-infeasible} is met. 
 
 Consider case (ii). Since \eqref{eq:kkt-progress} holds for an infinite subsequence $(x^{k}, y^{k}, s^{k})$ and $\alpha_{P} > \parMinStableStepSize$ by \eqref{eq:min-step-size-stable} we have $K_{\mu}(x^{k}, y^{k}, s^{k}) \rightarrow 0$. This implies eventually the aggressive criterion~\eqref{agg-criteron} is met.
 
@@ -1500,19 +1587,19 @@ $$
 
 
 \begin{proof}
-Recall the matrix $\schur$ as defined in \eqref{eq:schur-matrix}.
+Recall the matrix $\Schur$ as defined in \eqref{eq:Schur-matrix}.
 
 Consider some $c_{2} \in (\parObjReductFactor, 1)$ then there exists some constant $C > 0$ such that for all $\delta$ greater than
-$C \left( \| \schur \| + \| \grad \barrier_{\mu}(x) \| \right)$, we have:
+$C \left( \| \Schur \| + \| \grad \barrier_{\mu}(x) \| \right)$, we have:
 \begin{flalign}\label{eq:C-big-enough}
  \lambda_{\min}  / \lambda_{\max} \le \sqrt{c_{2}}, 1 - L \lambda_{\max} / \lambda_{\min}^2 \ge \sqrt{c_{2}}, \| d_{x} \| < 1 / L
 \end{flalign}
-where $\lambda_{\min}$ and $\lambda_{\max}$ denote the smallest and largest eigenvalues of the matrix $H = \schur + \delta I$.
+where $\lambda_{\min}$ and $\lambda_{\max}$ denote the smallest and largest eigenvalues of the matrix $H = \Schur + \delta I$.
 
 
 Now,
 \begin{flalign*}
-\barrier_{\mu}(x + d_{x}) - \barrier_{\mu}(x) - \frac{\parObjReductFactor}{2} d_{x}^T \schur d_{x}
+\barrier_{\mu}(x + d_{x}) - \barrier_{\mu}(x) - \frac{\parObjReductFactor}{2} d_{x}^T \Schur d_{x}
 &\le_{(i)}   \grad \barrier_{\mu}(x)^T d_{x} + L \| d_{x} \|^2 \\
  &=_{(ii)} -\grad \barrier_{\mu}(x)^T H^{-1} \grad \barrier_{\mu}(x) + L  \grad \barrier_{\mu}(x)^T H^{-2} \grad \barrier_{\mu}(x) \\
   &\le_{(iii)} -\| \grad \barrier_{\mu}(x) \|^2 / \lambda_{\max} (1  - L \lambda_{\max} /  \lambda_{\min}^2) \\
@@ -1553,7 +1640,7 @@ $$
 \begin{proof}
 Consider any $\gamma \in (0,1)$ and define
 $$
-\bar{\delta}_{2}(x,s,y) = \lambda_{\min} ( \schur ) + 1 / \gamma
+\bar{\delta}_{2}(x,s,y) = \lambda_{\min} ( \Schur ) + 1 / \gamma
 $$
 Let $q( x, s, y)$ be some function $q : \mathbb{Q}_{\mu,C} \rightarrow \R$  and recall $\mu > 0$ is fixed.
 We use the notation $q = O(\gamma)$ to denote that there exists some constant $K > 0$ such that  $q(x, s, y) \le K \gamma$ each time Algorithm~\ref{one-phase-IPM} calls Algorithm~\ref{alg:stable} on the first inner iteration.
@@ -1611,6 +1698,8 @@ for all $(x, s, y) \in \mathbb{Q}_{\mu,C}$. Combining Lemmas~\ref{lem:log-barrie
 
 
 \section{Matrix factorization strategy}
+
+\hinder{re-write and add initialization scheme}
 
 This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006implementation}.
 

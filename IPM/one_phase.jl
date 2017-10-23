@@ -90,9 +90,17 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                    @assert(is_updated(iter.cache))
 
                    start_advanced_timer(timer, "ipopt_strategy")
-                   fact_succeed, inertia_num_fac = ipopt_strategy!(iter, kkt_solver, pars, timer)
+                   fact_succeed, inertia_num_fac, new_delta = ipopt_strategy!(iter, kkt_solver, pars, timer)
                    tot_num_fac = inertia_num_fac
+                   old_delta = get_delta(iter)
+                   set_delta(iter, new_delta)
                    pause_advanced_timer(timer, "ipopt_strategy")
+
+                   if fact_succeed != :success
+                      return iter, :MAX_DELTA, progress, t, false
+                   end
+
+
 
                    start_advanced_timer(timer, "STEP")
                    start_advanced_timer(timer, "STEP/first")
@@ -116,11 +124,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      elseif i < 100 && get_delta(iter) < pars.delta.max
                        #8.0
                        #println("increase delta")
-                       set_delta(iter, max(get_delta(iter) * 20.0, 1e-8))
+                       set_delta(iter, max(get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
                        inertia = factor!(kkt_solver, get_delta(iter), timer)
                        tot_num_fac += 1
                      else
                        pause_advanced_timer(timer, "STEP/first")
+                       pause_advanced_timer(timer, "STEP")
                        println("Terminated due to max delta while attempting to take step")
                        println("delta=$(get_delta(iter)), be_aggressive=$be_aggressive, status=$status")
                        println("dx = $(norm(kkt_solver.dir.x,2)), dy = $(norm(kkt_solver.dir.y,2)), ds = $(norm(kkt_solver.dir.s,2))")

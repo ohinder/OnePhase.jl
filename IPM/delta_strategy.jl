@@ -26,22 +26,21 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         num_fac += 1
 
         if pars.output_level >= 4
-          println(rd(delta), pd(inertia))
+          println("delta=",rd(delta), "inertia=", pd(inertia))
         end
 
         if inertia == 1
-          set_delta(iter, delta)
-          return :success, num_fac
+          return :success, num_fac, delta
         elseif i == 1
           if get_delta(iter) != 0.0
-            delta = max(DELTA_MIN, get_delta(iter) / pi)
+            delta = max(DELTA_MIN, get_delta(iter) * pars.delta.dec)
           else
             delta = choose_delta_start(iter, kkt_solver, pars)
             #@show delta
             #delta = DELTA_START
           end
         else
-            delta = delta * 8.0
+            delta = delta * pars.delta.inc
         end
 
         if delta > DELTA_MAX
@@ -52,8 +51,8 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
           my_warn("ipopt_strategy failed with delta_max=$DELTA_MAX, delta=$delta, i=$i")
           my_warn("num_fac=$num_fac, inertia=$inertia, status=$status, dir_x=$dx, dir_y=$dx, dir_s=$ds")
 
-          error("ipopt_strategy failed with too big a delta")
-          return :failure, iter, Blank_ls_info()
+          #error("ipopt_strategy failed with too big a delta")
+          return :failure, iter, delta
         end
     end
 

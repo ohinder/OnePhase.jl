@@ -1,13 +1,7 @@
 Current changes:
-- replaced proximal crap etc
-- dual fraction to boundary
-- dual line search
-- aggressive switch
-- fix max delta so it doesn't cause error
-
-Changes:
-- descent direction for ls
--
+- run sherlock IPOPT NET4, ECON problem
+- improved initial delta selection
+- check termination criterion
 
 Short term:
 - *add criterion to ensure is descent direction on agg merit function*

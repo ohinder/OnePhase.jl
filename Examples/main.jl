@@ -37,13 +37,12 @@ include("../include.jl")
 
 #nlp_raw2 = CUTEstModel("QPCBOEI1")
 #nlp_raw2 = CUTEstModel("PT") # 13 ITS
-#nlp_raw2 = CUTEstModel("AGG") # 153 ITS
+#nlp_raw2 = CUTEstModel("COSHFUN") # 153 ITS
 #nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
 #nlp_raw2 = CUTEstModel("KISSING2") # 151 ITS
 #nlp_raw2 = CUTEstModel("FLETCHCR")
 #nlp_raw2 = CUTEstModel("GENHUMPS")
 #nlp_raw2 = CUTEstModel("ZIGZAG") # 22 ITS
-#nlp_raw2 = CUTEstModel("HVYCRASH") # 39 ITS
 #nlp_raw2 = CUTEstModel("TRAINF") # 140 ITS or 81 ITS if AGG starts
 #nlp_raw2 = CUTEstModel("ARTIF") # 14 ITS, IPOPT infeasible
 #nlp_raw2 = CUTEstModel("AVGASB") # 9 ITS
@@ -59,7 +58,8 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("DISC2")
 #nlp_raw2 = CUTEstModel("OET7")
 #nlp_raw2 = CUTEstModel("ACOPR57")
-#nlp_raw2 = CUTEstModel("NET4")
+#nlp_raw2 = CUTEstModel("NET3")
+nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 #nlp_raw2 = CUTEstModel("GPP","-param","N=2000")
 #nlp_raw2 = CUTEstModel("ANTWERP")
 #nlp_raw2 = CUTEstModel("HYDCAR20")
@@ -104,7 +104,7 @@ include("../include.jl")
 #mean(abs(jac(nlp_raw2, nlp_raw2.meta.x0)))
 #finalize(nlp_raw2)
 
-nlp_raw2 = CUTEstModel("MANNE")
+#nlp_raw2 = CUTEstModel("MANNE")
 ## HARD PROBLEMS
 #nlp_raw2 = CUTEstModel("STEENBRD")
 #nlp_raw2 = CUTEstModel("ACOPR14")
@@ -131,7 +131,7 @@ function compare_objects(obj1,obj2)
   end
 end
 
-if false
+if true
 tic()
 using Ipopt
 solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none")

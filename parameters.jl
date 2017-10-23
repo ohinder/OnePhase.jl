@@ -14,6 +14,8 @@ type Class_delta_parameters
     max::Float64
     max_it::Int64
     start::Float64
+    dec::Float64
+    inc::Float64
     zero::Float64 #get_mu(iter) / ((1e2 + norm(get_x(iter),Inf)) * 1e2)
     min::Float64
 
@@ -24,6 +26,8 @@ type Class_delta_parameters
         this.start = 1e-6
         this.zero = 0.0
         this.min = 1e-12
+        this.inc = 8.0
+        this.dec = 1.0 / pi
 
         return this
     end

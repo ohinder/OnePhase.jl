@@ -75,6 +75,10 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 #results["Oct21"] = load("../results/one_phase/Oct21/summary.jld", "summary")
 results["Oct21_penalty"] = load("../results/one_phase/Oct21_penalty/summary.jld", "summary")
 results["Oct21_no_penalty"] = load("../results/one_phase/Oct21_no_penalty/summary.jld", "summary")
+results["Oct21_penalty_full"] = load("../results/one_phase/Oct21_penalty_full/summary.jld", "summary")
+results["Oct21_penalty_prox"] = load("../results/one_phase/Oct21_penalty_prox/summary.jld", "summary")
+
+
 
 min_num = 0
 #min_num = 100

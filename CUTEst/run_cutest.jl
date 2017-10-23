@@ -288,7 +288,7 @@ function select_problem_with_sparse_rows(problem_list::Array{String,1},max_densi
 end
 
 function default_list()
-    problem_list = get_problem_list(1000,10000)
+    problem_list = get_problem_list(100,10000)
     # only run problems with max row density 1000.
     sparse_names, dense_names = select_problem_with_sparse_rows(problem_list, 1000)
     problem_list = sparse_names
