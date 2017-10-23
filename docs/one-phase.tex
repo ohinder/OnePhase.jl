@@ -1360,28 +1360,33 @@ Next, in Figure~\ref{fig:comparison-IPOPT-on-perturbed-CUTEst} we compare IPOPT 
 
 \section{Comparison on selected large scale problems}
 
-Here we compare IPOPT and the one-phase solver on two large-scale problems. The sizes of the problems are given in Table~\ref{large-scale:basic-info}. The first problem NET4 is the largest CUTEst problem (in terms of number of variables and constraints) with non-linear constraints based on a real application. NET4 is a gas network problem for the British NTS system. Both IPOPT and the one-phase solve declare the problem infeasible, however, it takes the one-phase solver only 2 minutes ($29$ iterations) versus $>>30$ minutes for IPOPT ($>>360$ iterations). This runtime difference can be put down to (i) the superior performance of the one-phase algorithm on infeasible problems and (ii) the sparse constraints which means  $\Schur$ is very sparse, hence the factorizations of the one-phase algorithm is cheap.
+Here we compare IPOPT and the one-phase solver on two large-scale problems. The sizes of the problems are given in Table~\ref{large-scale:basic-info}. The first problem NET4 is the largest CUTEst problem (in terms of number of variables and constraints) with non-linear constraints based on a real application. NET4 is a gas network problem for the British NTS system. Both IPOPT and the one-phase solve declare the problem infeasible, however, it takes the one-phase solver only 2 minutes ($29$ iterations) versus $>>30$ minutes for IPOPT ($>>360$ iterations). This runtime difference can be put down to (i) the superior performance of the one-phase algorithm on infeasible problems and (ii) the constraints are sparse (see final column of Table~\ref{large-scale:basic-info}) which means $\Schur$ is very sparse, hence the factorizations of the one-phase algorithm is cheap. The second problem is an economic modeling problem\footnote{Created by Micheal Saunders, Ding Ma and [...]}. This problem is (Temporarily) generated with random data. We have created three instances. A small, large and huge instance as recorded in Table~\ref{large-scale:basic-info}. From Table~\ref{compare-runtime} one can see a stark difference. For the small problem we can solve it in [blah] seconds, IPOPT takes ...[blah] time. 
 
 \begin{table}[H]
 \begin{tabular}{l l l l l l}
 name &  \# vars & \# cons & \# nnz Hess & \# nnz Jac & \# nnz densest con  \\ 
 NET4 & 61,488 & 75,024  & 151,056 & 247,557 & 12 \\  
-ECON1 &  1,000 & 1,000,000 & 1,000,000  &  \\
-ECON2 & 1,000 & 1,000,000 & 1,000,000  & 
+ECON1 &  200 & 9,900 & 39,420 & &  \\
+ECON2 & 800 & 159,600 & & \\
+ECON3 & 3,200 & 2,558,400 &  & 
 \end{tabular}
 \caption{Basic information on large-scale test problems}\label{large-scale:basic-info}
 \end{table}
 
+\begin{table}[H]
 \begin{tabular}{|c| c c | c c |}
   \hline
   \multirow{2}{*}{Title} 
       & \multicolumn{2}{c|}{Time (s)} 
           & \multicolumn{2}{|c|}{\# iterations} \\             \cline{2-5}
   & one-phase & IPOPT & one-phase & IPOPT \\  \hline
-  NET4 & 124 &  & 29   & \\      \hline
-  ECON1 &  &  & & \\      \hline
-  ECON2 &  &  & & \\      \hline
+  NET4 & $124$ & $>> 1800$  & 29   & $>> 360$ \\      \hline
+  ECON1 & $9$  &  & 11 & \\      \hline
+  ECON2 & $57$  &  fails & 14 & fails \\      \hline
+  ECON3 &  & fails  & & fails \\      \hline
 \end{tabular}
+\caption{Runtime comparison on large-scale test problems}\label{compare-runtime}
+\end{table}
 
 
 \section{Conclusions}
