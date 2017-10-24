@@ -100,8 +100,12 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
 
     #boundary = min(0.01 * y, abs(dy) .* abs(dy) ./ it.point.s
     #ub = min(ub, simple_max_step(y, dy, 10.0^(-3.0) * y))
-
-    return lb, ub
+    if isbad(lb) || isbad(ub)
+      warn("lb or ub for dual step size is bad")
+      return 0.0, -1.0
+    else
+      return lb, ub
+    end
 end
 
 function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64, lb::Float64, ub::Float64, pars::Class_parameters, timer::class_advanced_timer)
@@ -133,6 +137,7 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
         q = [scale_D * eval_jac_T_prod(new_it,dir.y); scale_mu * new_it.point.s .* dir.y];
         prox_dual_res = dual_res + get_delta(new_it) * dir.x * step_size_P * (pars.dual_ls == 3)
         #@show get_delta(new_it)
+        #@show isbad(q), isbad(dual_res), isbad(comp(new_it)), isbad(ub), isbad(small_step)
         res = [scale_D * dual_res; -scale_mu * comp(new_it)]
 
         step_size_D = sum(res .* q) / sum(q.^2)

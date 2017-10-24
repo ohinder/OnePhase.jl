@@ -94,7 +94,8 @@ end
 
 function mehortra_least_squares_estimate( nlp, pars, timer )
     start_advanced_timer(timer, "INIT/x")
-    x = suggested_starting_point(nlp)
+    x0 = suggested_starting_point(nlp)
+    x = x0
     pause_advanced_timer(timer, "INIT/x")
 
     if pars.start_satisfying_bounds
@@ -135,6 +136,9 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
       println("estimating intial y")
       start_advanced_timer(timer, "INIT/estimate_y_tilde")
       y = estimate_y_tilde( J, g, pars )
+      if isbad(y)
+        warning("y is bad!!!!!")
+      end
       pause_advanced_timer(timer, "INIT/estimate_y_tilde")
     else
       y = ones(ncon(nlp))

@@ -23,6 +23,7 @@ type Class_filter_ls <: abstract_ls_info
         this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * norm(dir.x,2)^2)
         #merit_function_predicted_reduction(iter, dir, 1.0);
         this.cur_merit = eval_merit_function(iter, pars)
+
         sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * norm(g,2)^2 / norm(get_lag_hess(iter),2)^2
         #comp_sufficient = -get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 100.0 * get_mu(iter)
         comp_sufficient = -get_mu(iter) * pars.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.comp_feas_agg - 1.0)
@@ -102,10 +103,6 @@ end
 
 
 function accept_func!(accept::Class_filter_ls, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
-    if scaled_dual_feas(candidate, pars) > pars.agg_protect_factor * scaled_dual_feas(iter, pars)
-      return :dual_blow_up
-    end
-
     status = accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
 
     if status == :success || status == :infeasible

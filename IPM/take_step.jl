@@ -43,7 +43,7 @@ function take_step2!( be_aggressive::Bool, iter::Class_iterate, kkt_solver::abst
           if pars.agg_eta == :affine
             reduct_factors = Reduct_affine()
           elseif pars.agg_eta == :constant
-            reduct_factors = Class_reduction_factors(0.1, 0.1, 0.1)
+            reduct_factors = Class_reduction_factors(0.2, 0.0, 0.2)
           else
             error("pars.agg_eta choice not recognized")
           end

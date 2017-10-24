@@ -155,6 +155,30 @@ function eval_merit_function(it::Class_iterate, pars::Class_parameters)
     end
 end
 
+function eval_phi_diff(it::Class_iterate, candidate::Class_iterate, mu::Float64)
+    fdiff = get_fval(candidate) - get_fval(it)
+    rdiff = mu * eval_r(candidate) - mu * eval_r(it)
+    logdiff = - mu * sum( log( candidate.point.s ./ it.point.s) )
+
+    return fdiff + rdiff + logdiff
+end
+
+function eval_merit_function_difference(it::Class_iterate, candidate::Class_iterate, pars::Class_parameters)
+    if is_feasible(candidate, pars.comp_feas)
+        if length(it.point.s) > 0
+          comp_penalty = norm(comp(candidate), Inf)^3 / (it.point.mu)^2 - norm(comp(it), Inf)^3 / (it.point.mu)^2
+        else
+          comp_penalty = 0.0
+        end
+
+        phi_diff = eval_phi(candidate, candidate.point.mu) - eval_phi(it, it.point.mu)
+        #phi_diff = eval_phi_diff(it, candidate, candidate.point.mu)
+        return phi_diff + comp_penalty
+    else
+        return Inf
+    end
+end
+
 function vector_product(LowerTriangularMat, vector::Vector)
     v1 = LowerTriangularMat * vector
     v2 = LowerTriangularMat' * vector

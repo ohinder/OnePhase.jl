@@ -32,12 +32,16 @@ end
 
 
 function accept_func_stable!(accept::abstract_ls_info, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
+  #@show comp_merit(iter)
   if accept.predict_red < 0.0
+    #@show comp_merit(candidate)
     #old_merit = eval_merit_function(iter, pars)
     old_merit = accept.cur_merit
-    new_merit = eval_merit_function(candidate, pars)
+    #new_merit = eval_merit_function(candidate, pars)
+    #@show comp_merit(candidate), new_merit, old_merit
+    #@show new_merit - old_merit
 
-    accept.actual_red = new_merit - old_merit
+    accept.actual_red = eval_merit_function_difference(iter, candidate, pars)
 
     #@show accept.predict_red, accept.actual_red
     #predict_red = merit_function_predicted_reduction(iter, dir, step_size);

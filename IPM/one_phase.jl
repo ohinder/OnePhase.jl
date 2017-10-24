@@ -71,7 +71,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                if pars.primal_bounds_dual_feas
                  dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
                else
-                 dual_progress = dual_avg < get_mu(iter)
+                 dual_progress = dual_avg < get_mu(iter) #/ 10.0
                end
                # * 10.0
                delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))

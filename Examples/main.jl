@@ -29,12 +29,13 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("BRAINPC1")
 #nlp_raw2 = CUTEstModel("BRAINPC7")
 #nlp_raw2 = CUTEstModel("SYNPOP24")
+#nlp_raw2 = CUTEstModel("ACOPR300")
 #nlp_raw2 = CUTEstModel("SPIN2OP")
 #nlp_raw2 = CUTEstModel("AIRPORT")
 #nlp_raw2 = CUTEstModel("CONT6-QQ")
 #nlp_raw2 = CUTEstModel("HAIFAL")
 #nlp_raw2 = CUTEstModel("HELSBY")
-
+#nlp_raw2 = CUTEstModel("EIGENCCO")
 #nlp_raw2 = CUTEstModel("QPCBOEI1")
 #nlp_raw2 = CUTEstModel("PT") # 13 ITS
 #nlp_raw2 = CUTEstModel("COSHFUN") # 153 ITS
@@ -53,13 +54,14 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("READING1")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("CHAIN")
+#nlp_raw2 = CUTEstModel("DRUGDISE")
 
 #nlp_raw2 = CUTEstModel("ROCKET")
 #nlp_raw2 = CUTEstModel("DISC2")
 #nlp_raw2 = CUTEstModel("OET7")
 #nlp_raw2 = CUTEstModel("ACOPR57")
 #nlp_raw2 = CUTEstModel("NET3")
-nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
+#nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 #nlp_raw2 = CUTEstModel("GPP","-param","N=2000")
 #nlp_raw2 = CUTEstModel("ANTWERP")
 #nlp_raw2 = CUTEstModel("HYDCAR20")
@@ -97,7 +99,9 @@ nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 #nlp_raw2 = CUTEstModel("SSEBNLN")
 #nlp_raw2 = CUTEstModel("BATCH")
 #nlp_raw2 = CUTEstModel("SAWPATH")
-
+nlp_raw2 = CUTEstModel("MANNE")
+#nlp_raw2 = CUTEstModel("SPINOP")
+#nlp_raw2 = CUTEstModel("SYNPOP24")
 #nlp_raw2 = CUTEstModel("GPP")
 #mean(abs(grad(nlp_raw2, nlp_raw2.meta.x0))) #, maximum(abs(jac(nlp_raw2, nlp_raw2.meta.x0)))
 #maximum(abs(grad(nlp_raw2, nlp_raw2.meta.x0)))
@@ -106,6 +110,7 @@ nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 
 #nlp_raw2 = CUTEstModel("MANNE")
 ## HARD PROBLEMS
+#nlp_raw2 = CUTEstModel("QPNBOEI1")
 #nlp_raw2 = CUTEstModel("STEENBRD")
 #nlp_raw2 = CUTEstModel("ACOPR14")
 #nlp_raw2 = CUTEstModel("ACOPR118")
@@ -121,7 +126,7 @@ nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 #nlp_raw2 = CUTEstModel("AVION2")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
 #nlp_raw2 = CUTEstModel("YORKNET")
-
+#nlp_raw2 = CUTEstModel("TOYSARAH")
 function compare_objects(obj1,obj2)
   for n in fieldnames(obj1)
      if(getfield(obj1,n) != getfield(obj2,n))
@@ -131,7 +136,7 @@ function compare_objects(obj1,obj2)
   end
 end
 
-if true
+if false
 tic()
 using Ipopt
 solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none")

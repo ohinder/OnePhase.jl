@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  22 OCT 2017 23:28
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  23 OCT 2017 14:07
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2506,15 +2506,9 @@ Package atveryend Info: Empty hook `AfterLastShipout' on input line 1741.
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1741.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1741.
 
+Package rerunfilecheck Info: File `one-phase.out' has not changed.
+(rerunfilecheck)             Checksum: 264ACEB8ACBFC61A0A755BF65865B64A;3000.
 
-
-Package rerunfilecheck Warning: File `one-phase.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `one-phase.out':
-(rerunfilecheck)             Before: 090CC95A953DA96E0573E1702666BDE0;3000
-(rerunfilecheck)             After:  264ACEB8ACBFC61A0A755BF65865B64A;3000.
 
 LaTeX Warning: There were undefined references.
 
@@ -2562,7 +2556,7 @@ fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/f
 onts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/fo
 nts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dis
 t/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on one-phase.pdf (31 pages, 575768 bytes).
+Output written on one-phase.pdf (31 pages, 576580 bytes).
 PDF statistics:
  1395 PDF objects out of 1440 (max. 8388607)
  1179 compressed objects within 12 object streams

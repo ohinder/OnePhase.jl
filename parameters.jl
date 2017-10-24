@@ -143,7 +143,7 @@ type Class_parameters
         #this.dual_scale_mode = :exact
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
-        this.max_it_corrections = 2 #3 ######
+        this.max_it_corrections = 3 #3 ######
         this.comp_feas_agg_inf = Inf
         this.comp_feas = 1/100.0 #1/100.0
         this.comp_feas_agg = 1/50.0 #1/50.0 #1/70.0 #1/50.0
@@ -193,9 +193,9 @@ type Class_parameters
         this.ls_mode_agg = :accept_aggressive
         this.agg_protect_factor = 10.0^6.0
         #this.agg_eta = :affine
-        this.agg_eta = :mehrotra_stb
+        #this.agg_eta = :mehrotra_stb
         #this.agg_eta = :mehrotra
-        #this.agg_eta = :constant
+        this.agg_eta = :constant
         #this.protect_factor_boundary_threshold = ...
         #this.filter_type = :default
         this.filter_type = :test2

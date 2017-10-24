@@ -31,27 +31,31 @@ function create_tax_problem(n::Int64)
     A = 1:n;
     B = 1:n;
     T = [(i,j) for i in A for j in B];
-    clb_ij = 1.0;
-    ylb_ij = 1.0;
 
-    lambda = rand(n,n);
-    w = rand(n) + 1.0;
-    mu = rand(n) + 1.0;
+    lambda = ones(n,n);
+    w = wmin = 1;
+    wmax = wmin + n - 1;
+    w = [wmin + ((wmax-wmin)/(n-1))*(i-1) for i = 1:n]
+    mu = [1.0 + i/n for i = 1:n]
     gamma = 1.0
 
+    mu1 = mu + 1
+
     m = Model(solver = IpoptSolver())
-    @variable(m, c[i in A,j in B] >= clb_ij)# for (i,j) in T)
-    @variable(m, y[i in A,j in B] >= ylb_ij)# for (i,j) in T )
+    @variable(m, c[i in A,j in B] >= 0.0)# for (i,j) in T)
+    @variable(m, y[i in A,j in B] >= 0.0)# for (i,j) in T )
 
     @NLobjective(m, Min, -sum( lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu[j] / mu[j])  - 0.5 * gamma * (c[i,j]^2 + y[i,j]^2) for (i,j) = T) )
 
     for (i,j) in T
       for (p,q) in T
         if i != p || j != p
-          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu[j] / mu[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu[j] / mu[j]) >= 0)
+          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu[j]) >= 0)
         end
       end
     end
+
+    @NLconstraint(m, sum(lambda[i] * (y[i,j] - c[i,j]) for (i,j) in T)  >= 0.0);
 
     return m
 end
@@ -93,11 +97,55 @@ function one_phase_solve(m)
     print_timer_stats(timer)
 end
 
-for n in [5,10,20,40]
-    srand(1)
-    m = create_tax_problem(n)
-    #status = solve(m)
-    one_phase_solve(m)
-end
+srand(1)
+m = create_tax_problem(5)
+one_phase_solve(m)
+
+#=srand(1)
+m = create_tax_problem(5)
+one_phase_solve(m)
+
+srand(1)
+m = create_tax_problem(10)
+one_phase_solve(m)
+
+
+srand(1)
+m = create_tax_problem(20)
+one_phase_solve(m)=#
+
+ORG_STDOUT = STDOUT
+file = open("test.txt", "w")
+redirect_stdout(file)
+
+srand(1)
+m = create_tax_problem(10)
+one_phase_solve(m)
+
+STDOUT = ORG_STDOUT
+
+close(file)
+
+
+#srand(1)
+#m = create_tax_problem(40)
+#one_phase_solve(m)
+
+
+#=srand(1)
+m = create_tax_problem(5)
+status = solve(m)
+
+srand(1)
+m = create_tax_problem(10)
+status = solve(m)
+
+srand(1)
+m = create_tax_problem(20)
+status = solve(m)=#
+
+#srand(1)
+#m = create_tax_problem(40)
+#status = solve(m)
 
 #finalize(nlp_raw)

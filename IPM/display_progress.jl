@@ -100,6 +100,6 @@ function record_progress!(t::Int64, step_type::String, iter::Class_iterate, kss:
     push!(progress, hist)
 
     if par.output_level >= 2
-      println(pd(t,5), pd(step_type[1], 3), rd(eta.mu),  rd(ls_info.step_size_P),  rd(ls_info.step_size_D), pd(ls_info.num_steps,2), rd(hist.dir_x_norm), rd(hist.dir_y_norm), rd(kkt_ratio), "|", rd(hist.mu), rd(hist.dual_scaled), rd(hist.primal_residual), rd(hist.comp_ratio), rd(hist.farkas), "|", rd(hist.delta), pd(hist.tot_num_fac,3), rd(hist.x_norm), rd(hist.y_norm), rd(hist.eval_grad_phi), rd(hist.eval_merit_function, 5))
+      println(pd(t,5), pd(step_type[1], 3), rd(eta.mu),  rd(ls_info.step_size_P),  rd(ls_info.step_size_D), pd(ls_info.num_steps,2), rd(hist.dir_x_norm), rd(hist.dir_y_norm), rd(kkt_ratio), "|", rd(hist.mu), rd(hist.dual_scaled), rd(hist.primal_residual), rd(hist.comp_ratio), rd(hist.farkas), "|", rd(hist.delta), pd(hist.num_fac_inertia,3), pd(hist.tot_num_fac,3), rd(hist.x_norm), rd(hist.y_norm), rd(hist.eval_grad_phi), rd(hist.eval_merit_function, 5))
     end
 end
