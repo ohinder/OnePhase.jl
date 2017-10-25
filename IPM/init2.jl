@@ -156,6 +156,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
       #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
 
       Delta_s = norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
+
       if pars.start_satisfying_bounds
         s[ais] = s[ais] + Delta_s
       else
@@ -213,16 +214,46 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     pause_advanced_timer(timer, "INIT/mehortra_guarding")
 
     start_advanced_timer(timer, "INIT/centre")
-    mu = dot(s,y) / length(y)
+
     #infeas = norm(a + s,Inf)
     #if mu / infeas > 1e3
     #  mu = infeas * 1e3
     #end
 
-    y_c = mu ./ s
-    buffer = 2.0
-    y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+    mu = 0.0
+
+    stop = false
+    for i = 1:10
+      Delta_s = norm(g - J' * y,1) / (1.0 + norm(y,1))
+      @show Delta_s
+
+      if Delta_s > norm(s,1) / length(s)
+        if pars.start_satisfying_bounds
+          s[ais] = s[ais] + Delta_s
+        else
+          s = s + Delta_s
+        end
+      else
+        stop = true
+      end
+      @show size(s), size(y)
+      mu = dot(s,y)[1] / length(y)
+      @show mu
+
+      y_c = mu ./ s
+      buffer = 2.0
+      y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+      if stop
+        break
+      end
+    end
+
     pause_advanced_timer(timer, "INIT/centre")
+
+
+
+    #Delta_s = norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
+    #@show Delta_s
 
     start_advanced_timer(timer, "INIT/construct_class")
     init_point = Class_point(x, y, s, mu)

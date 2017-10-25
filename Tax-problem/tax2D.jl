@@ -1,52 +1,13 @@
-# var c{i in A, j in B} >= clb[i,j];  # consumption of tax payer (i,j)
-# var y{i in A, j in B} >= ylb[i,j];  # income      of tax payer (i,j)
-
-#=
-maximize f:
-   sum{i in A, j in B}
-      (lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j])
-       - 0.5 * gamma * (c[i,j]^2 + y[i,j]^2));
-=#
-#=
-subject to
-   Incentive{(i,j) in T, (p,q) in T: if i=p then j!=q}:
-     (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j])
-   - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu1[j]) >= 0;
-=#
-
-#=
-Technology:
-   sum{i in A, j in B} lambda[i,j]*(y[i,j] - c[i,j]) >= 0;
-=#
 include("../include.jl")
 
 using JuMP
 using Ipopt
 
 
-
-na = 5
-nb = 5
-
-A = 1:na;
-B = 1:nb;
-T = [(i,j) for i in A for j in B];
-
-lambda = ones(na,nb);
-wmin = 1;
-#wmax = wmin + na - 1;
-wmax = 5
-w = [wmin + ((wmax-wmin)/(na-1))*(i-1) for i = 1:na]
-mu = [1.0, 2.0, 3.0, 5.0, 8.0]
-gamma = 0.0
-
-mu1 = mu + 1
-
-
-function formulation1(lambda,w,mu,mu1,A,B,T)
+function formulation1(lambda,w,mu,mu1,A,B,T, lb_var)
     m = Model(solver = IpoptSolver())
-    @variable(m, c[i in A,j in B] >= 0.0)# for (i,j) in T)
-    @variable(m, y[i in A,j in B] >= 0.0)# for (i,j) in T )
+    @variable(m, c[i in A,j in B] >= lb_var)# for (i,j) in T)
+    @variable(m, y[i in A,j in B] >= lb_var)# for (i,j) in T )
 
 
     @NLobjective(m, Min, -sum( lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j]) for (i,j) = T) )
@@ -54,7 +15,7 @@ function formulation1(lambda,w,mu,mu1,A,B,T)
     for (i,j) in T
       for (p,q) in T
         if i != p || j != p
-          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu1[j]) >= 0)
+          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu1[j]) >= 0.0)
         end
       end
     end
@@ -62,19 +23,6 @@ function formulation1(lambda,w,mu,mu1,A,B,T)
     @NLconstraint(m, sum(lambda[i] * (y[i,j] - c[i,j]) for (i,j) in T)  >= 0.0);
     return m
 end
-
-
-#println("Objective value: ", getobjectivevalue(m))
-#println("x = ", getvalue(x))
-#println("y = ", getvalue(y))
-
-
-
-#status = solve(m)
-
-#getvalue(x), getvalue(y)
-#AbstractNLPModel
-
 
 function one_phase_solve(m)
     nlp_raw = MathProgNLPModel(m);
@@ -87,6 +35,8 @@ function one_phase_solve(m)
     start_advanced_timer(timer, "INIT")
     my_par = Class_parameters()
     intial_it = init(nlp, my_par, timer);
+    #intial_it.point.mu *= 10.0
+    #intial_it.point.y *= 10.0
     pause_advanced_timer(timer, "INIT")
 
     pause_advanced_timer(timer)
@@ -104,23 +54,33 @@ function one_phase_solve(m)
     return iter
 end
 
+na = 17
+nb = 5
+
+A = 1:na;
+B = 1:nb;
+T = [(i,j) for i in A for j in B];
+
+lambda = ones(na,nb);
+wmin = 1;
+#wmax = wmin + na - 1;
+wmax = 5
+w = [wmin + ((wmax-wmin)/(na-1))*(i-1) for i = 1:na]
+#mu = [1.0, 2.0, 3.0, 5.0, 8.0]
+mu = [1.0, 1.5, 2.0, 2.5, 3.0]
+
+gamma = 0.0
+
+mu1 = mu + 1.0
+
+#lb = 0.0
+lb_var = 0.1
+
 srand(1)
-m = formulation1(lambda,w,mu,mu1,A,B,T)
+m = formulation1(lambda,w,mu,mu1,A,B,T, lb_var)
 iter = one_phase_solve(m);
 
-#=srand(1)
-m = create_tax_problem(5)
-one_phase_solve(m)
-
-srand(1)
-m = create_tax_problem(10)
-one_phase_solve(m)
-
-
-srand(1)
-m = create_tax_problem(20)
-one_phase_solve(m)=#
-
+#=
 ORG_STDOUT = STDOUT
 file = open("test.txt", "w")
 redirect_stdout(file)
@@ -131,28 +91,4 @@ one_phase_solve(m)
 
 STDOUT = ORG_STDOUT
 
-close(file)
-
-
-#srand(1)
-#m = create_tax_problem(40)
-#one_phase_solve(m)
-
-
-#=srand(1)
-m = create_tax_problem(5)
-status = solve(m)
-
-srand(1)
-m = create_tax_problem(10)
-status = solve(m)
-
-srand(1)
-m = create_tax_problem(20)
-status = solve(m)=#
-
-#srand(1)
-#m = create_tax_problem(40)
-#status = solve(m)
-
-#finalize(nlp_raw)
+close(file)=#
