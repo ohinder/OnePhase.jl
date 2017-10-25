@@ -392,13 +392,14 @@ end
 
 function compute_its_etc(overlapping_results; MAX_IT::Int64=3000)
     its = Dict{String,Array{Int64,1}}()
-    println("quartiles")
+    println("Quartiles of iterations:")
     for (method_name, sum_data) in overlapping_results
         its[method_name] = iteration_list(sum_data, MAX_IT=MAX_IT);
         d = its[method_name]
-        println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)))
+        println(pd(method_name,20), " = ", rd(quantile(d,0.25)), rd(quantile(d,0.5)), rd(quantile(d,0.75)))
     end
 
+    println("Times:")
     times = Dict{String,Array{Float64,1}}()
     for (method_name, sum_data) in overlapping_results
         times[method_name] = []
@@ -411,9 +412,12 @@ function compute_its_etc(overlapping_results; MAX_IT::Int64=3000)
 
           push!(times[method_name], t);
         end
-        println(method_name, " ", rd(mean(times[method_name])), " ", rd(median(times[method_name])))
+        tm = times[method_name]
+        println(pd(method_name,20), " = ", rd(quantile(tm,0.25)), rd(quantile(tm,0.5)), rd(quantile(tm,0.75)))
+        #println(method_name, " mean=", rd(mean(times[method_name])), " median=", rd(median(times[method_name])))
     end
 
+    println("Quartiles of iteration ratios to best solver:")
     best = best_its(its)
 
     ratios = Dict()
@@ -423,7 +427,7 @@ function compute_its_etc(overlapping_results; MAX_IT::Int64=3000)
       ratios[method_name][lrg] = Inf
 
       d = ratios[method_name]
-      println(pd(method_name,20), " = ", rd(quantile(d,0.2)), rd(quantile(d,0.4)), rd(quantile(d,0.6)), rd(quantile(d,0.8)), rd(quantile(d,0.9)))
+      println(pd(method_name,20), " = ", rd(quantile(d,0.25)), rd(quantile(d,0.5)), rd(quantile(d,0.75)))
     end
     return its, best, ratios, times
 end

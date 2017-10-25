@@ -7,7 +7,7 @@ my_par.MAX_TIME = TIME_LIMIT
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["penalty"]
+RUN_LIST = ["Oct23"]
 
 problem_list = default_list()
 #problem_list = get_problem_list(100,200)
@@ -25,6 +25,18 @@ for problem in problem_list
 
     finalize(nlp_raw)
 end
+end
+
+if "Oct23" in RUN_LIST
+my_par.x_norm_penalty = 1e-8
+my_par.a_norm_penalty = 1e-4
+my_par.use_prox = true
+my_par.use_reg = true
+my_par.MAX_TIME = 60.0 * 60
+my_par.agg_eta = :affine
+folder_name = "one_phase/Oct23_MORE_TIME"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if "penalty" in RUN_LIST

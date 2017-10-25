@@ -15,10 +15,9 @@ results = Dict{String, Dict{String,problem_summary}}()
 
 #results["1"] = load("../results/one_phase/sept_1_corrections/summary.jld", "summary")
 #results["2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
-#=
-results["3"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
-results["4"] = load("../results/one_phase/sept_4_corrections/summary.jld", "summary")
-=#
+#results["3"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+#results["4"] = load("../results/one_phase/sept_4_corrections/summary.jld", "summary")
+
 
 # #=
 #results["0"] = load("../results/one_phase/dual_ls_0/summary.jld", "summary")
@@ -70,7 +69,7 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 # compare one phase and ipopt
 
 #results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
-#results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
+results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
 
 #results["sept 2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
 #results["Oct21"] = load("../results/one_phase/Oct21/summary.jld", "summary")
@@ -84,8 +83,10 @@ results["Oct21_penalty_prox"] = load("../results/one_phase/Oct21_penalty_prox/su
 
 #results["Oct22_a_penalty_only"] = load("../results/one_phase/Oct22/a_penalty_only/summary.jld", "summary")
 #results["Oct22_a_penalty_only_no_prox"] = load("../results/one_phase/Oct22/a_penalty_only_no_prox/summary.jld", "summary")
-results["Oct22_penalty"] = load("../results/one_phase/Oct22/penalty/summary.jld", "summary")
+#results["Oct22_penalty"] = load("../results/one_phase/Oct22/penalty/summary.jld", "summary")
 #results["Oct22_penalty_prox"] = load("../results/one_phase/Oct22/penalty_no_prox/summary.jld", "summary")
+#results["Oct23"] = load("../results/one_phase/Oct23/summary.jld", "summary")
+results["Oct23_MORE_TIME"] = load("../results/one_phase/Oct23_MORE_TIME/summary.jld", "summary")
 
 
 
@@ -126,12 +127,12 @@ if true
 #error_free_results = remove_errors(results, [:NaN_ERR,:Error])
 #error_free_results = remove_errors(results, [:MAX_TIME])
 #error_free_results = remove_errors(results, [:NaN_ERR, :MAX_TIME])
-error_free_results = remove_errors(results, [:MAX_TIME])
+error_free_results = remove_errors(results, [])
 overlapping_results = overlap(error_free_results)
 #overlapping_results = restrict_to_set(overlapping_results,[:primal_infeasible])
 
 
-####overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
+overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
 
 elseif false
 overlapping_results = overlap(results)

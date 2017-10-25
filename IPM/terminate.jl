@@ -15,7 +15,7 @@ function terminate(iter::Class_iterate, par::Class_parameters)
 
     if scaled_dual_feas(iter, par) < tol && comp_scaled < tol && max_vio < tol
         return :optimal
-    elseif fark_feas1 < tol && max_vio > tol && norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
+    elseif fark_feas1 < tol && max_vio > tol #&& norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible
     elseif max( 1.0, max_vio )/ min(max(1.0,-get_fval(iter)),norm(get_x(iter),Inf)) < tol # TMP!!!
         return :dual_infeasible

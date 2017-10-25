@@ -138,6 +138,13 @@
 \newcommand{\TOLinfValue}{10^{-4}}
 \newcommand{\TOLinfInterval}{(0,1)}
 
+\newcommand{\TOLinfOne}{\epsilon_{\textbf{inf}}^1}
+\newcommand{\TOLinfOneValue}{10^{-4}}
+\newcommand{\TOLinfOneInterval}{(0,1)}
+
+
+
+
 \newcommand{\TOLunbounded}{\epsilon_{\textbf{unbd}}}
 \newcommand{\TOLunboundedValue}{10^{-8}}
 \newcommand{\TOLunboundedInterval}{(0,1)}
@@ -158,7 +165,6 @@
 \newcommand{\zeroSet}{Z}
 \newcommand{\nonzeroSet}{N}
 \newcommand{\alphaMinAgg}{\alpha_{\min}}
-\newcommand{\vioVar}{\mu}
 \newcommand{\barrier}{\psi}
 \newcommand{\regularizer}{r}
 \renewcommand{\R}{\mathbb{R}}
@@ -274,9 +280,9 @@ The idea is to solve sequence of these subproblems with $\mu \rightarrow 0$ and 
 %Therefore we shift the constraints, problem and gradually reduce the
 % in the primal feasibility at each iteration. This is known shifted barrier formulation is given as follows:
 \begin{flalign}
-\min_{x \in \R^{\nvar}} \barrier_{\mu}(x) := \obj(x) + \mu r(x)  - \mu  \sum_i{ \log \left( \vioVar \conWeight_i - a_i(x)  \right) } \label{shifted-barrier-problem}
+\min_{x \in \R^{\nvar}} \barrier_{\mu}(x) := \obj(x) + \mu r(x)  - \mu  \sum_i{ \log \left( \mu \conWeight_i - a_i(x)  \right) } \label{shifted-barrier-problem}
 \end{flalign}
-with some vector $\conWeight \ge 0$ that remains fixed for all subproblems, and some $\vioVar > 0$ that measures the size of the shift. The function $\regularizer : \R^{\nvar} \rightarrow \R$ is define by
+with some vector $\conWeight \ge 0$ that remains fixed for all subproblems, and some $\mu > 0$ that measures the size of the shift. The function $\regularizer : \R^{\nvar} \rightarrow \R$ is define by
 \begin{flalign}\label{def:regularizer}
 \regularizer(x) := \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} + \parConRegularizer e^T \cons(x),
 \end{flalign}
@@ -300,7 +306,7 @@ The interior point method that we develop generates a sequences of primal iterat
 \frac{S^{k} y^{k}}{\mu^{k}} &\in [ e \parComp, e / \parComp],\label{eq:comp-slack} 
 \end{flalign} 
 \end{subequations}
-where $\conWeight \ge 0$ is a vector for which $\cons(x^{0}) + s^{0} = \vioVar^0 \conWeight$, and $\parComp \in (0,1)$ is an algorithmic parameter. This set of equations implies the primal feasibility and complementarity are moved at the same rate. Furthermore, there exists a subsequence of iterates (those that satisfy the aggressive step criterion \eqref{agg-criteron}) such that % , i.e., $x^{k} \rightarrow x^{*}$ and $s^{k} \rightarrow s^{*}$
+where $\conWeight \ge 0$ is a vector for which $\cons(x^{0}) + s^{0} = \mu^0 \conWeight$, and $\parComp \in (0,1)$ is an algorithmic parameter. This set of equations implies the primal feasibility and complementarity are moved at the same rate. Furthermore, there exists a subsequence of iterates (those that satisfy the aggressive step criterion \eqref{agg-criteron}) such that % , i.e., $x^{k} \rightarrow x^{*}$ and $s^{k} \rightarrow s^{*}$
 \begin{flalign}
 \frac{\| \grad_{x} \Lag_{\mu^k}(x^{k}, y^{k}) \|_{\infty}}{\mu^k(\| y^{k} \|_{\infty} + 1)} &\le 1, \label{eq:dual-feas}
 \end{flalign}
@@ -473,14 +479,14 @@ Given a primal step size $\alpha_{P}$ we update the primal iterates as follows:
 \begin{subequations}\label{eq:iterate-update}
 \begin{flalign}
 \mu^{+} &\gets (1 - (1 - \gamma) \alpha_{P}) \mu \\
-%\vioVar^{+} &\gets (1 - \eta \alpha_{P}) \vioVar \\
+%\mu^{+} &\gets (1 - \eta \alpha_{P}) \mu \\
 x^{+} &\gets x + \alpha_{P} d_{x} \label{eq:xVarUpdate} \\
-s^{+} &\gets \vioVar^{+} \conWeight - \cons(x^{+}). \label{eq:slackVarUpdate}
+s^{+} &\gets \mu^{+} \conWeight - \cons(x^{+}). \label{eq:slackVarUpdate}
 \end{flalign}
 \end{subequations}
 The slack variable update \eqref{eq:slackVarUpdate} is non linear and its purpose is to ensure that \eqref{eq:primal-feasibility} remains satisfied and therefore we can control the rate of reduction of primal feasibility. However, if the function $a$ is linear, the slack variable update~\eqref{eq:slackVarUpdate} reduces to:
 $$
-s^{+} = \vioVar^{+} \conWeight - \cons(x) - \alpha_{P} \grad \cons(x)  d_{x} = \left(\vioVar \conWeight - \cons(x) \right) -  \alpha_{P}  \left( (1 - \gamma) \mu \conWeight + \grad \cons(x)  d_{x} \right) = s + \alpha_{P} d_{s}.
+s^{+} = \mu^{+} \conWeight - \cons(x) - \alpha_{P} \grad \cons(x)  d_{x} = \left(\mu \conWeight - \cons(x) \right) -  \alpha_{P}  \left( (1 - \gamma) \mu \conWeight + \grad \cons(x)  d_{x} \right) = s + \alpha_{P} d_{s}.
 $$
 Therefore if $a$ is linear we use the same updates as infeasible-start algorithms for linear programming \cite{lustig1990feasibility,mehrotra1992implementation}. non linear updates for the slack variables have been used in other interior point methods \cite{andersen1998computational, curtis2012penalty}.
 
@@ -531,14 +537,21 @@ where $\TOLopt \in (0,1)$ with a default value of $\TOLoptValue$.
 \end{subequations}
 The first order local primal infeasibility termination criterion is given by
 \begin{flalign}\label{terminate-primal-infeasible}
-\infeasFunc (x,y,s, \vioVar) \le \TOLinf,
+\infeasFunc (\mu,x,s,y) \le \TOLinf,
 \end{flalign}
 where
 \begin{flalign}\label{def:infeasFunc}
-\infeasFunc (x,y,s, \vioVar) :=  \frac{\max \{ \| \grad \cons(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \| Y\conWeight\|_{\infty} \min\{  1, \vioVar \}},
+\infeasFunc (\mu,x,s,y) :=  \frac{\max \{ \| \grad \cons(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \| Y\conWeight\|_{\infty} \min\{  1, \mu \}},
 \end{flalign}
+\hinder{square root? $\TOLinfOne$
+\begin{flalign}
+\infeasFunc_{1} (x,y) := \frac{\| \nabla  a(x)^T y \|_{1}}{ -a(x)^T y } \\
+\infeasFunc_{2} (x,s,y) := \frac{\| \nabla  a(x)^T y \|_{1} + s^T y}{ \| y \|_{1} } 
+\end{flalign} 
+
+}
 and $\TOLinf \in (0,1)$ with a default value of $\TOLinfValue$.
-We remark that if we find a point with $\infeasFunc (x,y,s, \vioVar) = 0$ then we have found a stationary point to a weighted $L_{\infty}$ infeasibility measure.
+We remark that if we find a point with $\infeasFunc (\mu,x,s,y) = 0$ then we have found a stationary point to a weighted $L_{\infty}$ infeasibility measure.
 For a more thorough justification of this choice for the infeasibility termination criterion, see Section~\ref{sec:infeas-criteron-justify}.
 
 The unboundedness termination criterion is given by
@@ -560,11 +573,11 @@ Before we outline our algorithm, we need to define the switching condition for c
  \frac{S y}{\mu} &\in [ e \parCompAgg, e / \parCompAgg ] \label{agg-criteron-buffer}
 \end{flalign}
 \end{subequations}
-where the parameter $\parCompAgg \in (\parComp, 1)$ has a default value of $\parCompAggValue$. The purpose of \eqref{agg-criteron-opt} is to ensure that we have approximately solved the shifted log barrier problem. Equation~\eqref{agg-criteron-farkas} helps ensure (as we show in Section~\ref{sec:global-conv}) that if the dual variables are diverging rapidly then the infeasibility termination criterion is met. Finally, equation~\eqref{agg-criteron-buffer} with $\parCompAgg > \parComp$ ensures we have buffer in the complementarity such that we can still satisfy \eqref{eq:comp-slack} when we move in the aggressive search direction. Algorithm~\ref{one-phase-IPM} formally outlines our one-phase interior point method. Note that Algorithm~\ref{one-phase-IPM} does not include the details for the aggressive or stabilization steps that are given in Algorithm~\ref{alg:aggressive} and \ref{alg:stable} respectively. Since Algorithm~\ref{one-phase-IPM} maintains $\cons(x) + s = \conWeight \vioVar$ for each iterate, it requires the starting point to satisfy
+where the parameter $\parCompAgg \in (\parComp, 1)$ has a default value of $\parCompAggValue$. The purpose of \eqref{agg-criteron-opt} is to ensure that we have approximately solved the shifted log barrier problem. Equation~\eqref{agg-criteron-farkas} helps ensure (as we show in Section~\ref{sec:global-conv}) that if the dual variables are diverging rapidly then the infeasibility termination criterion is met. Finally, equation~\eqref{agg-criteron-buffer} with $\parCompAgg > \parComp$ ensures we have buffer in the complementarity such that we can still satisfy \eqref{eq:comp-slack} when we move in the aggressive search direction. Algorithm~\ref{one-phase-IPM} formally outlines our one-phase interior point method. Note that Algorithm~\ref{one-phase-IPM} does not include the details for the aggressive or stabilization steps that are given in Algorithm~\ref{alg:aggressive} and \ref{alg:stable} respectively. Since Algorithm~\ref{one-phase-IPM} maintains $\cons(x) + s = \conWeight \mu$ for each iterate, it requires the starting point to satisfy
 $$
-\cons(x^{0}) + s^{0} = \conWeight \vioVar^{0},
+\cons(x^{0}) + s^{0} = \conWeight \mu^{0},
 $$
-with $\conWeight \ge 0$ and $\vioVar^{0} > 0$. For any fixed $x^{0}$ one can always pick sufficiently large $\conWeight$ and $\mu^{0}$ such that $\mu^{0} \conWeight > \cons(x^{0})$, and setting $s^{0} \gets \conWeight \vioVar^{0} - \cons(x^{0})$ meets our requirements. For the details of how to initialize the variables in the practical implementation, see Section~\ref{sec:initialization}.
+with $\conWeight \ge 0$ and $\mu^{0} > 0$. For any fixed $x^{0}$ one can always pick sufficiently large $\conWeight$ and $\mu^{0}$ such that $\mu^{0} \conWeight > \cons(x^{0})$, and setting $s^{0} \gets \conWeight \mu^{0} - \cons(x^{0})$ meets our requirements. For the details of how to initialize the variables in the practical implementation, see Section~\ref{sec:initialization}.
 
 The general idea of Algorithm~\ref{one-phase-IPM} follows. At each outer iteration we factorize the matrix $\Schur_{\delta}$ with an appropriate choice of $\delta$ using Algorithm~\ref{alg:mat-fact}. With this factorization fixed, we attempt to take multiple inner iterations (at most $\parNumCor$), which corresponds to solving system~\eqref{primal-dual-Newton-direction} with different right-hand side choices, but the same matrix $\Schur_{\delta}$. Each inner iteration is either an aggressive or a stabilization step. If, on the first inner iteration, the step fails (i.e. due to a too small step size), we increase $\delta$ to address this failure and refactorize $\Schur_{\delta}$. Note that we evaluate the Hessian of the Lagrangian once per outer iteration. The selection of the initial point $(x^{0}, y^{0}, s^{0}, \mu^{0})$ is described in Section~\ref{sec:initialization}.
 
@@ -572,7 +585,7 @@ The general idea of Algorithm~\ref{one-phase-IPM} follows. At each outer iterati
 %it is suffices to choose $\mu^{0} \conWeight > \cons(x^{0})$, although we choose $\conWeight_i = 1$ for
 
 \begin{algorithm}[H]
-\textbf{Input:} some initial point $x^{0}$, vector $\conWeight \ge 0$, and variables $y^{0}, s^{0}, \mu^0 > 0$  such that $\cons(x^{0}) + s^{0} = \conWeight \vioVar^{0}$ and equation~\eqref{eq:comp-slack} with $k=0$ is satisfied. Termination tolerances $\TOLopt \in \TOLoptInterval$, $\TOLinf \in \TOLinfInterval$ and $\TOLunbounded \in \TOLunboundedInterval$. \\
+\textbf{Input:} some initial point $x^{0}$, vector $\conWeight \ge 0$, and variables $y^{0}, s^{0}, \mu^0 > 0$  such that $\cons(x^{0}) + s^{0} = \conWeight \mu^{0}$ and equation~\eqref{eq:comp-slack} with $k=0$ is satisfied. Termination tolerances $\TOLopt \in \TOLoptInterval$, $\TOLinf \in \TOLinfInterval$ and $\TOLunbounded \in \TOLunboundedInterval$. \\
 \textbf{Output:} some point $(\mu, x, s, y)$ that satisfies inequalities \termination{}
 \vspace{0.1 cm} %\\
 %\emph{For each outer iteration $i \in \{1, \dots, i_{\max}\}$ perform the following steps:}
@@ -602,7 +615,7 @@ i.e., run Algorithm~\ref{alg:stable} with: \\
 \item \emph{Deal with failures}. \\
 If $\status = \success$ set $(\mu, x, s, y) \gets (x^{+},y^{+},s^{+}, \mu^{+})$. If $\status = \failure$ and $j = 1$ go to \eqref{increase-delta-for-failure}.  If $\status = \failure$ and $j > 1$ go to step~\eqref{line:form-K}.
 \item \emph{Check termination criterion}. \\
-If any of the inequalities \termination{} hold at the point $(x,y,s,\mu)$ terminate the algorithm.
+If any of the inequalities \termination{} hold at the point $(\mu,x,s,y)$ terminate the algorithm.
 \end{enumerate}
 \item 
 Go to \eqref{line:form-K}.
@@ -644,7 +657,7 @@ Note that \eqref{eq:agg-could-improve} always holds if $(\hat{x}, \hat{s},  \hat
 
 The backtracking line search of the aggressive step has a minimum step size. If during the backtracking line search (line~\ref{line:agg-back-too-small} of Algorithm~\ref{alg:aggressive}) the step size $\alpha_{P}$ satisfies
  \begin{flalign}\label{min-step-size-aggresssive}
-\alpha_{P} \le \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{\parBacktracking \theta s_{i}}{2 \vioVar \conWeight_i} } ~~ \text{with} ~~ \theta = \min\left\{ \frac{\parComp - \parCompAgg}{\parCompAgg}, 1 - \parFracBoundary \right\}
+\alpha_{P} \le \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{\parBacktracking \theta s_{i}}{2 \mu \conWeight_i} } ~~ \text{with} ~~ \theta = \min\left\{ \frac{\parComp - \parCompAgg}{\parCompAgg}, 1 - \parFracBoundary \right\}
 %\parMinStepAgg \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} },
 \end{flalign}
 then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Following this, $\delta$ is increased in Line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} and a new aggressive step is attempted. It is possible that $\delta$ will be increased many times; however, for sufficiently large $\delta$ an acceptable step will be found (see Lemma~\ref{lemma:agg-succeeds}). 
@@ -854,36 +867,37 @@ Consider the following optimization problem
 for some non-negative vector $\conWeight$. For example, a natural choice of $\conWeight$ is to set $\conWeight_i = 0$ for variable bounds and $\conWeight_i = 1$ for all other constraints. This results in minimizing the $L_{\infty}$ norm of the constraint violation subject to variable bounds. Note that \eqref{infeasible-problem} is equivalent to the following optimization problem:
 \begin{subequations}\label{feas-problem}
 \begin{flalign}
-\min \vioVar \\
-\text{s.t. } \cons(x) + s = \vioVar \conWeight \\
-s, \vioVar \ge 0,
+\min \mu \\
+\text{s.t. } \cons(x) + s = \mu \conWeight \\
+s, \mu \ge 0,
 \end{flalign}
 \end{subequations}
 
 The KKT conditions for this problem are:
 \begin{flalign*}
-\cons(x) + s &= \vioVar \conWeight  \\
+\cons(x) + s &= \mu \conWeight  \\
 \grad \cons(x)^T \tilde{y}  &= 0 \\
 \conWeight^T \tilde{y}  + u &= 1 \\
-u \vioVar &= 0  \\
+u \mu &= 0  \\
 \tilde{y}^T s &= 0 \\
-u, \vioVar &\ge 0.
+u, \mu &\ge 0.
 \end{flalign*}
-Note that if the point $x,y,s, \vioVar$ satisfies
+Note that if the point $\mu,x,s,y$ satisfies
 \begin{flalign*}
-\cons(x) + s = \vioVar \conWeight  \\
-\infeasFunc (x,y,s, \vioVar) = 0 \\
-\vioVar > 0
+\cons(x) + s = \mu \conWeight  \\
+\infeasFunc (\mu,x,s,y) = 0 \\
+\mu > 0
 \end{flalign*}
-then we have found a stationary point for problem~\eqref{infeasible-problem} with $\vioVar > 0$. In other words, a first-order infeasibility certificate. 
+then we have found a stationary point for problem~\eqref{infeasible-problem} with $\mu > 0$. In other words, a first-order infeasibility certificate. 
 
 In the case of convexity, a stronger statement can be made. In particular, if the problem is convex, then the stationary point is a global minimizer. The following claim makes this more precise, showing that our termination criterion implies the problem is infeasible in some radius $R$. We emphasize this result is trivial and we include it for completeness.
 
+\hinder{give example to show importance of scaling e.g. $x \ge 0, x \le 0$.}
 \begin{claim}
-Assume the constraint function $a : \R^{\nvar} \rightarrow \R$ is differentiable and convex. Furthermore, that some minimizer $(x^{*}, \mu^{*})$ of \eqref{feas-problem} satisfies $\| x - x^{*} \|_{2} \le R$ for some $R \in (0,\infty)$. Suppose also that at some point $(x,y,s,\mu)$ one has
+Assume the constraint function $a : \R^{\nvar} \rightarrow \R$ is differentiable and convex. Furthermore, that some minimizer $(\mu^{*}, x^{*})$ of \eqref{feas-problem} satisfies $\| x - x^{*} \|_{1} \le R$ for some $R \in (0,\infty)$. Suppose also that at some point $(\mu,x,s,y)$ one has
 \begin{flalign}
-\cons(x) + s &= \vioVar \conWeight \label{eq:assume-primal-good} \\
-\infeasFunc (x,y,s, \vioVar) &\le \frac{1}{2 m ( R + 1)}. \label{eq:assume-infeas-criteron-holds}
+\cons(x) + s &= \mu \conWeight \label{eq:assume-primal-good} \\
+\infeasFunc (\mu,x,s,y) &\le \frac{1}{2 m ( R + 1)}. \label{eq:assume-infeas-criteron-holds}
 \end{flalign}
 Then the system $\cons(x) \le 0$ has no feasible solution.
 \end{claim}
@@ -892,10 +906,10 @@ Using $\tilde{y} := \frac{y}{\| Y\conWeight\|_{\infty}}$ we can write
 \begin{flalign*}
 \tilde{y}^T \cons(x^{*}) &\ge \tilde{y}^T \cons(x) + \tilde{y}^T \grad a (x) (x^{*} - x) \\
 &= \tilde{y}^T (w \mu - s) + \tilde{y}^T \grad a (x) (x^{*} - x) \\
-&\ge \mu - m (1 + R) \infeasFunc (x,y,s, \vioVar) \min\{  1, \vioVar  \} \\
+&\ge \mu - m (1 + R) \infeasFunc (\mu,x,s,y) \min\{  1, \mu  \} \\
 &> \mu/2.
 \end{flalign*}
-The first transition holds via convexity, the second by \eqref{eq:assume-primal-good}, the third by the definition of $\infeasFunc$, and the final inequality by \eqref{eq:assume-infeas-criteron-holds}. Therefore there exists no feasible solution to $\cons(x) \le 0$. This is a typical Farkas infeasibility certificate argument.
+The first transition holds via convexity, the second by \eqref{eq:assume-primal-good}, the third by the definition of $\infeasFunc$ in \eqref{def:infeasFunc}, and the final inequality by \eqref{eq:assume-infeas-criteron-holds}. Therefore there exists no feasible solution to $\cons(x) \le 0$. This is a typical Farkas infeasibility certificate argument.
 \end{proof}
 
 \subsection{Global convergence proofs for a naive algorithm}\label{sec:theory-naive}
@@ -1045,7 +1059,7 @@ Furthermore, after a finite number of calls to Algorithm~\ref{alg:aggressive} th
 The proof of Lemma~\ref{lem:agg-finite} is given in Section~\ref{sub:lem:agg-finite}. Note Lemma~\ref{lem:agg-finite} does not rule out the possibility of an infinite sequence of failing aggressive steps. For this reason we need Lemma~\ref{lemma:agg-succeeds}. Lemma~\ref{lemma:agg-succeeds} shows that one can absorb the slack variable to reduce $\mu$ during aggressive steps by choosing a sufficiently large $\delta$. Consequently, we are guaranteed if the criterion for an aggressive step is satisfied then there will be eventually an aggressive step taken with $\status = \success$ (since when an aggressive step fails for $j=1$ the parameter $\delta$ is increased inside Algorithm~\ref{one-phase-IPM} and eventually $\delta > \bar{\delta}$).
 
 \begin{restatable}{lemma}{lemAggSucceeds}\label{lemma:agg-succeeds}
-Let the functions $f : \R^{\nvar} \rightarrow \R$ and $a : \R^{\nvar} \rightarrow \R^{\ncon}$ be twice differentiable. Consider an iterate $(\mu, x, s, y)$ that satisfies the criterion for an aggressive step \eqref{agg-criteron} with $\cons(x) + s = \vioVar \conWeight$, then there exists some $\bar{\delta}$ such that for all $\delta > \bar{\delta}$, Algorithm~\ref{alg:aggressive} applied to the iterate $(\mu, x, s, y)$ terminates with $\status = \success$.
+Let the functions $f : \R^{\nvar} \rightarrow \R$ and $a : \R^{\nvar} \rightarrow \R^{\ncon}$ be twice differentiable. Consider an iterate $(\mu, x, s, y)$ that satisfies the criterion for an aggressive step \eqref{agg-criteron} with $\cons(x) + s = \mu \conWeight$, then there exists some $\bar{\delta}$ such that for all $\delta > \bar{\delta}$, Algorithm~\ref{alg:aggressive} applied to the iterate $(\mu, x, s, y)$ terminates with $\status = \success$.
 \end{restatable}
 
 The proof of Lemma~\ref{sec:lemma:agg-succeeds} is given in Section~\ref{sec:lemma:agg-succeeds}. We conclude this subsection with Lemma~\ref{lem:summary-agg}, that summarizes the important aspects of Lemma~\ref{lem:agg-finite} and~\ref{lemma:agg-succeeds}.
@@ -1165,10 +1179,10 @@ Finally, we project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},
 %\item Dealing with bound constraints
 %\end{enumerate}
 %
-%For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\vioVar^{1}$ via
+%For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\mu^{1}$ via
 %\begin{flalign*}
-%\vioVar^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
-%s^{1} &\gets \vioVar^{1} e - \cons(x^{1}) 
+%\mu^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
+%s^{1} &\gets \mu^{1} e - \cons(x^{1}) 
 %\end{flalign*}   
 
 \subsection{Handling bound constraints}
@@ -1421,15 +1435,15 @@ ECON3 & 3,200 & 2,558,400 &  &
 \begin{proof}
 We have
 \begin{flalign*}
-\| Y \conWeight \|_{\infty} &\le \frac{\max\{ \| \grad \cons(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \TOLinf \min\{  1, \vioVar \}} \\
-& \le  \frac{\max\{\| \grad \obj(x) \|_{\infty} + \| \grad \Lag_{\mu} (x , y) \|_{\infty}, \mu / \parComp \}}{ \TOLinf \min\{  1, \vioVar \}} \\
+\| Y \conWeight \|_{\infty} &\le \frac{\max\{ \| \grad \cons(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \TOLinf \min\{  1, \mu \}} \\
+& \le  \frac{\max\{\| \grad \obj(x) \|_{\infty} + \| \grad \Lag_{\mu} (x , y) \|_{\infty}, \mu / \parComp \}}{ \TOLinf \min\{  1, \mu \}} \\
 & \le \frac{ 2 G }{ \TOLinf \TOLopt} 
 \end{flalign*}
 where the first inequality follows from the fact that the \eqref{terminate-primal-infeasible} is not satisfied; the second inequality from the triangle inequality applied to $\| \grad \Lag_{\mu} (x , y) \|_{\infty}$ and inequality \eqref{agg-criteron-buffer}; and the third inequality from inequality \eqref{agg-criteron-farkas} and the Lemma's assumptions.
 
 Next, for any trial step size $\alpha_{P}$ by \eqref{min-step-size-aggresssive} we have
 \begin{flalign*}
-\alpha_{P} &\ge  \min_{i : w_i > 0}{ \frac{\parBacktracking \theta s_{i}}{2 \vioVar \conWeight_i} }
+\alpha_{P} &\ge  \min_{i : w_i > 0}{ \frac{\parBacktracking \theta s_{i}}{2 \mu \conWeight_i} }
 \ge \min_{i : w_i > 0}{ \frac{ \parBacktracking \theta \parCompAgg}{2 \conWeight_i  y_{i}}  } 
 \ge \frac{ \parBacktracking \theta \parCompAgg \TOLinf \TOLopt}{4 G}
 \end{flalign*}
@@ -1451,7 +1465,7 @@ where $\theta$ is defined in equation~\eqref{min-step-size-aggresssive}.
 
 To obtain a contradiction assume that Algorithm~\ref{alg:aggressive} fails. This implies by \eqref{min-step-size-aggresssive} that the backtracking line search of the algorithm will have attempted some $\alpha_{P}$ such that
 \begin{flalign}\label{eq:alpha-bound}
-\alpha_{P} \in \left[ 0, \min_{i : w_i > 0}{ \frac{\theta s_{i}}{2 \vioVar \conWeight_i} }  \right], %\frac{1}{1 + (\vioVar / (  \parCompAgg \mu) ) \| y \|_{\infty}}\right]
+\alpha_{P} \in \left[ 0, \min_{i : w_i > 0}{ \frac{\theta s_{i}}{2 \mu \conWeight_i} }  \right], %\frac{1}{1 + (\mu / (  \parCompAgg \mu) ) \| y \|_{\infty}}\right]
 \end{flalign}
 then for this choice of $\alpha_{P}$ we have
 $$
@@ -1484,7 +1498,7 @@ Q := \left\{ x \in \R^{\nvar} : (y, s) \in \R^{\ncon++} \times \R^{\ncon++}, \ph
 $$
 Now, consider some $x \in Q$. Recall that
 $$
-\phi_{\mu}(x, s, y) = \obj(x) + \mu \left( \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} - \parConRegularizer e^T \cons(x) \right)  - \mu  \sum_i{ \log \left( \vioVar \conWeight_i - a_i(x)  \right) } + \frac{\| S y - \mu \|_{\infty}^3}{\mu^2}.
+\phi_{\mu}(x, s, y) = \obj(x) + \mu \left( \parRegularizer \sum_{i = 1}^{\nvar} \sqrt{x_i^2 + 1 / \parRegularizer^2} - \parConRegularizer e^T \cons(x) \right)  - \mu  \sum_i{ \log \left( \mu \conWeight_i - a_i(x)  \right) } + \frac{\| S y - \mu \|_{\infty}^3}{\mu^2}.
 $$
 The expression $\parConRegularizer a_i(x) - \log(\mu \conWeight_i - a_i(x))$ and $\frac{\| S y - \mu \|^3}{\mu^2}$ are bounded from bellow. Therefore there exists some constant $K_{1} > 0$ such that
 $$

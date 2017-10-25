@@ -129,13 +129,28 @@ end
 
 
 function eval_farkas(it::Class_iterate, y::Array{Float64,1})
-    feas_obj = -mean(it.cache.cons .* y)
+    return max(farkas_certificate(it, y), stationary_infeasible_measure(it,y))
+end
+
+function farkas_certificate(it::Class_iterate, y::Array{Float64,1})
+    c = it.cache.cons
+    feas_obj = -sum(c .* y)
     if feas_obj > 0.0
-      return norm(y' * it.cache.J, Inf) /  min(norm(y, Inf), feas_obj)
+      return norm(it.cache.J_T * y, 1) / feas_obj
     else
       return Inf
     end
 end
+
+
+function stationary_infeasible_measure(it::Class_iterate, y::Array{Float64,1})
+    return (norm(it.cache.J_T * y, 1) + dot(it.point.s, it.point.y)) / norm(y,1)
+end
+
+#function eval_farkas2(it::Class_iterate, y::Array{Float64,1})
+#    w = get_primal_res(it) / get_mu(it)
+#    return norm(y' * it.cache.J, 1) / (norm(y .* w,1) * min(1.0,get_mu(it)))
+#end
 
 function eval_farkas(it::Class_iterate)
     return eval_farkas(it, it.point.y)
@@ -171,8 +186,8 @@ function eval_merit_function_difference(it::Class_iterate, candidate::Class_iter
           comp_penalty = 0.0
         end
 
-        phi_diff = eval_phi(candidate, candidate.point.mu) - eval_phi(it, it.point.mu)
-        #phi_diff = eval_phi_diff(it, candidate, candidate.point.mu)
+        #phi_diff = eval_phi(candidate, candidate.point.mu) - eval_phi(it, it.point.mu)
+        phi_diff = eval_phi_diff(it, candidate, candidate.point.mu)
         return phi_diff + comp_penalty
     else
         return Inf

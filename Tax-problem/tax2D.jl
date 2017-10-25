@@ -25,40 +25,45 @@ using Ipopt
 
 
 
+na = 5
+nb = 5
+
+A = 1:na;
+B = 1:nb;
+T = [(i,j) for i in A for j in B];
+
+lambda = ones(na,nb);
+wmin = 1;
+#wmax = wmin + na - 1;
+wmax = 5
+w = [wmin + ((wmax-wmin)/(na-1))*(i-1) for i = 1:na]
+mu = [1.0, 2.0, 3.0, 5.0, 8.0]
+gamma = 0.0
+
+mu1 = mu + 1
 
 
-function create_tax_problem(n::Int64)
-    A = 1:n;
-    B = 1:n;
-    T = [(i,j) for i in A for j in B];
-
-    lambda = ones(n,n);
-    w = wmin = 1;
-    wmax = wmin + n - 1;
-    w = [wmin + ((wmax-wmin)/(n-1))*(i-1) for i = 1:n]
-    mu = [1.0 + i/n for i = 1:n]
-    gamma = 1.0
-
-    mu1 = mu + 1
-
+function formulation1(lambda,w,mu,mu1,A,B,T)
     m = Model(solver = IpoptSolver())
     @variable(m, c[i in A,j in B] >= 0.0)# for (i,j) in T)
     @variable(m, y[i in A,j in B] >= 0.0)# for (i,j) in T )
 
-    @NLobjective(m, Min, -sum( lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu[j] / mu[j])  - 0.5 * gamma * (c[i,j]^2 + y[i,j]^2) for (i,j) = T) )
+
+    @NLobjective(m, Min, -sum( lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j]) for (i,j) = T) )
 
     for (i,j) in T
       for (p,q) in T
         if i != p || j != p
-          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu[j]) >= 0)
+          @NLconstraint(m,(log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j]) - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu1[j]) >= 0)
         end
       end
     end
 
     @NLconstraint(m, sum(lambda[i] * (y[i,j] - c[i,j]) for (i,j) in T)  >= 0.0);
-
     return m
 end
+
+
 #println("Objective value: ", getobjectivevalue(m))
 #println("x = ", getvalue(x))
 #println("y = ", getvalue(y))
@@ -95,11 +100,13 @@ function one_phase_solve(m)
     pause_advanced_timer(timer)
 
     print_timer_stats(timer)
+
+    return iter
 end
 
 srand(1)
-m = create_tax_problem(5)
-one_phase_solve(m)
+m = formulation1(lambda,w,mu,mu1,A,B,T)
+iter = one_phase_solve(m);
 
 #=srand(1)
 m = create_tax_problem(5)
