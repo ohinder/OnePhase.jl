@@ -1,23 +1,3 @@
-# var c{i in A, j in B} >= clb[i,j];  # consumption of tax payer (i,j)
-# var y{i in A, j in B} >= ylb[i,j];  # income      of tax payer (i,j)
-
-#=
-maximize f:
-   sum{i in A, j in B}
-      (lambda[i,j] * (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j])
-       - 0.5 * gamma * (c[i,j]^2 + y[i,j]^2));
-=#
-#=
-subject to
-   Incentive{(i,j) in T, (p,q) in T: if i=p then j!=q}:
-     (log(c[i,j]) - (y[i,j]/w[i])^mu1[j] / mu1[j])
-   - (log(c[p,q]) - (y[p,q]/w[i])^mu1[j] / mu1[j]) >= 0;
-=#
-
-#=
-Technology:
-   sum{i in A, j in B} lambda[i,j]*(y[i,j] - c[i,j]) >= 0;
-=#
 include("../include.jl")
 
 using JuMP

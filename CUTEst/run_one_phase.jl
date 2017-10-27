@@ -33,8 +33,8 @@ my_par.a_norm_penalty = 1e-4
 my_par.use_prox = true
 my_par.use_reg = true
 my_par.MAX_TIME = 60.0 * 60
-my_par.agg_eta = :affine
-folder_name = "one_phase/Oct23_MORE_TIME"
+my_par.agg_eta = :mehrotra_stb
+folder_name = "one_phase/Oct26"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

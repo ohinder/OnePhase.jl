@@ -1,4 +1,4 @@
-\begin{thebibliography}{36}
+\begin{thebibliography}{39}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -24,6 +24,13 @@ H.~Y. Benson, D.~F. Shanno, and R.~J. Vanderbei.
   and numerical testing.
 \newblock \emph{Mathematical programming}, 99\penalty0 (1):\penalty0 35--48,
   2004.
+
+\bibitem[Bunch and Parlett(1971)]{bunch1971direct}
+J.~R. Bunch and B.~N. Parlett.
+\newblock Direct methods for solving symmetric indefinite systems of linear
+  equations.
+\newblock \emph{SIAM Journal on Numerical Analysis}, 8\penalty0 (4):\penalty0
+  639--655, 1971.
 
 \bibitem[Byrd et~al.(2006)Byrd, Nocedal, and Waltz]{byrd2006knitro}
 R.~H. Byrd, J.~Nocedal, and R.~A. Waltz.
@@ -67,6 +74,13 @@ R.~Fletcher and S.~Leyffer.
 \newblock Nonlinear programming without a penalty function.
 \newblock \emph{Mathematical programming}, 91\penalty0 (2):\penalty0 239--269,
   2002.
+
+\bibitem[Gill et~al.(1996)Gill, Saunders, and Shinnerl]{gill1996stability}
+P.~E. Gill, M.~A. Saunders, and J.~R. Shinnerl.
+\newblock On the stability of cholesky factorization for symmetric
+  quasidefinite systems.
+\newblock \emph{SIAM Journal on Matrix Analysis and Applications}, 17\penalty0
+  (1):\penalty0 35--46, 1996.
 
 \bibitem[Gill et~al.(2015)Gill, Saunders, and Wong]{gill2015performance}
 P.~E. Gill, M.~A. Saunders, and E.~Wong.
@@ -212,6 +226,12 @@ R.~J. Vanderbei.
 \newblock Splitting dense columns in sparse linear systems.
 \newblock \emph{Linear Algebra and its Applications}, 152:\penalty0 107--117,
   1991.
+
+\bibitem[Vanderbei(1995)]{vanderbei1995symmetric}
+R.~J. Vanderbei.
+\newblock Symmetric quasidefinite matrices.
+\newblock \emph{SIAM Journal on Optimization}, 5\penalty0 (1):\penalty0
+  100--113, 1995.
 
 \bibitem[Vanderbei(1999)]{vanderbei1999loqo}
 R.~J. Vanderbei.

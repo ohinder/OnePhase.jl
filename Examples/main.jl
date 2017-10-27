@@ -131,6 +131,16 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("TOYSARAH")
 #nlp_raw2 = CUTEstModel("AGG")
+#problem_list = get_problem_list(100000,9999999999)
+# BIG PROBLEMS
+#BDRY2
+#YATP2SQ
+#OSCIGRNE (SEEMS KINDA DUMB)
+#nlp_raw2 = CUTEstModel("BA-L52")
+#nlp_raw2 = CUTEstModel("RDW2D51F","-param","N=512")
+#nlp_raw2 = CUTEstModel("YATP2SQ","-param","N=200")
+
+#nlp_raw2 = CUTEstModel("TWOD","-param","N=2")
 
 function compare_objects(obj1,obj2)
   for n in fieldnames(obj1)
@@ -141,59 +151,7 @@ function compare_objects(obj1,obj2)
   end
 end
 
-if false
-tic()
-using Ipopt
-solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none")
-#,mehrotra_algorithm="yes") #, tol_dual_abs=1e-6)
-#solver = IpoptSolver(print_level=5, tol=1e-8)
-mp = NLPModels.NLPtoMPB(nlp_raw2, solver)
-MathProgBase.optimize!(mp)
-@show norm(mp.inner.mult_g, Inf)
-#y = MathProgBase.getdual(mp)
-solver = MathProgBase.getrawsolver(mp)
-#finalize(nlp_raw2)
-toc();
-end
-srand(1)
-#begin
-nlp = Class_CUTEst(nlp_raw2)
-## FEASIBLE (probably)
-timer = class_advanced_timer()
-start_advanced_timer(timer)
-#include("include.jl")
-#intial_it = initial_point_satisfy_bounds(nlp, my_par)
-start_advanced_timer(timer, "INIT")
-the_par = Class_parameters();
-intial_it = init(nlp, the_par, timer);
-pause_advanced_timer(timer, "INIT")
-#temp_x = deepcopy(intial_it.point.x)
-#intial_it = initial_point_generic(nlp, my_par, nlp_raw2.meta.x0)
-start_advanced_timer(timer)
+IpoptSolve(nlp_raw2);
+one_phase_solve(nlp_raw2);
 
-@assert(is_feasible(intial_it, the_par.comp_feas))
-iter, status, hist, t, err = one_phase_IPM(intial_it, the_par, timer);
-
-pause_advanced_timer(timer)
-
-print_timer_stats(timer)
-
-#end
 finalize(nlp_raw2)
-
-#
-# aggressive steps do max LP step
-
-if false
-include("include.jl")
-x = nlp_raw2.meta.x0;
-m = nlp_raw2.meta.ncon;
-@time for i = 1:20 obj(nlp_raw2, x) end;
-@time for i = 1:20 grad(nlp_raw2, x) end;
-@time for i = 1:20 cons(nlp_raw2, x) end;
-@time for i = 1:20 J = jac(nlp_raw2, x) end;
-@time for i = 1:20 p = jtprod(nlp_raw2, x, randn(m))  end;
-@time for i = 1:20  jac_coord(nlp_raw2, x) end;
-nlp = Class_CUTEst(nlp_raw2);
-@time for i = 1:20 eval_jac(nlp, zeros(10000)) end;
-end

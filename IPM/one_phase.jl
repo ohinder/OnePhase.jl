@@ -11,6 +11,39 @@ function mu_func(iter)
     return get_mu(iter) #norm(get_primal_res(iter),Inf) #/(1 + sqrt(get_mu(iter))) # norm(get_grad(iter),Inf)
 end
 
+function one_phase_solve(m::JuMP.Model)
+    nlp_raw = MathProgNLPModel(m);
+    return one_phase_solve(nlp_raw)
+end
+
+function one_phase_solve(nlp_raw)
+    nlp = Class_CUTEst(nlp_raw);
+    timer = class_advanced_timer()
+    start_advanced_timer(timer)
+    #include("include.jl")
+    #intial_it = initial_point_satisfy_bounds(nlp, my_par)
+    start_advanced_timer(timer, "INIT")
+    my_par = Class_parameters()
+    intial_it = init(nlp, my_par, timer);
+    #intial_it.point.mu *= 10.0
+    #intial_it.point.y *= 10.0
+    pause_advanced_timer(timer, "INIT")
+
+    pause_advanced_timer(timer)
+    print_timer_stats(timer)
+
+    start_advanced_timer(timer)
+
+    @assert(is_feasible(intial_it, my_par.comp_feas))
+    iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
+
+    pause_advanced_timer(timer)
+
+    print_timer_stats(timer)
+
+    return iter
+end
+
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
   t = 0;
   progress = Array{alg_history,1}();
