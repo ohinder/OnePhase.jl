@@ -1,8 +1,6 @@
 # RUN_LIST as input
 include("run_cutest.jl")
-TIME_LIMIT = 10.0 * 60
 my_par = Class_parameters()
-my_par.MAX_TIME = TIME_LIMIT
 
 # :dynamic,
 #RUN_LIST = ARGS
@@ -32,9 +30,10 @@ my_par.x_norm_penalty = 1e-8
 my_par.a_norm_penalty = 1e-4
 my_par.use_prox = true
 my_par.use_reg = true
-my_par.MAX_TIME = 60.0 * 60
-my_par.agg_eta = :mehrotra_stb
-folder_name = "one_phase/Oct26"
+my_par.term.max_time = 60.0 * 60
+my_par.term.max_it = 10000
+#my_par.agg_eta = :mehrotra_stb
+folder_name = "one_phase/Oct28"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

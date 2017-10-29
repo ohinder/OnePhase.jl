@@ -207,7 +207,7 @@
 \newcommand{\simpleIPM}{Simplified-One-Phase-Non-Convex-IPM}
 \newcommand{\callSimpleIPM}{\Call{Simplified-One-Phase-Non-Convex-IPM}}
 
-\newcommand{\backtrackBlurb}{\emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha_{P} \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, \parBacktracking^2 \alpha^{\max}_{P}, \dots \}$ computing the trial point $(x^{+}, y^{+}, s^{+}, \mu^{+})$ as described in \eqref{eq:iterate-update} and \eqref{eq:alpha-D}. Terminate with $\status = \success$ and return the trial point the first time each of the following conditions hold:}
+\newcommand{\backtrackBlurb}{\emph{Perform a backtracking line search on the primal step $\alpha_{P}$.} Trial step sizes $\alpha_{P} \in \{\alpha^{\max}_{P}, \parBacktracking \alpha^{\max}_{P}, \parBacktracking^2 \alpha^{\max}_{P}, \dots \}$ computing the trial point $(\mu^{+}, x^{+}, s^{+}, y^{+})$ as described in \eqref{eq:primal-iterate-update} and \eqref{eq:alpha-D}. Terminate with $\status = \success$ and return the trial point the first time each of the following conditions hold:}
 
 \begin{center}
 \color{red}
@@ -258,13 +258,13 @@ x - s_2 - 1/2 &= 0 \\
 s_1, s_2 &\ge 0
 \end{flalign}
 \end{subequations}
-that a large class of infeasible-start algorithms fails to converge to either a local optimum or infeasibility certificate starting at any point with $x < 0$, $s_{1}, s_{2} > 0$. Following this paper, a flurry of research was published suggesting different methods for resolving this issue \cite{benson2004interior}. The two main approaches can be split into penalty methods \cite{liu2004robust, chen2006interior,curtis2012penalty,gould2015interior} and two-phase algorithms \cite{wachter2006implementation}. 
+that a large class of infeasible-start algorithms fails to converge to either a local optimum or infeasibility certificate starting at any point with $x < 0$, $s_{1}, s_{2} > 0$. Following this paper, a flurry of research was published suggesting different methods for resolving this issue \cite{benson2004interior,liu2004robust, chen2006interior,curtis2012penalty,gould2015interior,wachter2006implementation}. The two main approaches can be split into penalty methods \cite{liu2004robust, chen2006interior,curtis2012penalty,gould2015interior} and two-phase algorithms \cite{wachter2006implementation}. 
 
 Penalty methods move some measure of constraint violation into the objective. These methods require a penalty parameter $M$ that measures how much the constraint violation contributes to the objective. For large enough $M$ the algorithm will converge to an optimal solution. However, estimating this penalty parameter is difficult: too small and the algorithm will not find a feasible solution; too big and the algorithm might be slow and suffer from numerical issues. Consequently, penalty methods tend to be slow \cite[Algorithm 1]{curtis2012penalty} or use complex schemes for dynamically updating the penalty parameter \cite[Algorithm 2]{curtis2012penalty}. 
 
 The algorithm IPOPT is an example of a two-phase algorithm: it has a main phase and a feasibility restoration phase  \cite{wachter2006implementation}. The main phase searches simultaneously for optimality and feasibility using a classical infeasible-start method. The feasibility restoration phase aims to minimize infeasibility. It is called only when the main phase fails, e.g., the step size is small. It is well known that this approach has drawbacks. The algorithm has difficulties detecting infeasibility \cite[Table 15]{huang2016solution} and will fail if the feasibility restoration phase is called too close to the optimal solution. Some of these issues have been addressed by \cite{nocedal2014interior}. 
 
-Our main contribution is an infeasible-start interior point method for non linear programming that builds on the work of \citet{lustig1990feasibility}, \citet{mehrotra1992implementation} and \citet*{mizuno1993adaptive} for linear programming. The algorithm avoids a big-M or a two-phase approach. Furthermore, our solution to the issue posed in example \eqref{failure-ex} is simple: we carefully initialize the slack variables and use non linear updates to ensure we approach feasibility from above. Consequently, under general conditions we guarantee that our algorithm will converge to a local certificate of optimality, local infeasibility or unboundedness. Our algorithm has other desirable properties. Complementarity moves at the same rate as primal feasibility. This implies from the work of \citet*{haeser2017behavior} that, if certain sufficient conditions for local optimality conditions hold, our approach guarantees dual multipliers sequence will remain bounded. In contrast, methods that reduce the primal feasibility too quickly, such as IPOPT,  the dual multiplier sequence can be unbounded even for linear programs. We compare our solver with IPOPT on a subset of CUTEst problems. Our algorithm has a similar median number of iterations to IPOPT, but fails less often. Experiments on infeasible variants of the CUTEst problems indicate superior performance for detecting infeasibility.
+Our main contribution is an infeasible-start interior point method for non linear programming that builds on the work for linear programming of \citet{lustig1990feasibility}; \citet{mehrotra1992implementation}; and \citet*{mizuno1993adaptive}. The algorithm avoids a big-M or a two-phase approach. Furthermore, our solution to the issue posed in example \eqref{failure-ex} is simple: we carefully initialize the slack variables and use non linear updates to ensure we approach feasibility from above. Consequently, under general conditions we guarantee that our algorithm will converge to a local certificate of optimality, local infeasibility or unboundedness. Our algorithm has other desirable properties. Complementarity moves at the same rate as primal feasibility. This implies from the work of \citet*{haeser2017behavior} that, if certain sufficient conditions for local optimality conditions hold, our approach guarantees dual multipliers sequence will remain bounded. In contrast, methods that reduce the primal feasibility too quickly, such as IPOPT,  the dual multiplier sequence can be unbounded even for linear programs. We compare our solver with IPOPT on a subset of CUTEst problems. Our algorithm has a similar median number of iterations to IPOPT, but fails less often. Experiments on infeasible variants of the CUTEst problems indicate superior performance for detecting infeasibility.
 %From \cite{haeser2017behavior} we know that if certain sufficient conditions for local optimality conditions hold, then a subsequence of the dual multipliers will converge if the primal solution is converging to a KKT point. Consequently, our algorithm may find finite dual multipliers, even if the set of dual multipliers at the KKT point is unbounded. Conversely, methods that reduce the primal feasibility too quickly, such as IPOPT, will suffer from divergent dual multipliers \cite{haeser2017behavior}.
 
 The paper is structured as follows. Section~\ref{sec:basic-alg} describes our proposed one-phase interior point algorithm and gives intuitive explanations for our choices. Section~\ref{sec:theory} focuses on convergence proofs. In particular, Section~\ref{sec:infeas-criteron-justify} justifies the choice of infeasibility criterion; Section~\ref{sec:theory-naive} introduces a simplified version of the algorithm to explain the ideas for the convergence proof and then Section~\ref{sec:global-conv} provides convergence proofs for the algorithm described in Section~\ref{sec:basic-alg}. Section~\ref{sec:implementation-details} delves into implementation details, and Section~\ref{sec:empirical-results} presents results on the CUTEst test set.
@@ -319,7 +319,7 @@ where $\Lag_{\mu} (x, y) := \obj(x) + y^T \cons(x) + \mu r(x)$ is the regularize
 Related to this property of the dual multipliers being well-behaved, is that that our algorithm is explicitly designed for inequality constraints only. Nonetheless, we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise in other solvers \cite{haeser2017behavior}  (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation). The advantage of only using inequalities is that: 
 \begin{enumerate}
 \item It enables us to generate sequences satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas}.
-\item It allows us use a Cholesky factorization, instead of LBL (see end of Section~\ref{sub:direction-computation} for further discussion).
+\item It allows us use a Cholesky factorization, instead of the  LBL factorization of \citet*{bunch1971direct}. See end of Section~\ref{sub:direction-computation} for further discussion.
 \item We avoid the need for a second inertia modification parameter to ensure non-singularity of the linear system, i.e., $\delta_{c}$ in equation~(13) in \cite{wachter2006implementation}.  We can avoid using $\delta_{c}$ removes issues where large modifications to the linear system may not provide a descent direction for the constraint violation. 
 \end{enumerate}
 %Furthermore, our algorithm is simpler because we do not need a scheme for choosing $\delta_{c}$. 
@@ -482,7 +482,7 @@ We emphasize that is similar to forming the dual Schur complement in linear prog
 
 Suppose that we have computed some direction $d$ by solving system \eqref{primal-dual-Newton-direction}. We wish to construct a candidate $(\mu^{+}, x^{+}, s^{+}, y^{+})$ for the next iterate.
 Given a primal step size $\alpha_{P}$ we update the primal iterates as follows:
-\begin{subequations}\label{eq:iterate-update}
+\begin{subequations}\label{eq:primal-iterate-update}
 \begin{flalign}
 \mu^{+} &\gets (1 - (1 - \gamma) \alpha_{P}) \mu \\
 %\mu^{+} &\gets (1 - \eta \alpha_{P}) \mu \\
@@ -551,8 +551,8 @@ where
 \end{flalign}
 \hinder{square root? $\TOLinfOne$
 \begin{flalign}
-\infeasFunc_{1} (x,y) := \frac{\| \nabla  a(x)^T y \|_{1}}{ -a(x)^T y } \\
-\infeasFunc_{2} (x,s,y) := \frac{\| \nabla  a(x)^T y \|_{1} + s^T y}{ \| y \|_{1} } 
+\infeasFunc_{1} (x,y) &:= \frac{\| \nabla  a(x)^T y \|_{1}}{ -a(x)^T y } \\
+\infeasFunc_{2} (x,s,y) &:= \frac{\| \nabla  a(x)^T y \|_{1} + s^T y}{ \| y \|_{1} } 
 \end{flalign} 
 
 }
@@ -672,7 +672,7 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Fol
 \begin{algorithm}[H]
 \textbf{Input:} The current point $(\mu, x, s, y)$, the matrix $\Schur_{\delta}$, its factorization and the iterate $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the current outer iteration.  \\
 %Some point $p = (\mu, x, s, y)$. The matrix from the linear system~\eqref{primal-dual-Newton-direction} factorized (not necessarily at the point $p$) and a corresponding inertia modification $\delta$. \\
-\textbf{Output:} A new point $(x^{+}, y^{+}, s^{+}, \mu^{+})$ and a $\status$ of either $\success$ or $\failure$
+\textbf{Output:} A new point $(\mu^{+}, x^{+}, s^{+}, y^{+})$ and a $\status$ of either $\success$ or $\failure$
 \begin{enumerate}[label*=A.{\arabic*}]
 \item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.\hinder{fix!!!}
 \item Compute the search direction $(d_{x}, d_{s}, d_{y})$ by solving \eqref{eq:Schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} respectively.
@@ -688,7 +688,7 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Fol
 \item \label{agg:line:back-track} \emph{Perform a backtracking linesearch}. Starting from $\alpha_{P} \gets \alpha^{\max}_{P}$ repeat the following steps.
 \begin{enumerate}[label*=.{\arabic*}]
 \item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P}$ satisfies \eqref{min-step-size-aggresssive} then goto line~\ref{line:agg-terminate}.
-\item Compute the trial primal variables $(x^{+}, s^{+}, \mu^{+})$ via~\eqref{eq:iterate-update}.
+\item Compute the trial primal variables $(\mu^{+}, x^{+}, s^{+})$ via~\eqref{eq:primal-iterate-update}.
 \item If the fraction to the boundary rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
 \item Compute feasible dual step sizes $B( s^{+}, d_{y} )$.
 \item If $B( s^{+}, d_{y} ) = \emptyset$ then trial step has failed, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
@@ -714,7 +714,7 @@ $$
 \MeritComp_{\mu}(s,y) = \frac{\| S y - \mu \|_{\infty}^3}{\mu^2}.
 $$
 We say that the candidate iterates $x^{+}, y^{+}, s^{+}$ have made sufficient progress on $\phi$ over the current iterate $x, s, y$ if
-\begin{flalign}\label{phi-sufficient-progress}
+\begin{flalign}\label{eq:phi-sufficient-progress}
 \phi_{\mu}(x^{+}, s^{+}, y^{+}) \le \phi_{\mu}(x, s, y) +  \alpha_{P} \parObjReductFactor \left( \MeritComp_{\mu}(s,y)  + \frac{1}{2} \left( \nabla \psi_{\mu}(x)^T  d_{x} - \frac{\delta}{2} \norm{ d_{x}}^2 \right) \right),
 \end{flalign}
 
@@ -727,20 +727,20 @@ In the stabilization search directions we accept steps that make progress on one
 \begin{flalign}\label{merit-KKT}
 \meritKKT_{\mu} ( x, s, y )  = \sigma( y ) \max\{ \| \grad \Lag_{\mu}(x, y ) \|_{\infty} ,  \| S y - \mu \|_{\infty} \}.
 \end{flalign}
-This merit function measures progress effectively in regimes where the matrix $\Schur$, given in \eqref{eq:Schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:Schur-complement-system} will be a descent direction on this merit function\footnote{For inner iteration $j=1$}. This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in non-convex optimization it has serious issues. In particular, the search direction \eqref{eq:Schur-complement-system} might not be a descent direction on this merit function. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function.}. For further discussion of these issues see \cite{shanno2000interior}.
+This merit function measures progress effectively in regimes where the matrix $\Schur$, given in \eqref{eq:Schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:Schur-complement-system} will be a descent direction on this merit function\footnote{For inner iteration $j=1$.}. This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in non-convex optimization it has serious issues. In particular, the search direction \eqref{eq:Schur-complement-system} might not be a descent direction on this merit function. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function.}. For further discussion of these issues see \cite{shanno2000interior}.
 %\cite{shanno1997interior}.
 
 
-While it is sufficient to guarantee convergence by accepting steps if \eqref{phi-sufficient-progress} is satisfied, in some regimes e.g., when $\Schur$ is positive definite, this may select step sizes $\alpha_{P}$ that are too conservative.  For example, near points satisfying the sufficient conditions for local optimality. In these situations the KKT error often is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility. Furthermore, from our experience, during convergence towards an optimal solution numerical errors in the function $\phi_{\mu}$ may cause the algorithm to fail to make sufficient progress on the merit function $\phi_{\mu}$, i.e., \eqref{phi-sufficient-progress} is not satisfied for any $\alpha_{P}$. For these reasons we decide to use a filter approach \cite{fletcher2002nonlinear,wachter2006implementation}. Typical filter methods \cite{fletcher2002nonlinear} require progress on either the constraint violation or objective function. Our approach is distinctly different, because we accept steps that make progress on either the merit function $\phi_{\mu}$ or the merit function $\meritKKT_{\mu}$.
-% where we accept any step that makes sufficient progress on the function $\phi$, i.e., \eqref{phi-sufficient-progress}  or sufficient progress is made on the KKT merit function relative to historical iterates. 
+While it is sufficient to guarantee convergence by accepting steps if \eqref{eq:phi-sufficient-progress} is satisfied, in some regimes e.g., when $\Schur$ is positive definite, this may select step sizes $\alpha_{P}$ that are too conservative.  For example, near points satisfying the sufficient conditions for local optimality. In these situations the KKT error often is a better measure of progress towards a local optimum than a merit function that discards information about the dual feasibility. Furthermore, from our experience, during convergence towards an optimal solution numerical errors in the function $\phi_{\mu}$ may cause the algorithm to fail to make sufficient progress on the merit function $\phi_{\mu}$, i.e., \eqref{eq:phi-sufficient-progress} is not satisfied for any $\alpha_{P}$. For these reasons we decide to use a filter approach \cite{fletcher2002nonlinear,wachter2006implementation}. Typical filter methods \cite{fletcher2002nonlinear} require progress on either the constraint violation or objective function. Our approach is distinctly different, because we accept steps that make progress on either the merit function $\phi_{\mu}$ or the merit function $\meritKKT_{\mu}$.
+% where we accept any step that makes sufficient progress on the function $\phi$, i.e., \eqref{eq:phi-sufficient-progress}  or sufficient progress is made on the KKT merit function relative to historical iterates. 
 To be precise, we accept any iterate $(\mu^{+}, x^{+}, s^{+}, y^{+})$ that makes sufficient progress on the augmented log barrier function $\phi_{\mu}$, or satisfies the two equations
 \begin{subequations}\label{eq:filter}
 \begin{flalign}
 \meritKKT_{\mu} (x^{+}, s^{+}, y^{+}) &\le (1 - \parKKTReductFactor \alpha_{P} ) \meritKKT_{\mu} (\tilde{x}, \tilde{s}, \tilde{y}) \label{eq:kkt-progress} \\
-\phi_{\mu}(x^{+}, s^{+}, y^{+}) &\le \phi_{\mu}(\hat{x}, \hat{y}, \hat{s}) + \sqrt{\meritKKT_{\mu} (\tilde{x}, \tilde{s}, \tilde{y})} % + \meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s})^2 \right), \alpha_{P}
+\phi_{\mu}(x^{+}, s^{+}, y^{+}) &\le \phi_{\mu}(\tilde{x}, \tilde{s}, \tilde{y}) + \sqrt{\meritKKT_{\mu} (\tilde{x}, \tilde{s}, \tilde{y})} % + \meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s})^2 \right), \alpha_{P}
 \end{flalign} %\parFilterReduceBarrier
 \end{subequations}
- for every previous iterate $(\tilde{\mu}, \tilde{x}, \tilde{s}, \tilde{y})$ with $\cons(\hat{x}) + \hat{s} = \cons(x) + s$.
+ for every previous iterate $(\tilde{\mu}, \tilde{x}, \tilde{s}, \tilde{y})$ with $\cons(\tilde{x}) + \tilde{s} = \cons(x) + s$.
 
 The idea of \eqref{eq:filter} is that for points with similar values on the augmented log barrier function the KKT error is a good measure of progress. However, we want to discourage the algorithm from significantly increasing the augmented log barrier function while reducing the KKT error because if this is occurring the algorithm might converge to a saddle point. 
 
@@ -759,10 +759,11 @@ To ensure that we do not perform unnecessary line searches, we only attempt a st
 %\tilde{\Delta}^{\phi_{\mu}}_{(\hat{x},\hat{y})}(d_{x}, d_{y}) < 0. \label{eq:obj-could-improve}
 %\end{flalign}
 \begin{flalign}
-\grad \psi_{\mu}(x)^T d_{x} < 0. \label{eq:obj-could-improve}
+\grad \barrier_{\mu}(x)^T d_{x} < 0. \label{eq:obj-could-improve}
 \end{flalign}
+\hinder{add $\mathcal{M}/\phi$ stuff}
 
-The idea of this equation is to take steps only when it is possible that $\phi$ can be decreased. This equation is always satisfied if Algorithm~\ref{alg:stable} is called from the first inner iteration of Algorithm~\ref{one-phase-IPM}. It may not be satisfied when the inner iteration is greater than one because we recycle the factorization of $\Schur_{\delta}$.
+The idea of this equation is to take steps only when it is possible that $\barrier_{\mu}$ can be decreased. This equation is always satisfied if Algorithm~\ref{alg:stable} is called from the first inner iteration of Algorithm~\ref{one-phase-IPM}. It may not be satisfied when the inner iteration is greater than one because we recycle the factorization of $\Schur_{\delta}$.
 %\delta \| d_{x} \|_{\infty} &\le (1 - \parKKTReductFactor) \max\{ \| \grad \Lag(x, y ) \|_{\infty}, \| S y - \mu \|_{\infty} \} \label{eq:KKT-could-improve} \\
 
 
@@ -778,18 +779,18 @@ The idea of this equation is to take steps only when it is possible that $\phi$ 
 %\begin{enumerate}[label=({\roman*})] 
 %\item The fraction to the boundary rule \eqref{fracBoundary-primal} is satisfied.
 %\item The set of valid dual step sizes is non-empty, i.e., $B( s^{+}, d_{y} ) \neq \emptyset$.
-%\item \emph{Sufficient progress on filter.} Either equation~\eqref{phi-sufficient-progress} or \eqref{eq:filter} is satisfied.
+%\item \emph{Sufficient progress on filter.} Either equation~\eqref{eq:phi-sufficient-progress} or \eqref{eq:filter} is satisfied.
 %\end{enumerate}
 %Terminate with $\status = \failure$ if the step size becomes too small, i.e., \eqref{eq:min-step-size-stable} is satisfied.
 \item \label{agg:line:back-track} \emph{Perform a backtracking linesearch}. Starting from $\alpha_{P} \gets \alpha^{\max}_{P}$ repeat the following steps.
 \begin{enumerate}[label*=.{\arabic*}]
 \item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P}$ satisfies \eqref{min-step-size-aggresssive} then goto line~\ref{line:agg-terminate}.
-\item Compute the trial primal variables $(x^{+}, s^{+}, \mu^{+})$ via~\eqref{eq:iterate-update}.
+\item Compute the trial primal variables $(\mu^{+}, x^{+}, s^{+})$ via~\eqref{eq:primal-iterate-update}.
 \item If the fraction to the boundary rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
 \item Compute feasible dual step sizes $B( s^{+}, d_{y} )$.
 \item If $B( s^{+}, d_{y} ) = \emptyset$, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
 \item Compute dual variable step size $\alpha_{D}$ using \eqref{eq:compute-alpha-D} and compute the trial dual variables $y^{+}$ using \eqref{eq:update-y}.
-\item \label{line:filter} \emph{Sufficient progress on filter.} If neither equation~\eqref{phi-sufficient-progress} or \eqref{eq:filter} is satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
+\item \label{line:filter} \emph{Sufficient progress on filter.} If neither equation~\eqref{eq:phi-sufficient-progress} or \eqref{eq:filter} is satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
 \item Terminate with $\status = \success$ and return the point $(\mu^{+}, x^{+}, s^{+}, y^{+})$.
 \end{enumerate}
 \item \label{line:agg-terminate} Terminate with $\status = \failure$.
@@ -819,7 +820,7 @@ $\parNumCor$ & Maximum number of steps per outer iteration. See \eqref{take-step
    \hline 
       $\parKKTReductFactor$ & Acceptable reduction factor for the scaled KKT error $\meritKKT_{\mu}$ during stabilization steps. See \eqref{eq:kkt-progress}.  & The interval $\parKKTReductFactorInterval$ & $\parKKTReductFactorValue$ \\ 
       \hline
-            $\parObjReductFactor$ & Acceptable reduction factor for the merit function $\phi_{\mu}$ during stabilization steps. See \eqref{phi-sufficient-progress}.  & The interval $\parObjReductFactorInterval$ & $\parObjReductFactorValue$  \\
+            $\parObjReductFactor$ & Acceptable reduction factor for the merit function $\phi_{\mu}$ during stabilization steps. See \eqref{eq:phi-sufficient-progress}.  & The interval $\parObjReductFactorInterval$ & $\parObjReductFactorValue$  \\
     \hline
     $\parBacktracking$ & Backtracking factor for line searches in Algorithm~\ref{alg:aggressive} and \ref{alg:stable}. & The interval $\parBacktrackingInterval$ & $\parBacktrackingValue$ \\
 \hline
@@ -956,6 +957,8 @@ y^{k} &\gets \mu^{k} (S^{k})^{-1} e. \label{naive:stb:y}
 \caption{Naive version of Algorithm~\ref{one-phase-IPM}}\label{alg:naive}
 \end{algorithm}
 
+\hinder{Beef up this algorithm!}
+
 We now describe the similarities between Algorithm~\ref{one-phase-IPM} and Algorithm~\ref{alg:naive}. First note that the sequence
 \begin{flalign}
 (x^{k}, s^{k}, y^{k}, \mu^{k})
@@ -1031,6 +1034,44 @@ Noting that $\mu^k \le \TOLopt$ implies the algorithm terminates gives the resul
 \end{proof}
 
 Comparing the assumptions of Theorem~\ref{thm:naive} and (the convergence proof for Algorithm~\ref{one-phase-IPM}) Theorem~\ref{thm:global-convergence}, we notice that Theorem~\ref{thm:naive} uses stronger assumptions. The goal is to simplify the exposition. Keep in mind that Theorem~\ref{thm:naive} only bounds the number of iterations and excludes the computational cost of each solve of the stabilization stage.
+
+\subsection{A simplified one-phase algorithm}
+
+
+
+\begin{flalign}\label{eq:simple-frac-to-boundary}
+\conWeight \mu (1 - \alpha_{P}) - a(x + \alpha_{P} d_{x})  \le s / 2
+\end{flalign}
+
+The real number $\delta$ is $\mu$-small on some set $S$ if $\delta \in [ \inf{S}, C (\inf{S} + \mu) ]$ for some constant factor $C > 1$. Note this well-defined for any non-empty $S \subseteq \R$.
+\begin{algorithm}[H]
+\textbf{Input:} Some point $x^{0}$ and $\mu^{0} > 0$ with $\cons(x^{0}) < \mu^{0} \conWeight$ \\
+
+For $k = 0, \dots, \infty$
+\begin{enumerate}[label*=A.{\arabic*}]
+\item \emph{Check termination criterion}. If \termination{} is satisfied then terminate the algorithm.
+\item Set $\delta_{\min} \gets \max\{0, -\lambda_{\min}(\mathcal{M}) \}$.
+\item If [aggressive criterion] is satisfied go to step aggressive otherwise go to the stabilization step.
+\item \emph{Aggressive step}. 
+\begin{enumerate}
+\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.
+\item Compute direction $(d_{x}, d_{s}, d_{y})$ viz  \eqref{eq:Schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} using
+a $\mu$-small $\delta \in [\delta_{\min}, \infty)$ such that the iterates $(\mu^{+}, x^{+}, y^{+}, s^{+})$, defined by \eqref{eq:primal-iterate-update} and \eqref{eq:update-y}, satisfy \eqref{satisfy-comp} and [min-step-size primal] for some $\alpha_{P}, \alpha_{D} \in [0,1]$.
+\item Select the largest $\alpha_{P} \in [0,1]$ such that the iterates $(\mu^{+}, x^{+}, y^{+}, s^{+})$, defined by \eqref{eq:primal-iterate-update} and \eqref{eq:update-y}, satisfy \eqref{satisfy-comp} for some $\alpha_{D} \in [0,1]$.
+\end{enumerate}
+\item \emph{Stabilization step}. 
+\begin{enumerate}
+\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 1$.
+\item Let  $\alpha_{P} = \alpha_{D} = 1$. Compute direction $(d_{x}, d_{s}, d_{y})$ viz  \eqref{eq:Schur-complement-system}, \eqref{compute-ds} and \eqref{compute-dy} using a $\mu$-small $\delta \in [\delta_{\min} ,\infty)$ such that \eqref{eq:phi-sufficient-progress} or [?], and \eqref{satisfy-comp} is satisfied with $(\mu^{+},x^{+}, s^{+}, y^{+})$ defined by \eqref{eq:primal-iterate-update} and \eqref{eq:update-y}.
+\end{enumerate}
+\item Set $(\mu,x, s, y) \gets (\mu^{+}, x^{+}, s^{+}, y^{+})$.
+\end{enumerate}
+\caption{Simplified version of Algorithm~\ref{one-phase-IPM}}\label{alg:naive}
+\end{algorithm}
+
+\subsection{Global convergence proofs for a simplified Algorithm~\ref{one-phase-IPM}}
+
+
 
 \subsection{Global convergence proofs for Algorithm~\ref{one-phase-IPM}}\label{sec:global-conv}
 
@@ -1248,7 +1289,7 @@ Comparing algorithms in the following sections we use the performance profiling 
 %\caption{Comparison of dynamic and static $\mu$ updates for the one-phase algorithm.}
 %\end{figure}
 
-In Figure~\ref{fig:ls-options} we trial different line search conditions for the stabilization steps. In particular, we compare the default setting of a `filter' as described in line~\ref{line:filter} of Algorithm~\ref{alg:stable} against other possible conditions. The first baseline to replace this filter condition with  \eqref{phi-sufficient-progress}, i.e., check that sufficient progress is made on the `log barrier' merit function. The other baseline is removing the filter condition entirely and simple taking the maximum step possible. Figure~\ref{fig:ls-options} indicates that the filter has superior performance of these three options.
+In Figure~\ref{fig:ls-options} we trial different line search conditions for the stabilization steps. In particular, we compare the default setting of a `filter' as described in line~\ref{line:filter} of Algorithm~\ref{alg:stable} against other possible conditions. The first baseline to replace this filter condition with  \eqref{eq:phi-sufficient-progress}, i.e., check that sufficient progress is made on the `log barrier' merit function. The other baseline is removing the filter condition entirely and simple taking the maximum step possible. Figure~\ref{fig:ls-options} indicates that the filter has superior performance of these three options.
 
 \begin{figure}[H]
 \includegraphics[scale=0.35]{ls-options.pdf}
@@ -1377,6 +1418,10 @@ Next, in Figure~\ref{fig:comparison-IPOPT-on-perturbed-CUTEst} we compare IPOPT 
 %\end{figure}
 
 \section{Comparison on selected large scale problems}\label{sec:large-scale}
+\newcommand{\NETtimeOnePhase}{100}
+\newcommand{\NETtimeIPOPT}{963}
+\newcommand{\NETitOnePhase}{26}
+\newcommand{\NETitIPOPT}{596}
 
 Here we compare IPOPT and the one-phase solver on two large-scale problems. The goal is to highlight that, for certain large scale problems with amiable sparsity structure, the one-phase algorithm is vastly superior to IPOPT. The sizes of the problems are given in Table~\ref{large-scale:basic-info}. The first problem NET4 is the largest CUTEst problem (in terms of number of variables and constraints) with non-linear constraints based on a real application. NET4 is a gas network problem for the British NTS system. Both IPOPT and the one-phase solve declare the problem infeasible, however, it takes the one-phase solver only 2 minutes ($29$ iterations) versus $>>30$ minutes for IPOPT ($>>360$ iterations). This runtime difference can be put down to (i) the superior performance of the one-phase algorithm on infeasible problems and (ii) the constraints are sparse (see final column of Table~\ref{large-scale:basic-info}) which means $\Schur$ is very sparse, hence the factorizations of the one-phase algorithm is cheap. The second problem is an economic modeling problem\footnote{Created by Micheal Saunders, Ding Ma and [...]}. This problem is (Temporarily) generated with random data. We have created three instances. A small, large and huge instance as recorded in Table~\ref{large-scale:basic-info}. Note that the problems have many more constraints than variables, this favors our approach of solving a linear system only the size of the number of variables instead of IPOPT's strategy of solving a system that is significantly larger. From Table~\ref{compare-runtime} one can see a stark difference. For the small problem we can solve it in $9$ seconds, IPOPT takes $10,947$ seconds. For larger problems, IPOPT runs out of memory.
 
@@ -1391,6 +1436,7 @@ ECON3 & 3,200 & 2,558,400 &  &
 \caption{Basic information on large-scale test problems}\label{large-scale:basic-info}
 \end{table}
 
+
 \begin{table}[H]
 \begin{tabular}{|c| c c | c c |}
   \hline
@@ -1398,7 +1444,7 @@ ECON3 & 3,200 & 2,558,400 &  &
       & \multicolumn{2}{c|}{Time (s)} 
           & \multicolumn{2}{|c|}{\# iterations} \\             \cline{2-5}
   & one-phase & IPOPT & one-phase & IPOPT \\  \hline
-  NET4 & $266$ & $963$  & $29$   & $596$ \\      \hline
+  NET4 & $\NETtimeOnePhase$ & $\NETtimeIPOPT$  & $\NETitOnePhase$   & $\NETitIPOPT$ \\      \hline
   ECON1 & $9$  & $10,947$  & 11 & 75  \\      \hline
   ECON2 & $57$  &  out of memory & 14 & out of memory \\      \hline
   ECON3 &  &out of memory & & out of memory \\      \hline
@@ -1406,6 +1452,7 @@ ECON3 & 3,200 & 2,558,400 &  &
 \caption{Runtime comparison on large-scale test problems}\label{compare-runtime}
 \end{table}
 
+\hinder{convert first two COPs problem into julia}
 
 \section{Conclusions}
 \begin{enumerate}
@@ -1579,11 +1626,11 @@ The proof of Lemma~\ref{lem:stable-succeed-for-large-delta} is deferred to Secti
 \coroConsecutiveStable*
 
 \begin{proof}
-Suppose in order to obtain a contradiction there is a infinite sequence of consecutive stabilization steps. Then there are two possibilities (i) there is an infinite sequence of consecutive steps where the sufficient decrease in the augmented log barrier function \eqref{phi-sufficient-progress} is satisfied or (ii) there is an infinite subsequence of stabilization steps where a sufficient decrease in the KKT error \eqref{eq:kkt-progress} is satisfied.
+Suppose in order to obtain a contradiction there is a infinite sequence of consecutive stabilization steps. Then there are two possibilities (i) there is an infinite sequence of consecutive steps where the sufficient decrease in the augmented log barrier function \eqref{eq:phi-sufficient-progress} is satisfied or (ii) there is an infinite subsequence of stabilization steps where a sufficient decrease in the KKT error \eqref{eq:kkt-progress} is satisfied.
 
 Since the unboundedness termination criterion~\eqref{terminate-dual-infeasible} is not met, we know by Lemma~\ref{lem:compact-Q} there exists some compact set $\mathbb{Q}_{\mu,C}$ that contains all the iterates.
 
-Consider case (i). Consider any $\bar{\delta} > 0$ as defined in Lemma~\ref{lem:stable-succeed-for-large-delta}. Lemma~\ref{lem:stable-succeed-for-large-delta} implies a step will be taken with $\delta \le \parDeltaIncreaseFailure \bar{\delta}$. Now, consider any such step $(x,y,s)$ to $(x^{+}, s^{+}, y^{+})$ with step size $\alpha_{P}$. Using that the aggressive criterion~\eqref{agg-criteron} is not satisfied and that $\| \Schur(\mu, x, s, y) \|$ is bounded on the compact set $\mathbb{Q}_{\mu,C}$, we deduce there exists some constant $K > 0$ such that $\tilde{\Delta}^{\phi_{\mu}}_{(x,y)}(\alpha_{P} d_{x}, \alpha_{P} d_{y}) < K$ for all $\delta \le \parDeltaIncreaseFailure \bar{\delta}$ and $\alpha_{P} > \parMinStableStepSize$ \todo{moves a little to quick}. Since the criterion for sufficient progress on the augmented log barrier function \eqref{phi-sufficient-progress} is satisfied, we deduce there exists some constant $K > 0$ such that $\phi_{\mu}(x^{+}, s^{+}, y^{+}) \le \phi_{\mu}(x, s, y) - K$ at each iteration, which implies eventually the unboundedness criterion~\eqref{terminate-dual-infeasible} is met. 
+Consider case (i). Consider any $\bar{\delta} > 0$ as defined in Lemma~\ref{lem:stable-succeed-for-large-delta}. Lemma~\ref{lem:stable-succeed-for-large-delta} implies a step will be taken with $\delta \le \parDeltaIncreaseFailure \bar{\delta}$. Now, consider any such step $(x,y,s)$ to $(x^{+}, s^{+}, y^{+})$ with step size $\alpha_{P}$. Using that the aggressive criterion~\eqref{agg-criteron} is not satisfied and that $\| \Schur(\mu, x, s, y) \|$ is bounded on the compact set $\mathbb{Q}_{\mu,C}$, we deduce there exists some constant $K > 0$ such that $\tilde{\Delta}^{\phi_{\mu}}_{(x,y)}(\alpha_{P} d_{x}, \alpha_{P} d_{y}) < K$ for all $\delta \le \parDeltaIncreaseFailure \bar{\delta}$ and $\alpha_{P} > \parMinStableStepSize$ \todo{moves a little to quick}. Since the criterion for sufficient progress on the augmented log barrier function \eqref{eq:phi-sufficient-progress} is satisfied, we deduce there exists some constant $K > 0$ such that $\phi_{\mu}(x^{+}, s^{+}, y^{+}) \le \phi_{\mu}(x, s, y) - K$ at each iteration, which implies eventually the unboundedness criterion~\eqref{terminate-dual-infeasible} is met. 
 
 Consider case (ii). Since \eqref{eq:kkt-progress} holds for an infinite subsequence $(x^{k}, y^{k}, s^{k})$ and $\alpha_{P} > \parMinStableStepSize$ by \eqref{eq:min-step-size-stable} we have $K_{\mu}(x^{k}, y^{k}, s^{k}) \rightarrow 0$. This implies eventually the aggressive criterion~\eqref{agg-criteron} is met.
 

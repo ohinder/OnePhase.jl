@@ -8,19 +8,21 @@ end
 
 type Class_termination_parameters
     max_it::Int64
-    MAX_TIME::Float64
-    tol::Float64
-    tol_dual_abs::Float64
-    tol_infeas::Float64
+    max_time::Float64
+    tol_opt::Float64
+    tol_unbounded::Float64
+    tol_inf_1::Float64
+    tol_inf_2::Float64
+
     function Class_termination_parameters()
         this = new()
 
         this.max_it = 3000
-        this.MAX_TIME = 60.0^2
+        this.max_time = 60.0^2
         this.tol_opt = 1e-6
         this.tol_unbounded = 1e-8
         this.tol_inf_1 = 1e-6
-        this.tol_inf_2 = 1e-6
+        this.tol_inf_2 = 1e-4
 
         return this
     end
@@ -62,11 +64,12 @@ type Class_parameters
     init_style::Symbol
 
     # Class_termination_parameters
-    max_it::Int64
+    #=max_it::Int64
     MAX_TIME::Float64
     tol::Float64
     tol_dual_abs::Float64
-    tol_infeas::Float64
+    tol_infeas::Float64=#
+    term::Class_termination_parameters
 
     # line search
     kkt_reduction_factor::Float64
@@ -139,6 +142,7 @@ type Class_parameters
         this = new()
 
         this.delta = Class_delta_parameters()
+        this.term = Class_termination_parameters()
 
         # init
         #this.start_satisfying_bounds = true #true #true
@@ -159,7 +163,7 @@ type Class_parameters
         #this.dual_scale_mode = :exact
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
-        this.max_it_corrections = 2 #3 ######
+        this.max_it_corrections = 3 #3 ######
         this.comp_feas_agg_inf = Inf
         this.comp_feas = 1/100.0 #1/100.0
         this.comp_feas_agg = 1/50.0 #1/50.0 #1/70.0 #1/50.0
@@ -185,12 +189,12 @@ type Class_parameters
         this.debug_mode = 0
         this.throw_error_nans = false
 
-        this.tol = 1e-6
+        #=this.tol = 1e-6
         this.tol_dual_abs = 1e-6
         this.tol_infeas = 1e-12 # ????
         this.max_it = 3000;
         #this.MAX_TIME = 30.0
-        this.MAX_TIME = 60.0 * 60 # 10 minutes max time
+        this.MAX_TIME = 60.0 * 60 # 10 minutes max time=#
 
         # LINE SEARCH
         this.kkt_reduction_factor = 0.2

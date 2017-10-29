@@ -1,23 +1,22 @@
-function terminate(iter::Class_iterate, par::Class_parameters)
-    tol = par.tol
-    #a_neg_part = max(-eval_a(iter),0.0)
-    #y = get_y(iter)
-    #J = eval_jac(iter)
-    fark_feas1 = eval_farkas(iter)
-    #fark_feas1 = norm(y' * J, Inf) / min(norm(y, Inf), maximum(a_neg_part .* y))
-    #fark_feas2 = norm(eval_grad_lag(iter, 0.0), Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
-    #fark_feas3 = norm(eval_grad_lag(iter, 1.0), Inf) /  min(norm(y, Inf), maximum(a_neg_part .* y))
+function unboundedness_measure(iter::Class_iterate, tol::Float64)
+    return max( tol,get_max_vio(iter) ) / (tol * max(1.0,-get_fval(iter)))
+end
 
-    #@show fark_feas1, fark_feas2, fark_feas3
+function terminate(iter::Class_iterate, par::Class_parameters)
+    y = iter.point.y
+    fark_feas1 = farkas_certificate(iter, y)
+    fark_feas2 = stationary_infeasible_measure(iter, y)
+    unboun = unboundedness_measure(iter, par.term.tol_opt)
+
     max_vio = get_max_vio(iter)
 
-    comp_scaled = maximum(iter.point.s .* iter.point.y) * dual_scale(iter, par)
+    comp_scaled = maximum(iter.point.s .* y) * dual_scale(iter, par)
 
-    if scaled_dual_feas(iter, par) < tol && comp_scaled < tol && max_vio < tol
+    if scaled_dual_feas(iter, par) < par.term.tol_opt && comp_scaled < par.term.tol_opt && max_vio < par.term.tol_opt
         return :optimal
-    elseif fark_feas1 < tol && max_vio > tol #&& norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
+    elseif max_vio > par.term.tol_opt && fark_feas1 < par.term.tol_inf_1 && fark_feas2 < par.term.tol_inf_2  #&& norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible
-    elseif max( 1.0, max_vio )/ min(max(1.0,-get_fval(iter)),norm(get_x(iter),Inf)) < tol # TMP!!!
+    elseif unboun < par.term.tol_unbounded # TMP!!!
         return :dual_infeasible
     else
         return false

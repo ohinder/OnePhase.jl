@@ -1,10 +1,13 @@
-Current changes:
-- run sherlock IPOPT NET4, ECON problem
-- improved initial delta selection
-- check termination criterion
-
 Short term:
-- *add criterion to ensure is descent direction on agg merit function*
+- simplified one phase algorithm, using same termination criterion, max step such that fraction to boundary is satisfied.
+- resubmit cutest.
+- run sherlock IPOPT NET4, ECON problem. figure out why julia is slow.
+- split up parameters in a more logical fashion e.g. term, ls etc; delete unused parameters
+- write code that saves all the CUTEst files need for the paper in one go! (i.e. have an experimental script and a paper producing script)
+- add COPS problems
+- improved initial delta selection
+
+Medium term:
 - *improve efficiency of schur complement and eval_jac*
 
 - deal correctly with exceptions

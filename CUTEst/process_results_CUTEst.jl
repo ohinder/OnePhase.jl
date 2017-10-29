@@ -86,7 +86,8 @@ results["Oct21_penalty_prox"] = load("../results/one_phase/Oct21_penalty_prox/su
 #results["Oct22_penalty"] = load("../results/one_phase/Oct22/penalty/summary.jld", "summary")
 #results["Oct22_penalty_prox"] = load("../results/one_phase/Oct22/penalty_no_prox/summary.jld", "summary")
 #results["Oct23"] = load("../results/one_phase/Oct23/summary.jld", "summary")
-results["Oct23_MORE_TIME"] = load("../results/one_phase/Oct23_MORE_TIME/summary.jld", "summary")
+#results["Oct23_MORE_TIME"] = load("../results/one_phase/Oct23_MORE_TIME/summary.jld", "summary")
+results["Oct26"] = load("../results/one_phase/Oct26/summary.jld", "summary")
 
 
 
@@ -182,7 +183,7 @@ end
 
 
 
-print_failure_problems(overlapping_results)
+print_failure_problems(overlapping_results);
 its, best, ratios, times = compute_its_etc(overlapping_results);
 
 

@@ -150,8 +150,10 @@ function compare_objects(obj1,obj2)
      end
   end
 end
+nlp_raw2 = CUTEstModel("DITTERT")
 
-IpoptSolve(nlp_raw2);
-one_phase_solve(nlp_raw2);
+#IpoptSolve(nlp_raw2);
+my_pars = Class_parameters()
+one_phase_solve(nlp_raw2,my_pars);
 
 finalize(nlp_raw2)

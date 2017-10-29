@@ -1,5 +1,5 @@
 using advanced_timer, JLD
-
+BLAS.set_num_threads(1)
 USE_MUMPS = false
 include("parameters.jl")
 include("utils/utils.jl")

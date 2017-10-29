@@ -16,15 +16,13 @@ function one_phase_solve(m::JuMP.Model)
     return one_phase_solve(nlp_raw)
 end
 
-function one_phase_solve(nlp_raw)
+function one_phase_solve(nlp_raw, pars::Class_parameters)
     nlp = Class_CUTEst(nlp_raw);
     timer = class_advanced_timer()
     start_advanced_timer(timer)
     #include("include.jl")
-    #intial_it = initial_point_satisfy_bounds(nlp, my_par)
     start_advanced_timer(timer, "INIT")
-    my_par = Class_parameters()
-    intial_it = init(nlp, my_par, timer);
+    intial_it = init(nlp, pars, timer);
     #intial_it.point.mu *= 10.0
     #intial_it.point.y *= 10.0
     pause_advanced_timer(timer, "INIT")
@@ -34,8 +32,8 @@ function one_phase_solve(nlp_raw)
 
     start_advanced_timer(timer)
 
-    @assert(is_feasible(intial_it, my_par.comp_feas))
-    iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
+    @assert(is_feasible(intial_it, pars.comp_feas))
+    iter, status, hist, t, err = one_phase_IPM(intial_it, pars, timer);
 
     pause_advanced_timer(timer)
 
@@ -72,7 +70,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
       start_time = time()
 
-      for t = 1:pars.max_it
+      for t = 1:pars.term.max_it
              @assert(is_feasible(iter, pars.comp_feas))
 
              for i = 1:pars.max_it_corrections
@@ -87,7 +85,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                  return iter, status, progress, t, false
                end
 
-               if time() - start_time > pars.MAX_TIME
+               if time() - start_time > pars.term.max_time
                  println("Terminated due to timeout")
                  return iter, :MAX_TIME, progress, t, false
                end

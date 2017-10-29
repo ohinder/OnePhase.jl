@@ -99,6 +99,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
 
     if !accept_obj.do_ls
         if pars.LS_non_negative_predicted_gain
+          pause_advanced_timer(timer, "SIMPLE_LS")
           return :predict_red_non_negative, iter, accept_obj
         else
           my_warn("predicted reduction non-negative")
