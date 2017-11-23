@@ -69,7 +69,7 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 # compare one phase and ipopt
 
 #results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
-results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
+#results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
 
 #results["sept 2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
 #results["Oct21"] = load("../results/one_phase/Oct21/summary.jld", "summary")
@@ -88,6 +88,7 @@ results["Oct21_penalty_prox"] = load("../results/one_phase/Oct21_penalty_prox/su
 #results["Oct23"] = load("../results/one_phase/Oct23/summary.jld", "summary")
 #results["Oct23_MORE_TIME"] = load("../results/one_phase/Oct23_MORE_TIME/summary.jld", "summary")
 results["Oct26"] = load("../results/one_phase/Oct26/summary.jld", "summary")
+results["Oct28"] = load("../results/one_phase/Oct28/summary.jld", "summary")
 
 
 
@@ -184,7 +185,7 @@ end
 
 
 print_failure_problems(overlapping_results);
-its, best, ratios, times = compute_its_etc(overlapping_results);
+its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=10000);
 
 
 ##
@@ -194,7 +195,7 @@ its, best, ratios, times = compute_its_etc(overlapping_results);
 using PyPlot
 
 plot_iteration_ratios(its, best, ratios)
-plot_iterations(its, best, ratios, 3000)
+plot_iterations(its, best, ratios, 10000)
 
 
 

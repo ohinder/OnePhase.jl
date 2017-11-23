@@ -2,12 +2,46 @@
 include("run_cutest.jl")
 my_par = Class_parameters()
 
+problem_list = default_list()
+
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["Oct23"]
+RUN_LIST = ["init"]
 
-problem_list = default_list()
+if "init" in RUN_LIST
+my_par.term.max_time = 10.0 * 60.0
+my_par.term.max_it = 1000
+if_mkdir("../results/one_phase/init")
+
+my_par.init.mehotra_scaling = false
+
+my_par.init.mu_scale = 0.1
+folder_name = "one_phase/init/0.1"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+my_par.init.mu_scale = 1.0
+folder_name = "one_phase/init/1"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+my_par.init.mu_scale = 10.0
+folder_name = "one_phase/init/10"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+my_par.init.mu_scale = 100.0
+folder_name = "one_phase/init/100"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
+my_par.init.mu_scale = 1000.0
+folder_name = "one_phase/init/1000"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
 #problem_list = get_problem_list(100,200)
 
 #test_problems(problem_list,1)

@@ -8,6 +8,7 @@ Short term:
 - improved initial delta selection
 
 Medium term:
+- detect is problem is caused by factorization issues or lack of smoothness of functions (identify function, a direction and a point)
 - *improve efficiency of schur complement and eval_jac*
 
 - deal correctly with exceptions

@@ -51,7 +51,7 @@ function accept_func_stable!(accept::abstract_ls_info, iter::Class_iterate, cand
       return :negative_progress
     else
       accept.frac_progress = accept.actual_red / predict_red
-      if accept.frac_progress > pars.predict_reduction_factor
+      if accept.frac_progress > pars.ls.predict_reduction_factor
           #@show accept.frac_progress, accept.actual_red
           return :success
       else

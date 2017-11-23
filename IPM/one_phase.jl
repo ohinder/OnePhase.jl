@@ -42,16 +42,30 @@ function one_phase_solve(nlp_raw, pars::Class_parameters)
     return iter
 end
 
+function switching_condition(iter::Class_iterate, last_step_was_superlinear::Bool, pars::Class_parameters)
+    is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
+    #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
+    dual_avg = scaled_dual_feas(iter, pars)
+
+    if pars.primal_bounds_dual_feas
+      dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
+    else
+      dual_progress = dual_avg < get_mu(iter)
+    end
+    delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
+    lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),1) < max(length(iter.point.s) * get_mu(iter)/ pars.comp_feas_agg, norm(get_grad(iter),1)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
+
+    be_aggressive = is_feas && dual_progress && lag_grad && (delta_small || !pars.inertia_test)
+    be_aggressive |= last_step_was_superlinear && dual_progress && lag_grad && (delta_small || !pars.inertia_test)
+
+    return be_aggressive
+end
+
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
   t = 0;
   progress = Array{alg_history,1}();
   filter = Array{Class_filter,1}();
 
-  #try
-      #iter.point.x += rand(length(iter.point.x)) / 10.0
-      #if pars.use_prox
-      #  convert_to_prox!(iter, pars, mu_func(iter));
-      #end
       update!(iter, timer, pars) # is this necessary ????
 
       kkt_solver = pick_KKT_solver(pars);
@@ -69,6 +83,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       ls_info = false
 
       start_time = time()
+      last_step_was_superlinear = false
 
       for t = 1:pars.term.max_it
              @assert(is_feasible(iter, pars.comp_feas))
@@ -91,34 +106,15 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                end
 
                start_advanced_timer(timer, "misc/checks")
-               primal_inf = norm(iter.primal_residual_intial, Inf) * iter.point.primal_scale
-
-               mu_est = iter.point.mu
-
-               is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
-               #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
-               dual_avg = scaled_dual_feas(iter, pars)
-
-               if pars.primal_bounds_dual_feas
-                 dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
-               else
-                 dual_progress = dual_avg < get_mu(iter) #/ 10.0
-               end
-               # * 10.0
-               delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
-               #
-               #lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < get_mu(iter) + norm(get_grad(iter),Inf) + (norm(get_primal_res(iter), Inf) + 1.0) #+ sqrt(norm(get_y(iter),Inf))
-               lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < max(get_mu(iter)/ pars.comp_feas_agg, norm(get_grad(iter),Inf)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
-               #lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),Inf) < max(get_mu(iter), norm(get_grad(iter),Inf)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
-               #@show norm(get_grad(iter),Inf)
-               #&& lag_grad
-               be_aggressive = is_feas && dual_progress && lag_grad && (delta_small || !pars.inertia_test)
-               #@show is_feas, dual_progress, lag_grad
+               be_aggressive = switching_condition(iter, last_step_was_superlinear, pars)
+               last_step_was_superlinear = false
                pause_advanced_timer(timer, "misc/checks")
 
                if i == 1
                    update_H!(iter, timer, pars)
                    @assert(is_updated(iter.cache))
+
+                   form_system!(kkt_solver, iter, timer)
 
                    start_advanced_timer(timer, "ipopt_strategy")
                    fact_succeed, inertia_num_fac, new_delta = ipopt_strategy!(iter, kkt_solver, pars, timer)
@@ -178,6 +174,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                    status, new_iter, ls_info, reduct_factors = take_step2!(be_aggressive, iter, kkt_solver, filter, pars, timer)
 
+                   if pars.superlinear_theory_mode && be_aggressive
+                     if get_mu(new_iter) < get_mu(iter) * 0.1
+                        last_step_was_superlinear = true
+                     end
+                   end
+
                    pause_advanced_timer(timer, "STEP/correction")
                    pause_advanced_timer(timer, "STEP")
                end
@@ -207,5 +209,5 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       end
 
   println("Terminated due to max iterations reached")
-  return iter, :MAX_IT, progress, pars.max_it, false
+  return iter, :MAX_IT, progress, pars.term.max_it, false
 end

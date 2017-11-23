@@ -34,9 +34,9 @@ end
 
 
 function accept_func!(accept::Class_agg_ls, intial_it::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1},  pars::Class_parameters, timer::class_advanced_timer)
-    if scaled_dual_feas(candidate, pars) < get_mu(candidate) * pars.agg_protect_factor
-      return :success
-    else
-      return :not_enough_progress
-    end
+    #if scaled_dual_feas(candidate, pars) < get_mu(candidate) * pars.agg_protect_factor
+    return :success
+    #else
+    #  return :not_enough_progress
+    #end
 end

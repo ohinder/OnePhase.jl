@@ -44,6 +44,8 @@ type Class_iterate
     local_info::Class_local_info
     ncon::Int64
     nvar::Int64
+    frac_bd::Array{Float64,1}
+    frac_bd_predict::Array{Float64,1}
 
     # regularizer info
     x_norm_penalty_par::Float64
@@ -65,6 +67,8 @@ type Class_iterate
       this.x_norm_penalty_par = pars.x_norm_penalty;
       this.a_norm_penalty_par = pars.a_norm_penalty;
       this.use_reg = pars.use_reg
+      this.frac_bd = pars.ls.fraction_to_boundary * ones(this.ncon)
+      this.frac_bd_predict = pars.ls.fraction_to_boundary_predict * ones(this.ncon)
 
       @assert(this.ncon == length(intial_point.y))
 
@@ -105,6 +109,8 @@ function copy(it::Class_iterate, timer::class_advanced_timer)
    new_it.a_norm_penalty_par = it.a_norm_penalty_par;
    new_it.x_norm_penalty_par = it.x_norm_penalty_par;
    new_it.use_reg = it.use_reg
+   new_it.frac_bd = it.frac_bd
+   new_it.frac_bd_predict = it.frac_bd_predict
 
    new_it.cache = it.cache
    copy_cache!(new_it, timer)

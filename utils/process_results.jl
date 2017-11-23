@@ -18,7 +18,7 @@ but desired accuracy could not be achieved.
 18: Restoration phase cannot further improve feasibility
 =#
 
-function jump_status_conversion(info::problem_summary)
+function jump_status_conversion(info::problem_summary; MAX_IT::Int64=3000)
   status = info.status
   if status == :Optimal
     return :optimal
@@ -27,7 +27,7 @@ function jump_status_conversion(info::problem_summary)
   elseif status == :Unbounded
     return :dual_infeasible
   elseif status == :UserLimit
-    if info.it_count >= 3000
+    if info.it_count >= MAX_IT
       return :MAX_IT
     else
       return :MAX_TIME
@@ -201,14 +201,14 @@ function tot(results::Dict{String, problem_summary}, set)
   return tot
 end
 
-function tot_failures(results::Dict{String, problem_summary})
+function tot_failures(results::Dict{String, problem_summary};MAX_IT::Int64=3000)
   problem_list = collect(keys(results))
   tot = 0
 
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      if alg_success(info.status) && info.it_count <= 3000
+      if alg_success(info.status) && info.it_count <= MAX_IT
         # optimal
       else
         tot += 1
@@ -218,14 +218,14 @@ function tot_failures(results::Dict{String, problem_summary})
   return tot
 end
 
-function failure_list(results::Dict{String, problem_summary})
+function failure_list(results::Dict{String, problem_summary};MAX_IT=3000)
   problem_list = collect(keys(results))
   failure_list = zeros(length(problem_list))
 
   for i = 1:length(problem_list)
       problem_name = problem_list[i]
       info = results[problem_name]
-      if alg_success(info.status) && info.it_count <= 3000
+      if alg_success(info.status) && info.it_count <= MAX_IT
         failure_list[i] = 0
       else
         failure_list[i] = 1
@@ -309,7 +309,7 @@ end
 
 
 
-function print_failure_problems(results::Dict{String, Dict{String,problem_summary}})
+function print_failure_problems(results::Dict{String, Dict{String,problem_summary}};MAX_IT::Int64=3000)
   problem_list = collect(keys(first(results)[2]))
 
   println("FAILURES")
@@ -319,7 +319,7 @@ function print_failure_problems(results::Dict{String, Dict{String,problem_summar
 
       for (method_name, data) in results
         info = results[method_name][problem_name]
-        if alg_success(info.status) && info.it_count <= 3000
+        if alg_success(info.status) && info.it_count <= MAX_IT
           # optimal
         else
           if first_failure

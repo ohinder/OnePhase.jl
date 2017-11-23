@@ -95,6 +95,7 @@ end
 function mehortra_least_squares_estimate( nlp, pars, timer )
     start_advanced_timer(timer, "INIT/x")
     x0 = suggested_starting_point(nlp)
+    #@show x0
     x = x0
     pause_advanced_timer(timer, "INIT/x")
 
@@ -107,7 +108,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     start_advanced_timer(timer, "INIT/evals")
     a = eval_a(nlp, x);
-    s = a;
+    s = deepcopy(a);
     m = length(a)
     J = eval_jac(nlp, x)
     g = eval_grad_f(nlp, x)
@@ -155,7 +156,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
       #s[ais], y[ais] = mehortra_guarding( deepcopy(s[ais]), deepcopy(y[ais]), threshold )
 
-      Delta_s = norm(g - J' * y,Inf) / (1.0 + 0.01 * norm(y,Inf))
+      Delta_s = norm(g - J' * y,1) / (length(y) + norm(y,1))
 
       if pars.start_satisfying_bounds
         s[ais] = s[ais] + Delta_s
@@ -188,13 +189,9 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
     #@show y, J
 
-
-
     if isbad(s)
       throw(Eval_NaN_error(getbad(s),x,"s"))
     end
-
-
 
     ifree = _i_not_fixed(nlp.nlp)
     uvar = nlp.nlp.meta.uvar[ifree]
@@ -220,30 +217,31 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
     #  mu = infeas * 1e3
     #end
 
-    mu = 0.0
+    y = y / pars.mu_scale
+    mu = dot(s,y)[1] / length(y)
 
-    stop = false
     for i = 1:10
-      Delta_s = norm(g - J' * y,1) / (1.0 + norm(y,1))
-      @show Delta_s
+      @show size(s), size(y)
+      @show mu, norm(s,Inf)
 
-      if Delta_s > norm(s,1) / length(s)
+      y_c = mu ./ s
+      buffer = 2.0
+      y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+
+      #Delta_s = norm(g - J' * y,1) / (length(y) + norm(y,1))
+      Delta_s = norm(g - J' * y,Inf) / (1.0 + norm(y,Inf))
+
+      primal_feas_avg = norm(a - s,1) / length(s)
+      @show primal_feas_avg, Delta_s, norm(y,Inf)
+      if Delta_s > primal_feas_avg
         if pars.start_satisfying_bounds
           s[ais] = s[ais] + Delta_s
         else
           s = s + Delta_s
         end
-      else
-        stop = true
-      end
-      @show size(s), size(y)
-      mu = dot(s,y)[1] / length(y)
-      @show mu
 
-      y_c = mu ./ s
-      buffer = 2.0
-      y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
-      if stop
+        mu *= 10.0
+      else
         break
       end
     end

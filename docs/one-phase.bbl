@@ -1,9 +1,14 @@
-\begin{thebibliography}{39}
+\begin{thebibliography}{41}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Amestoy et~al.(1998)Amestoy, Duff, and L'Excellent]{amestoy1998mumps}
+P.~R. Amestoy, I.~S. Duff, and J.-Y. L'Excellent.
+\newblock Mumps multifrontal massively parallel solver version 2.0.
+\newblock 1998.
 
 \bibitem[Andersen and Ye(1998)]{andersen1998computational}
 E.~D. Andersen and Y.~Ye.
@@ -113,6 +118,12 @@ G.~Haeser, O.~Hinder, and Y.~Ye.
 \newblock On the behavior of lagrange multipliers in convex and non-convex
   infeasible interior point methods.
 \newblock \emph{arXiv preprint arXiv:1707.07327}, 2017.
+
+\bibitem[Hager and Gowda(1999)]{hager1999stability}
+W.~W. Hager and M.~S. Gowda.
+\newblock Stability in the presence of degeneracy and error estimation.
+\newblock \emph{Mathematical Programming}, 85\penalty0 (1):\penalty0 181--192,
+  1999.
 
 \bibitem[Huang and Mehrotra(2016)]{huang2016solution}
 K.-L. Huang and S.~Mehrotra.

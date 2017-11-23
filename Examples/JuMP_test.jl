@@ -1,35 +1,21 @@
-include("include.jl")
+include("../include.jl")
 
 using JuMP, Ipopt
 
-m = Model(solver = IpoptSolver())
+m = Model()
 @variable(m, x >= 0)
 @variable(m, y >= 0)
-@objective(m, Max, 5x + 22y)
-@NLconstraint(m, x + y^3 <= 1)
+@variable(m, z >= 0)
 
-nlp_raw = MathProgNLPModel(m)
-#status = solve(m)
+@objective(m, Min, x-y)
+@NLconstraint(m, y <= 1)
 
-#getvalue(x), getvalue(y)
-#AbstractNLPModel
-nlp = Class_CUTEst(nlp_raw)
+@NLconstraint(m, x^2 + y^2 <= 1)
+@NLconstraint(m, x^2 + y^2 >= 1)
 
-timer = class_advanced_timer()
-start_advanced_timer(timer)
-#include("include.jl")
-#intial_it = initial_point_satisfy_bounds(nlp, my_par)
-start_advanced_timer(timer, "INIT")
-intial_it = init(nlp, my_par, timer)
-pause_advanced_timer(timer, "INIT")
 
-#intial_it = initial_point_generic(nlp, my_par, nlp_raw.meta.x0)
-
-@assert(is_feasible(intial_it, my_par.comp_feas))
-iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
-
-pause_advanced_timer(timer)
-
-print_timer_stats(timer)
-
-#finalize(nlp_raw)
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+my_pars.term.tol_opt = 1e-30
+it = one_phase_solve(nlp_raw,my_pars);
+it.point.x

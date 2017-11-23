@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  28 OCT 2017 11:20
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  23 NOV 2017 10:39
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2013,20 +2013,27 @@ LaTeX Info: Redefining \addtolength on input line 81.
 )
 \c@theorem=\count211
 \c@assumption=\count212
+\c@example=\count213
 
 
 Package Fancyhdr Warning: \fancyhead's `E' option without twoside option is use
-less on input line 71.
+less on input line 78.
 
 
 Package Fancyhdr Warning: \fancyfoot's `E' option without twoside option is use
-less on input line 72.
+less on input line 79.
 
 
 Package Fancyhdr Warning: \fancyfoot's `E' option without twoside option is use
-less on input line 73.
+less on input line 80.
 
 ) (./one-phase.aux
+
+LaTeX Warning: Label `original-problem' multiply defined.
+
+
+LaTeX Warning: Label `sec:simple-alg' multiply defined.
+
 
 LaTeX Warning: Label `agg:line:back-track' multiply defined.
 
@@ -2037,7 +2044,10 @@ LaTeX Warning: Label `line:agg-back-too-small' multiply defined.
 LaTeX Warning: Label `line:agg-terminate' multiply defined.
 
 
-LaTeX Warning: Label `alg:naive' multiply defined.
+LaTeX Warning: Label `eq:a-bound' multiply defined.
+
+
+LaTeX Warning: Label `eq:alpha-bound' multiply defined.
 
 )
 \openout1 = `one-phase.aux'.
@@ -2058,16 +2068,16 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 6.
 LaTeX Font Info:    ... okay on input line 6.
  (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count213
+\scratchcounter=\count214
 \scratchdimen=\dimen233
 \scratchbox=\box60
-\nofMPsegments=\count214
-\nofMParguments=\count215
+\nofMPsegments=\count215
+\nofMParguments=\count216
 \everyMPshowfont=\toks52
-\MPscratchCnt=\count216
+\MPscratchCnt=\count217
 \MPscratchDim=\dimen256
-\MPnumerator=\count217
-\makeMPintoPDFobject=\count218
+\MPnumerator=\count218
+\makeMPintoPDFobject=\count219
 \everyMPtoPDFconversion=\toks53
 ) (/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
@@ -2098,7 +2108,7 @@ Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
 (/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
-\c@section@level=\count219
+\c@section@level=\count220
 )
 LaTeX Info: Redefining \ref on input line 6.
 LaTeX Info: Redefining \pageref on input line 6.
@@ -2172,6 +2182,9 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [2]
+Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
+ine 335.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2180,7 +2193,7 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [3]
 
-Package natbib Warning: Citation `more' on page 4 undefined on input line 317.
+Package natbib Warning: Citation `more' on page 4 undefined on input line 343.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2196,6 +2209,9 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [5]
+Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
+line 517.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2210,9 +2226,12 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [7]
-Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 632.
+Underfull \hbox (badness 10000) in paragraph at lines 667--669
 
+ []
+
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 691.
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2234,6 +2253,11 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [10]
+Package hyperref Info: bookmark level for unknown observation defaults to 0 on 
+input line 795.
+Package hyperref Info: bookmark level for unknown assumption defaults to 0 on i
+nput line 809.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2241,7 +2265,72 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [11]
-Underfull \hbox (badness 1147) in paragraph at lines 851--851
+Package hyperref Info: bookmark level for unknown definition defaults to 0 on i
+nput line 845.
+Package hyperref Info: bookmark level for unknown corollary defaults to 0 on in
+put line 879.
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[12]
+Package hyperref Info: bookmark level for unknown theorem defaults to 0 on inpu
+t line 886.
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[13]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 956.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 956.
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[14]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[15]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[16]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[17]
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[18]
+Underfull \hbox (badness 1147) in paragraph at lines 1277--1277
 []\OT1/cmr/m/n/10 Tolerance for the un-bound-ed-ness cri-te-rion
  []
 
@@ -2251,85 +2340,8 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[12]
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[13]
-Package hyperref Info: bookmark level for unknown claim defaults to 0 on input 
-line 904.
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[14]
-Underfull \hbox (badness 10000) in paragraph at lines 928--929
-
- []
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[15]
-Package hyperref Info: bookmark level for unknown theorem defaults to 0 on inpu
-t line 993.
-
-Overfull \hbox (37.95325pt too wide) in paragraph at lines 1022--1025
-\OT1/cmr/m/n/10 where the first in-equal-ity fol-lows from the fact that [] is 
-not sat-is-fied; the sec-ond in-equal-ity from $\OMS/cmsy/m/n/10 k[]L[]\OT1/cmr
-/m/n/10 (\OML/cmm/m/it/10 x[]; y[]\OT1/cmr/m/n/10 )\OMS/cmsy/m/n/10 k[] \OT1/cm
-r/m/n/10 =
- []
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[16]
-Underfull \hbox (badness 10000) in paragraph at lines 1048--1049
-
- []
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[17]
-Package hyperref Info: bookmark level for unknown lemma defaults to 0 on input 
-line 1104.
-Package hyperref Info: bookmark level for unknown definition defaults to 0 on i
-nput line 1127.
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[18]
-Overfull \hbox (25.61145pt too wide) in paragraph at lines 1139--1140
-[]\OT1/cmr/m/n/10 Suppose Al-go-rithm []1[] gen-er-ates con-sec-u-tive sta-bi-l
-iza-tion steps $(\OML/cmm/m/it/10 x[]; s[]; y[]; ^^V[]\OT1/cmr/m/n/10 )$ start-
-ing at the point $(\OML/cmm/m/it/10 x[]; s[]; y[]; ^^V[]\OT1/cmr/m/n/10 )$
- []
-
-Package hyperref Info: bookmark level for unknown corollary defaults to 0 on in
-put line 1152.
-
-Overfull \hbox (4.62442pt too wide) in paragraph at lines 1179--1180
+[19]
+Overfull \hbox (4.62442pt too wide) in paragraph at lines 1290--1291
 []\OT1/cmr/m/n/10 This sec-tion ex-plains how given a start-ing point $\OML/cmm
 /m/it/10 x[]$\OT1/cmr/m/n/10 , how to se-lect the ini-tial vari-able val-ues $(
 \OML/cmm/m/it/10 ^^V[]; x[]; y[]; s[]\OT1/cmr/m/n/10 )$
@@ -2341,11 +2353,8 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[19]
-Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
-ine 1254.
-
-Overfull \hbox (134.71411pt too wide) in paragraph at lines 1254--1254
+[20]
+Overfull \hbox (134.71411pt too wide) in paragraph at lines 1365--1365
 []\OT1/cmr/m/n/10 Matrix Stretch-ing for Sparse Least Squares []$\OT1/cmtt/m/n/
 10 https : / / pdfs . semanticscholar . org / 0054 / 9cc96c29f24c9d55d76962676f
 e5993f2b11 .
@@ -2357,51 +2366,31 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[20]
-
-LaTeX Warning: Reference `fig:ls-options' on page 21 undefined on input line 12
-92.
-
-
-LaTeX Warning: Reference `fig:ls-options' on page 21 undefined on input line 12
-92.
-
-<figures/ls-options.pdf, id=907, 462.52798pt x 346.89601pt>
+[21] <figures/ls-options.pdf, id=963, 462.52798pt x 346.89601pt>
 File: figures/ls-options.pdf Graphic file (type pdf)
 
 <use figures/ls-options.pdf>
-Package pdftex.def Info: figures/ls-options.pdf used on input line 1295.
+Package pdftex.def Info: figures/ls-options.pdf used on input line 1405.
 (pdftex.def)             Requested size: 161.8872pt x 121.41542pt.
 
-<figures/num-corrections.pdf, id=908, 462.52798pt x 346.89601pt>
+<figures/num-corrections.pdf, id=964, 462.52798pt x 346.89601pt>
 File: figures/num-corrections.pdf Graphic file (type pdf)
 
 <use figures/num-corrections.pdf>
-Package pdftex.def Info: figures/num-corrections.pdf used on input line 1296.
+Package pdftex.def Info: figures/num-corrections.pdf used on input line 1406.
 (pdftex.def)             Requested size: 161.8872pt x 121.41542pt.
 
-<figures/regularizer-ratios.pdf, id=909, 462.52798pt x 346.89601pt>
+<figures/regularizer-ratios.pdf, id=965, 462.52798pt x 346.89601pt>
 File: figures/regularizer-ratios.pdf Graphic file (type pdf)
 
 <use figures/regularizer-ratios.pdf>
-Package pdftex.def Info: figures/regularizer-ratios.pdf used on input line 1297
+Package pdftex.def Info: figures/regularizer-ratios.pdf used on input line 1407
 .
 (pdftex.def)             Requested size: 161.8872pt x 121.41542pt.
 
-Overfull \hbox (20.35103pt too wide) in paragraph at lines 1295--1298
+Overfull \hbox (20.35103pt too wide) in paragraph at lines 1405--1408
 [][] [] [] 
  []
-
-
-Package Fancyhdr Warning: \headheight is too small (12.0pt): 
- Make it at least 14.0pt.
- We now make it that large for the rest of the document.
- This may cause the page layout to be inconsistent, however.
-
-[21]
-
-LaTeX Warning: Reference `fig:num-corrections' on page 22 undefined on input li
-ne 1302.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2417,39 +2406,34 @@ f): PDF inclusion: multiple pdfs with page group included in a single page
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/regularizer-ratios
 .pdf): PDF inclusion: multiple pdfs with page group included in a single page
->] <figures/ratios-IPOPT-one-phase.pdf, id=1034, 462.52798pt x 346.89601pt>
-File: figures/ratios-IPOPT-one-phase.pdf Graphic file (type pdf)
-
-<use figures/ratios-IPOPT-one-phase.pdf>
-Package pdftex.def Info: figures/ratios-IPOPT-one-phase.pdf used on input line 
-1368.
-(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
-
-<figures/iterations-IPOPT-one-phase.pdf, id=1035, 462.52798pt x 346.89601pt>
-File: figures/iterations-IPOPT-one-phase.pdf Graphic file (type pdf)
-
-<use figures/iterations-IPOPT-one-phase.pdf>
-Package pdftex.def Info: figures/iterations-IPOPT-one-phase.pdf used on input l
-ine 1369.
-(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
-
+>]
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[23 <./figures/ratios-IPOPT-one-phase.pdf> <./figures/iterations-IPOPT-one-phas
-e.pdf
+[23] <figures/ratios-IPOPT-one-phase.pdf, id=1094, 462.52798pt x 346.89601pt>
+File: figures/ratios-IPOPT-one-phase.pdf Graphic file (type pdf)
 
-pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/iterations-IPOPT-o
-ne-phase.pdf): PDF inclusion: multiple pdfs with page group included in a singl
-e page
->] <figures/infeas-ratios.png, id=1106, 462.528pt x 346.896pt>
+<use figures/ratios-IPOPT-one-phase.pdf>
+Package pdftex.def Info: figures/ratios-IPOPT-one-phase.pdf used on input line 
+1479.
+(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
+
+<figures/iterations-IPOPT-one-phase.pdf, id=1095, 462.52798pt x 346.89601pt>
+File: figures/iterations-IPOPT-one-phase.pdf Graphic file (type pdf)
+
+<use figures/iterations-IPOPT-one-phase.pdf>
+Package pdftex.def Info: figures/iterations-IPOPT-one-phase.pdf used on input l
+ine 1480.
+(pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
+
+<figures/infeas-ratios.png, id=1098, 462.528pt x 346.896pt>
 File: figures/infeas-ratios.png Graphic file (type png)
 
 <use figures/infeas-ratios.png>
-Package pdftex.def Info: figures/infeas-ratios.png used on input line 1402.
+Package pdftex.def Info: figures/infeas-ratios.png used on input line 1515.
 (pdftex.def)             Requested size: 231.26343pt x 173.44757pt.
 
 
@@ -2458,30 +2442,36 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[24 <./figures/infeas-ratios.png>] (./one-phase.bbl
+[24 <./figures/ratios-IPOPT-one-phase.pdf> <./figures/iterations-IPOPT-one-phas
+e.pdf
+
+pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/iterations-IPOPT-o
+ne-phase.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+>]
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[25]
+[25 <./figures/infeas-ratios.png>] (./one-phase.bbl
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[26])
+[26]
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[27]
-Package hyperref Info: bookmark level for unknown fact defaults to 0 on input l
-ine 1540.
+[27])
+Package hyperref Info: bookmark level for unknown example defaults to 0 on inpu
+t line 1607.
 
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2497,6 +2487,9 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [29]
+Package hyperref Info: bookmark level for unknown fact defaults to 0 on input l
+ine 1707.
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2511,6 +2504,21 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [31]
+Overfull \hbox (45.43369pt too wide) in paragraph at lines 1808--1808
+[] 
+ []
+
+
+Overfull \hbox (8.7121pt too wide) in paragraph at lines 1831--1833
+\OT1/cmr/m/n/10 Since $[]\OMS/cmsy/m/n/10 f\OML/cmm/m/it/10 ^^P[]\OT1/cmr/m/n/1
+0 (\OML/cmm/m/it/10 s; y\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; \OMS/cmsy/m/n/10 k[
+]\OML/cmm/m/it/10  []\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )\OMS/c
+msy/m/n/10 kg$ \OT1/cmr/m/n/10 is bounded away from zero, we de-duce the larges
+t $\OML/cmm/m/it/10 []$ \OT1/cmr/m/n/10 sat-is-fy-ing $\OML/cmm/m/it/10 ^^^[]\
+OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]; y[]; s[]\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/1
+0 ^^@
+ []
+
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2518,6 +2526,45 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  This may cause the page layout to be inconsistent, however.
 
 [32]
+Overfull \hbox (36.93779pt too wide) in paragraph at lines 1867--1867
+[][]\OT1/cmr/bx/n/10 Lemma 15. []\OT1/cmr/m/it/10 As-sume $\OML/cmm/m/it/10 M >
+ \OT1/cmr/m/n/10 0$ \OT1/cmr/m/it/10 at $\OML/cmm/m/it/10 x$ \OT1/cmr/m/it/10 e
+tc. Then for any KKT point $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]; s[]; y[]\OT1
+/cmr/m/n/10 )$ \OT1/cmr/m/it/10 and $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x; s; y\
+OT1/cmr/m/n/10 )$ \OT1/cmr/m/it/10 with $[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (6.42598pt too wide) in paragraph at lines 1911--1913
+[][]\OT1/cmr/bx/n/10 Lemma 17. []\OT1/cmr/m/it/10 Hin-der: un-der generic neigh
+-bor-hood as-sump-tion[] As-sume $\OML/cmm/m/it/10 ^^U[]\OT1/cmr/m/n/10 (\OMS/c
+msy/m/n/10 M\OT1/cmr/m/n/10 ) \OML/cmm/m/it/10 > c[] > \OT1/cmr/m/n/10 0$\OT1/c
+mr/m/it/10 , $\OML/cmm/m/it/10 ^^U[]\OT1/cmr/m/n/10 ([][]\OMS/cmsy/m/n/10 L[]\O
+T1/cmr/m/n/10 (\OML/cmm/m/it/10 x; y\OT1/cmr/m/n/10 )) \OML/cmm/m/it/10 >
+ []
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[33]
+Overfull \hbox (36.93779pt too wide) in paragraph at lines 1942--1942
+[][]\OT1/cmr/bx/n/10 Lemma 15. []\OT1/cmr/m/it/10 As-sume $\OML/cmm/m/it/10 M >
+ \OT1/cmr/m/n/10 0$ \OT1/cmr/m/it/10 at $\OML/cmm/m/it/10 x$ \OT1/cmr/m/it/10 e
+tc. Then for any KKT point $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[]; s[]; y[]\OT1
+/cmr/m/n/10 )$ \OT1/cmr/m/it/10 and $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x; s; y\
+OT1/cmr/m/n/10 )$ \OT1/cmr/m/it/10 with $[] \OT1/cmr/m/n/10 =
+ []
+
+
+Package Fancyhdr Warning: \headheight is too small (12.0pt): 
+ Make it at least 14.0pt.
+ We now make it that large for the rest of the document.
+ This may cause the page layout to be inconsistent, however.
+
+[34]
 
 Package natbib Warning: There were undefined citations.
 
@@ -2527,67 +2574,64 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[33]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1817.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1817.
+[35]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 2040.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 2040.
  (./one-phase.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1817.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1817.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 2040.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 2040.
 
 Package rerunfilecheck Info: File `one-phase.out' has not changed.
-(rerunfilecheck)             Checksum: 416A14D0B579658E738272726CAAAF6A;3239.
-
-
-LaTeX Warning: There were undefined references.
+(rerunfilecheck)             Checksum: A197588A6C750C1A18397A62908BD2F2;3810.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1817.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2040.
  ) 
 Here is how much of TeX's memory you used:
- 27532 strings out of 493089
- 511198 string characters out of 6134842
- 572751 words of memory out of 5000000
- 30184 multiletter control sequences out of 15000+600000
+ 27626 strings out of 493089
+ 512623 string characters out of 6134842
+ 574038 words of memory out of 5000000
+ 30252 multiletter control sequences out of 15000+600000
  20599 words of font info for 75 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 64i,18n,81p,10434b,888s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 64i,18n,81p,10434b,741s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pf
 b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmbsy
 8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
 .pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx5.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb>
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/l
-ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/loc
-al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local
-/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/t
-exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/tex
-live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texliv
-e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2
-015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf
--dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/f
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
+/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local
+/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/t
+exlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texl
+ive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive
+/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/20
+15/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/local/texlive/2015/texmf-dist/f
 onts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/fo
 nts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dis
 t/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on one-phase.pdf (33 pages, 583413 bytes).
+Output written on one-phase.pdf (35 pages, 603239 bytes).
 PDF statistics:
- 1476 PDF objects out of 1728 (max. 8388607)
- 1256 compressed objects within 13 object streams
- 377 named destinations out of 1000 (max. 500000)
- 387 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1542 PDF objects out of 1728 (max. 8388607)
+ 1321 compressed objects within 14 object streams
+ 403 named destinations out of 1000 (max. 500000)
+ 451 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -31,7 +31,7 @@ end
 function accept_func_kkt!(accept::abstract_ls_info, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
 
     if satisfies_filter!(filter, candidate, accept.step_size_P, pars, timer)
-    #if kkt_err_cand / kkt_err < (1.0 - pars.kkt_reduction_factor * accept.step_size_P)
+    #if kkt_err_cand / kkt_err < (1.0 - pars.ls.kkt_reduction_factor * accept.step_size_P)
       return :success
     else
       return :not_enough_progress

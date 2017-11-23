@@ -28,31 +28,31 @@ end
 
 function take_step2!( be_aggressive::Bool, iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
     if be_aggressive
-        if pars.agg_eta == :mehrotra || pars.agg_eta == :mehrotra_stb
+        if pars.ls.agg_gamma == :mehrotra || pars.ls.agg_gamma == :mehrotra_stb
           σ = probe(iter, kkt_solver, pars, timer)
           #gamma = (1.0 - σ)
           gamma = min(0.5, (1.0 - σ)^2)
           #gamma = (1.0 - σ) #min(0.5, )
           #gamma = min(0.5,(1.0 - σ)^1.5)
-          if pars.agg_eta == :mehrotra
+          if pars.ls.agg_gamma == :mehrotra
             reduct_factors = Class_reduction_factors(gamma, gamma, gamma)
-          elseif pars.agg_eta == :mehrotra_stb
+          elseif pars.ls.agg_gamma == :mehrotra_stb
             reduct_factors = Class_reduction_factors(gamma, 0.0, gamma)
           end
         else
-          if pars.agg_eta == :affine
+          if pars.ls.agg_gamma == :affine
             reduct_factors = Reduct_affine()
-          elseif pars.agg_eta == :constant
+          elseif pars.ls.agg_gamma == :constant
             reduct_factors = Class_reduction_factors(0.2, 0.0, 0.2)
           else
-            error("pars.agg_eta choice not recognized")
+            error("pars.ls.agg_gamma choice not recognized")
           end
         end
 
-        ls_mode = pars.ls_mode_agg
+        ls_mode = :accept_aggressive
         min_step_size = pars.min_step_size_agg_ratio * min(1.0, 1.0 / maximum(- get_primal_res(iter) ./ iter.point.s))
     else
-        ls_mode = pars.ls_mode_stable_correction
+        ls_mode = :accept_filter
         reduct_factors = Reduct_stable()
         min_step_size = pars.min_step_size_stable
     end

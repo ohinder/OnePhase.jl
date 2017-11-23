@@ -1,18 +1,21 @@
 include("../include.jl")
 
 using JuMP
-using Ipopt
+#using Ipopt
 
 
 function formulation_3D(lambda,w,mu,mu1, A, B, C, alpha)
     T = [(i,j,k) for i in A for j in B for k in C];
 
-    m = Model(solver = IpoptSolver())
+    m = Model()
     @variable(m, c[i in A,j in B,k in C] >= alpha[k])# for (i,j) in T)
     @variable(m, y[i in A,j in B,k in C] >= alpha[k])# for (i,j) in T )
+    @variable(m, obj_val)
 
 
-    @NLobjective(m, Min, -sum( lambda[i,j,k] * (log(c[i,j,k]) - (y[i,j,k]/w[i])^mu1[j] / mu1[j]) for (i,j,k) = T) )
+    @NLobjective(m, Min, -sum( lambda[i,j,k] * (log(c[i,j,k]) - (y[i,j,k]/w[i])^mu1[j] / mu1[j]) for (i,j,k) = T))
+    #@NLobjective(m, Min, obj_val)
+    #@NLconstraint(m, -sum( lambda[i,j,k] * (log(c[i,j,k]) - (y[i,j,k]/w[i])^mu1[j] / mu1[j]) for (i,j,k) = T) <= obj_val)
 
     for (i,j,k) in T
       for (p,q,r) in T
@@ -22,11 +25,11 @@ function formulation_3D(lambda,w,mu,mu1, A, B, C, alpha)
       end
     end
 
-    @NLconstraint(m, sum(lambda[i,j,k] * (y[i,j,k] - c[i,j,k]) for (i,j,k) in T)  >= 0.0);
+    @NLconstraint(m, sum(lambda[i,j,k] * (y[i,j,k] - c[i,j,k]) for (i,j,k) in T) >= 0.0);
     return m
 end
 
-na = 7
+na = 21
 nb = 3
 nc = 3
 
@@ -53,7 +56,10 @@ mu1 = mu + 1.0
 
 srand(1)
 m = formulation_3D(lambda,w,mu,mu1,A,B,C, alpha)
-iter = one_phase_solve(m);
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+my_pars.init.mu_scale = 1.0
+iter = one_phase_solve(nlp_raw, my_pars);
 
 #=
 ORG_STDOUT = STDOUT

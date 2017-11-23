@@ -1,5 +1,6 @@
 abstract abstract_ls_info;
 
+include("frac_boundary.jl")
 include("move.jl")
 include("filter_ls.jl")
 include("agg_ls.jl")
@@ -17,40 +18,9 @@ function scale_direction(dir::Class_point, step_size::Float64)
     return new_dir
 end
 
-
-function simple_max_step(val::Array{Float64,1}, dir::Array{Float64,1}, lb::Array{Float64,1})
-    ratio = maximum( [1.0; -dir ./ (val - lb) ] ) #; -q * dir.y ./ iter.point.y] );
-    return 1.0 / ratio
-end
-
-#=
-function max_step_primal_dual(iter::Class_iterate, dir::Class_point, threshold::Float64)
-    return simple_max_step([iter.point.s; iter.point.y], [dir.s; dir.y], threshold)
-end
-
-function max_step_primal(iter::Class_iterate, dir::Class_point, threshold::Float64)
-    return simple_max_step(iter.point.s, dir.s, threshold)
-end
-
-function simple_max_step(val::Array{Float64,1}, dir::Array{Float64,1}, threshold::Float64)
-    q = 1.0 / (1.0 - threshold)
-    ratio = maximum( [1.0; -q * dir ./ val ] ) #; -q * dir.y ./ iter.point.y] );
-    return 1.0 / ratio
-end=#
-
 function Blank_ls_info()
     this = Class_stable_ls(0.0,0.0, 0, 0.0, 0.0)
     return this
-end
-
-#=function ls_feasible_solution(iter::Class_iterate, dir::Class_point, accept_type::Symbol, filter::Array{Class_filter,1},  pars::Class_parameters, min_step_size::Float64, timer::class_advanced_timer)
-
-end=#
-
-function lb_s_predict(iter,dir,pars)
-  ex = pars.fraction_to_boundary_predict_exp
-  x_thres = max(2.0 * norm(dir.x,Inf)^2, norm(dir.x,Inf)^ex)
-  return min(pars.fraction_to_boundary_predict * iter.point.s, x_thres)
 end
 
 function basic_checks(iter::Class_iterate, f_it::Class_iterate, dir::Class_point)
@@ -70,12 +40,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
     lb_s = lb_s_predict(iter, dir, pars)
     step_size_P = simple_max_step(iter.point.s, dir.s, lb_s)
 
-    if pars.max_step_primal_dual == true
-      step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
-      #step_size_P = max_step_primal(iter, dir, frac_to_bound)
-    elseif pars.max_step_primal_dual != false
-      error("SIMPLE_LS")
-    end
+    step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
 
     if accept_type == :accept_stable
       accept_obj = Class_stable_ls(iter, dir, pars)
@@ -93,24 +58,16 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
 
     accept_obj.num_steps = 0
 
-    #if !basic_checks(iter, f_it, dir)
-    #  return :basic_checks, iter, accept_obj
-    #end
-
     if !accept_obj.do_ls
-        if pars.LS_non_negative_predicted_gain
-          pause_advanced_timer(timer, "SIMPLE_LS")
-          return :predict_red_non_negative, iter, accept_obj
-        else
-          my_warn("predicted reduction non-negative")
-        end
+        pause_advanced_timer(timer, "SIMPLE_LS")
+        return :predict_red_non_negative, iter, accept_obj
     end
 
     if pars.output_level >= 5
       println(pd("α_P"), pd("α_D"), pd("merit_diff"), pd("comp_diff"), pd("phi_diff"), pd("kkt_diff"), pd("dx"), pd("dy"), pd("ds"), pd("status"))
     end
 
-    for i = 1:pars.ls_num_backtracks
+    for i = 1:pars.ls.num_backtracks
       status = :none
 
       if step_size_P >= min_step_size
@@ -125,14 +82,14 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
         if move_status == :success
             start_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")
             lb, ub = dual_bounds(candidate, candidate.point.y, dir.y, pars.comp_feas)
-            lb_y_new = min(dir.y .* (dir.s + norm(dir.x,Inf)^2) ./ candidate.point.s, pars.fraction_to_boundary * candidate.point.y)
+            lb_y_new = lb_y(iter,dir,pars) #min(dir.y .* (dir.s + norm(dir.x,Inf)^2) ./ candidate.point.s, pars.ls.fraction_to_boundary * candidate.point.y)
             ub = min(ub, simple_max_step(candidate.point.y, dir.y, lb_y_new))
             pause_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")
 
             if lb >= ub
               move_status = :dual_infeasible
             end
-            if !pars.move_primal_seperate_to_dual && !(lb <= step_size_P && step_size_P <= ub)
+            if !pars.ls.move_primal_seperate_to_dual && !(lb <= step_size_P && step_size_P <= ub)
               move_status = :dual_infeasible
             end
         end
@@ -201,9 +158,9 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
         end
 
         #if status == :s_bound
-        #  step_size_P *= pars.ls_backtracking_factor # min(pars.ls_backtracking_factor * step_size_P, 1.0 / maximum( (get_s(iter) - get_s(candidate)) ./ get_s(iter) ))
+        #  step_size_P *= pars.ls.backtracking_factor # min(pars.ls.backtracking_factor * step_size_P, 1.0 / maximum( (get_s(iter) - get_s(candidate)) ./ get_s(iter) ))
         #else
-        step_size_P *= pars.ls_backtracking_factor
+        step_size_P *= pars.ls.backtracking_factor
         #end
       else
         if pars.output_level >= 5

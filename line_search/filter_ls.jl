@@ -49,7 +49,7 @@ type Class_filter
       this.fval = eval_merit_function(iter, pars)
 
       kkt_err = norm(eval_grad_lag(iter, get_mu(iter)),Inf)
-      if pars.kkt_include_comp
+      if pars.ls.kkt_include_comp
          kkt_err += norm(comp(iter),Inf)
       end
       this.scaled_kkt_err = kkt_err * dual_scale(iter, pars) #eval_kkt_err(iter, pars)
@@ -70,20 +70,20 @@ function satisfies_filter!(ar::Array{Class_filter,1}, can::Class_iterate, step_s
 
     for i = 1:length(ar)
         #tol = 1e-3 * max(1.0, p.scaled_kkt_err)
-        expected_reduction = pars.kkt_reduction_factor
+        expected_reduction = pars.ls.kkt_reduction_factor
         #
-        kkt_reduction = (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.kkt_reduction_factor * step_size))
+        kkt_reduction = (p.scaled_kkt_err / ar[i].scaled_kkt_err < (1.0 - pars.ls.kkt_reduction_factor * step_size))
         fval_reduction = p.fval < ar[i].fval - (p.scaled_kkt_err)^2
         fval_no_increase = p.fval < ar[i].fval + sqrt(p.scaled_kkt_err) #+ p.scaled_kkt_err^2
         net_reduction = p.scaled_kkt_err + p.fval < ar[i].fval + ar[i].scaled_kkt_err - (p.scaled_kkt_err)^2
 
-        if pars.filter_type == :default
+        if pars.ls.filter_type == :default
             failure = !(p.mu < ar[i].mu || kkt_reduction)
-        elseif pars.filter_type == :test1
+        elseif pars.ls.filter_type == :test1
             failure = !(p.mu < ar[i].mu || kkt_reduction || fval_reduction)
-        elseif pars.filter_type == :test2
+        elseif pars.ls.filter_type == :test2
             failure = !(p.mu < ar[i].mu || (kkt_reduction && fval_no_increase)) # || fval_reduction)
-        elseif pars.filter_type == :test3
+        elseif pars.ls.filter_type == :test3
             failure = !(p.mu < ar[i].mu || net_reduction)
         else
             error("unknown filter type!!!")

@@ -76,6 +76,13 @@ function ub(x::Array{Float64,1}, bd::Class_bounds)
     return bd.u - x[bd.u_i]
 end
 
+function linear_cons(m::Class_CUTEst)
+    is_linear = zeros(m.nlp.meta.ncon)
+    is_linear[m.nlp.meta.lin] = 1.0
+    vec = [lb(is_linear, m.bcon); ub(is_linear, m.bcon); ones(nbounds_orginal(m))]
+    return 1.0 .== vec
+end
+
 function nbounds_orginal(nlp::Class_CUTEst)
     return length(nlp.bvar.l_i) + length(nlp.bvar.u_i)
 end
@@ -92,6 +99,10 @@ function cons_indicies(nlp::Class_CUTEst)
       return []
     end
 end
+
+#function linear_indicies(nlp::Class_CUTEst)
+#    #nlp.nlp.meta.lin
+#end
 
 
 function bound_indicies(nlp::Class_CUTEst)

@@ -6,6 +6,8 @@ include("../include.jl")
 # LARGE dual variables
 #nlp_raw2 = CUTEstModel("HVYCRASH")
 #nlp_raw2 = CUTEstModel("MSS1")
+#nlp_raw2 = CUTEstModel("MSS2")
+
 # INFEASIBLE PROBLEMS
 #nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("NCVXQP8","-param","N=1000")
@@ -52,6 +54,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("QPCSTAIR")
 #nlp_raw2 = CUTEstModel("QPNBOEI2")
 #nlp_raw2 = CUTEstModel("READING1")
+#nlp_raw2 = CUTEstModel("READING4")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("DRUGDISE")
@@ -70,7 +73,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("EXPFITC")
 #nlp_raw2 = CUTEstModel("LAUNCH")
 #nlp_raw2 = CUTEstModel("TRIMLOSS")
-
+#nlp_raw2 = CUTEstModel("CAMSHAPE")
 #nlp_raw2 = CUTEstModel("HAIFAM")
 #nlp_raw2 = CUTEstModel("ACOPR118")
 #nlp_raw2 = CUTEstModel("LAKES")
@@ -141,19 +144,14 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("YATP2SQ","-param","N=200")
 
 #nlp_raw2 = CUTEstModel("TWOD","-param","N=2")
-
-function compare_objects(obj1,obj2)
-  for n in fieldnames(obj1)
-     if(getfield(obj1,n) != getfield(obj2,n))
-        println(n, ":")
-        println(getfield(obj1,n), " != ", getfield(obj2,n))
-     end
-  end
-end
-nlp_raw2 = CUTEstModel("DITTERT")
+#nlp_raw2 = CUTEstModel("DITTERT")
 
 #IpoptSolve(nlp_raw2);
+#nlp_raw2 = CUTEstModel("AIRPORT")
+#nlp_raw2 = CUTEstModel("CHAIN")
+
 my_pars = Class_parameters()
+#my_pars.term.tol_opt = 1e-6
 one_phase_solve(nlp_raw2,my_pars);
 
 finalize(nlp_raw2)
