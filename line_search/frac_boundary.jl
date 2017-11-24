@@ -6,7 +6,7 @@ function lb_s_predict(iter,dir,pars)
 end
 
 function lb_y(iter,dir,pars)
-  return iter.frac_bd .*  iter.point.y min(1, norm(dir.x,Inf) )
+  return iter.frac_bd .*  iter.point.y * min(1, norm(dir.x,Inf) )
 end
 
 function lb_s(iter,dir,pars)

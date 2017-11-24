@@ -133,7 +133,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("TOYSARAH")
-#nlp_raw2 = CUTEstModel("AGG")
+nlp_raw2 = CUTEstModel("AGG")
 #problem_list = get_problem_list(100000,9999999999)
 # BIG PROBLEMS
 #BDRY2

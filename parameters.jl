@@ -62,9 +62,9 @@ type Class_termination_parameters
 
         this.max_it = 3000
         this.max_time = 60.0^2
-        this.tol_opt = 1e-8
-        this.tol_unbounded = 1e-8
-        this.tol_inf_1 = 1e-4
+        this.tol_opt = 1e-6
+        this.tol_unbounded = 1e-6
+        this.tol_inf_1 = 1e-3
         this.tol_inf_2 = 1e-6
         this.max_gradient = 1e15
 
@@ -102,6 +102,7 @@ type Class_init_parameters
     init_style::Symbol
     start_satisfying_bounds::Bool
     dual_threshold::Float64
+    linear_scale::Float64
 
     function Class_init_parameters()
         this = new()
@@ -109,11 +110,8 @@ type Class_init_parameters
         this.mehotra_scaling = true
         this.init_style = :mehotra
         this.dual_threshold = 100.0
-        #this.init_style = :old_style # SOMETHING WRONG WITH THIS
-        #this.start_satisfying_bounds = true #true #true
         this.start_satisfying_bounds = true
-        #this.mu_primal_ratio = 1.0 #10.0 #1.0 #1e-3
-
+        this.linear_scale = 0.1
 
         return this
     end
@@ -223,7 +221,7 @@ type Class_parameters
         this.use_reg = true # i.e. modify the gradient/phi/lag
         this.proximal_style = :fixed
 
-        this.x_norm_penalty = 1e-8 #1e-8
+        this.x_norm_penalty = 0.0 #1e-8
         this.a_norm_penalty = 1e-4
 
         # Don't change these parameters except for experimentation

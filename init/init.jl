@@ -28,6 +28,8 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
 
     s, y = mehortra_guess( nlp, pars, timer, x, a, J, g )
 
+    li = linear_cons(nlp)
+
     if pars.init.mehotra_scaling
       mu = mean(s .* y)
       conWeight = ((s - a) / mu) / pars.init.mu_scale
@@ -37,9 +39,9 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
       ais = cons_indicies(nlp)
       conWeight[ais] = 1.0 / pars.init.mu_scale
       #li = linear_cons(nlp, x)
-      #conWeight[li] /= 10.0
-
     end
+
+    conWeight[li] *= pars.init.linear_scale
 
     @assert(all(conWeight .>= 0.0))
 
@@ -47,9 +49,10 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
     #return correct_guess1( nlp, pars, timer, x0, a, J, g, s, y)
     #
     #@show li
-    li = linear_cons(nlp)
+
     #@show li
     iter_init.frac_bd_predict[li] = pars.ls.fraction_to_boundary_linear
     iter_init.frac_bd[li] = pars.ls.fraction_to_boundary_linear
+
     return iter_init
 end

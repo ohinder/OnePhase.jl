@@ -17,6 +17,30 @@ but desired accuracy could not be achieved.
 17: Convergence to stationary point for infeasibility
 18: Restoration phase cannot further improve feasibility
 =#
+function real_problems(problem)
+    if problem["origin"] == "real" || problem["origin"] == "modelling"
+        return true
+    else
+        return false
+    end
+end
+
+function lrg_problem_func(min_num::Int64, max_num::Int64)
+    function func(problem)
+        regular = problem["derivative_order"] >= 2 && problem["regular"] == true && problem["constraints"]["number"] >= 1
+        min_size_ok = problem["variables"]["number"] >= min_num && problem["constraints"]["number"] >= min_num
+        #max_size = problem["variables"]["number"] <= max_num && problem["constraints"]["number"] <= max_num
+        max_size_ok = problem["constraints"]["number"] + problem["variables"]["number"] <= max_num
+
+        if min_size_ok && max_size_ok && regular
+            return true
+        else
+          return false
+        end
+    end
+
+    return func
+end
 
 function jump_status_conversion(info::problem_summary; MAX_IT::Int64=3000)
   status = info.status

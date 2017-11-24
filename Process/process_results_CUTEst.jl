@@ -68,9 +68,6 @@ results["medium perturb high tol"] = convert_JuMP(load("../results/ipopt/medium_
 
 # compare one phase and ipopt
 
-#results["one phase"] = load("../results/one_phase/plain/summary.jld", "summary")
-#results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
-
 #results["sept 2"] = load("../results/one_phase/sept_2_corrections/summary.jld", "summary")
 #results["Oct21"] = load("../results/one_phase/Oct21/summary.jld", "summary")
 
@@ -87,36 +84,20 @@ results["Oct21_penalty_prox"] = load("../results/one_phase/Oct21_penalty_prox/su
 #results["Oct22_penalty_prox"] = load("../results/one_phase/Oct22/penalty_no_prox/summary.jld", "summary")
 #results["Oct23"] = load("../results/one_phase/Oct23/summary.jld", "summary")
 #results["Oct23_MORE_TIME"] = load("../results/one_phase/Oct23_MORE_TIME/summary.jld", "summary")
-results["Oct26"] = load("../results/one_phase/Oct26/summary.jld", "summary")
-results["Oct28"] = load("../results/one_phase/Oct28/summary.jld", "summary")
+#results["Oct26"] = load("../results/one_phase/Oct26/summary.jld", "summary")
+#results["Oct28"] = load("../results/one_phase/Oct28/summary.jld", "summary")
 
+#=
+results["init0.1"] = load("../results/one_phase/init/0.1/summary.jld", "summary")
+results["init1"] = load("../results/one_phase/init/1/summary.jld", "summary")
+results["init10"] = load("../results/one_phase/init/10/summary.jld", "summary")
+results["init100"] = load("../results/one_phase/init/100/summary.jld", "summary")
+results["init1000"] = load("../results/one_phase/init/1000/summary.jld", "summary")
+=#
 
-
-
-min_num = 0
-#min_num = 100
+min_num = 100
 max_num = 10000
-function lrg_problems(problem)
-    regular = problem["derivative_order"] >= 2 && problem["regular"] == true && problem["constraints"]["number"] >= 1
-    min_size_ok = problem["variables"]["number"] >= min_num && problem["constraints"]["number"] >= min_num
-    #max_size = problem["variables"]["number"] <= max_num && problem["constraints"]["number"] <= max_num
-    max_size_ok = problem["constraints"]["number"] + problem["variables"]["number"] <= max_num
-
-    if min_size_ok && max_size_ok && regular
-        return true
-    else
-      return false
-    end
-end
-
-function real_problems(problem)
-    if problem["origin"] == "real" || problem["origin"] == "modelling"
-        return true
-    else
-        return false
-    end
-end
-
+lrg_problems = lrg_problem_func(min_num, max_num)
 problem_list = CUTEst.select(custom_filter=lrg_problems);
 problem_list = convert(Array{String,1},problem_list);
 

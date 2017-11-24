@@ -7,7 +7,7 @@ end
 
 function dual_scale(iter::Class_iterate, pars::Class_parameters)
     if pars.dual_scale_mode == :scaled
-      return pars.dual_scale_threshold / max(norm(get_y(iter), Inf), pars.dual_scale_threshold)
+      return pars.dual_scale_threshold / max(mean(get_y(iter)), pars.dual_scale_threshold)
     elseif pars.dual_scale_mode == :sqrt
       return pars.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf)), pars.dual_scale_threshold)
     elseif pars.dual_scale_mode == :exact

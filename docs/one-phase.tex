@@ -15,8 +15,8 @@
 \maketitle
 
 
-\def\inProgress{1}
-%\def\inProgress{0}
+%\def\inProgress{1}
+\def\inProgress{0}
 
 \if\inProgress1
 \newcommand{\inProgressHide}[1]{#1} % show
@@ -112,6 +112,8 @@
 \newcommand{\parInitializeValue}{10^{-4}}
 \newcommand{\parInitializeInterval}{(0,1)}
 
+
+\newcommand{\minStepFunc}{\omega}
 
 %%%%%%%%%%%%%%%%%%%%%
 
@@ -326,13 +328,12 @@ The interior point method that we develop generates a sequence of primal iterate
 \begin{subequations}\label{eq:barrier-primal-sequence-nice}
 \begin{flalign}
 \cons(x^{k}) + s^{k} &= \mu^k \conWeight \label{eq:primal-feasibility} \\
-%\theta^{k} / \mu^{k} &= \theta^{0} / \mu^{0} \\ %\theta^{0} / \mu^{0} \text{??? maybe just write an interval here} \\
 \frac{S^{k} y^{k}}{\mu^{k}} &\in [ \ones \parComp, \ones / \parComp],\label{eq:comp-slack} 
 \end{flalign} 
 \end{subequations}
 where $\conWeight \ge 0$ is a vector for which $\cons(x^{0}) + s^{0} = \mu^0 \conWeight$, and $\parComp \in (0,1)$ is an algorithmic parameter with a default value of $\parCompValue$. This set of equations implies the primal feasibility and complementarity are moved at the same rate. 
 
-\missingfigure[figwidth=6cm]{Plot of shifted log barrier with $\sin$. Size of shift is $O(\mu)$}
+\if\inProgress1 \missingfigure[figwidth=6cm]{Plot of shifted log barrier with $\sin$. Size of shift is $O(\mu)$} \fi
 
 Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that satisfy the aggressive step criterion \eqref{agg-criteron}) such that % , i.e., $x^{k} \rightarrow x^{*}$ and $s^{k} \rightarrow s^{*}$
 
@@ -342,7 +343,7 @@ Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that 
 \end{flalign}
 where $\Lag_{\mu} (x, y) := \obj(x) + y^T \cons(x) + \mu r(x)$ is the regularized Lagrangian function and $c > 0$ is some constant. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in many practical linear programming implementations \cite{mehrotra1992implementation} \if\inProgress1 \cite{more} \fi. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in non-convex optimization there may not exist a continuous central path\if\inProgress1 (see Appendix~\ref{app:non-existence-of-central-path})\fi.
 
-Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer reader to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}  (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation).
+Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer reader to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}\if\inProgress1 (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation)\fi.
 
 Related to this property of the dual multipliers being well-behaved is that our algorithm is explicitly designed for inequality constraints only. Typically primal feasibility is written as $a(x)=0$, $x \ge 0$ as used by Mehrotra (and many others in the IPM literature). Note that if we took the dual of a linear program before applying our technique then our method would be working with the same problem as the typical method, because for us dual feasibility is $\grad f(x) - \grad a(x)^T y = 0, y \ge 0$. We believe working in this form is superior for nonlinear programming where there is no symmetry between the primal and dual, and the form $a(x) \le 0$ has many benefits that we discuss shortly. The advantage of only using inequalities is that: 
 \begin{enumerate}
@@ -511,10 +512,10 @@ $$
 1 & 0
 \end{matrix} \right)
 $$
-is factorable. As we show next for a large set of perturbations system~\eqref{eq:ldl-system} is factorable.
+is factorable. In Lemma~\ref{lem:when-factorable} we show for a large set of perturbations system~\eqref{eq:ldl-system} is factorable. The matrix $Q$ corresponds to $Y^{-1} S$
 
-\begin{lemma}
-Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $Q \in \R^{\ncon \times \ncon}$ with $H$ symmetric. Let $M = H + A^T D^2 A$. If $M \succ 0$ and $Q \succ 0$ then for all permutation matrices $P_{1}$ and $P_{2}$ the matrix
+\begin{lemma}\label{lem:when-factorable}
+Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $Q \in \R^{\ncon \times \ncon}$ with $H$ symmetric and $Q$ quasi-definite. Let $M = H + A^T Q^{-1} A$. If $M \succ 0$ then for all permutation matrices $P_{1}$ and $P_{2}$ the matrix
 $$
 \left( \begin{matrix}
 P_{1} & 0 \\
@@ -533,17 +534,17 @@ is factorable.
 \end{lemma}
 
 \begin{proof}
-It is sufficient to show each of the leading principal sub-matrices are non-singular. Since any principal sub-matrix with less than $\ncon$ rows is trivially non-singular, let us consider some principal sub-matrix with at least $\ncon$ rows and denote it by
+It is sufficient to show each of the leading principal sub-matrices are non-singular. Since any principal sub-matrix with less than $\ncon$ rows is non-singular by \citet[Theorem 2.1]{vanderbei1995symmetric}, let us consider some principal sub-matrix with at least $\ncon$ rows and denote it by
 $$
 \left(\begin{matrix}
 -Q & A_{S}  \\
 A^T_{S} & H_{S}
 \end{matrix}\right).
 $$
-Note that since $Q \succ 0$ this matrix is singular only if $H_{S} + A^T_{S} Q^{-1} A_{S}$ is singular (otherwise the linear system involving this principal sub-matrix has a solution for any right hand side). However, $H_{S} + A^T_{S} Q^{-1} A_{S}$ is a sub-matrix of $M$ hence $H_{S} + A^T_{S} Q^{-1} A_{S} \succ 0$.
+Note that since $Q$ is quasi-definite (and therefore non-singular) this matrix is singular only if $H_{S} + A^T_{S} Q^{-1} A_{S}$ is singular (otherwise the linear system involving this principal sub-matrix has a solution for any right hand side). However, $H_{S} + A^T_{S} Q^{-1} A_{S}$ is a sub-matrix of $M$ hence $H_{S} + A^T_{S} Q^{-1} A_{S} \succ 0$.
 \end{proof}
 
-Therefore, we intend to add \LDL{} factorization (by modifying the pivot ordering of an existing \LDL{} solver) as a future option for our solver.
+Therefore, we intend to add an \LDL{} factorization (by modifying the pivot ordering of an existing \LDL{} solver) as a future option for our solver.
 
 \fi
 
@@ -632,7 +633,7 @@ For a more thorough justification of this choice for the infeasibility terminati
 
 The unboundedness termination criterion is given by
 \begin{flalign}\label{terminate-dual-infeasible}
-\frac{\max\{ \| \max\{ a(x), 0 \} \|_{\infty}, \TOLopt \}  }{ \TOLopt \max\{1,-\obj(x) \} \}} \le \TOLunbounded.
+\frac{\max\{ \| \max\{ a(x), 0 \} \|_{\infty}, \TOLopt \}  }{ \TOLopt \max\{1,-\obj(x) \} \}} \le \TOLunbounded. ????????????
 \end{flalign}
 where $\TOLunbounded \in (0,1)$, the default value is $\TOLunboundedValue$.
 
@@ -697,9 +698,9 @@ The goal of the aggressive steps is to simultaneously approach optimality and fe
 
 During the aggressive steps we require a minimum step size $\alpha_{P}$ of
  \begin{flalign}\label{simple-min-step-size-aggresssive}
-\theta(\mu, s) := \min\left\{ 1/2, \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{s_{i}}{2 \mu \conWeight_i} } \times \frac{\parCompAgg - \parComp}{\parCompAgg} \right\},
+\minStepFunc(\mu, s) := \min\left\{ 1/2, \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{s_{i}}{2 \mu \conWeight_i} } \times \frac{\parCompAgg - \parComp}{\parCompAgg} \right\},
 \end{flalign}
-otherwise we declare the step a failure (see Line~\ref{line:too-small-step} of Algorithm~\ref{alg:simple-agg-step}). However to ensure the step is taken, on line~\ref{simple-agg-large-delta} of Algorithm~\ref{simple-one-phase} we choose a sufficiently large delta  such that $\alpha_{P}$ selected by Algorithm~\ref{alg:simple-agg-step} satisfies $\alpha_{P} \ge \theta(\mu, s)$ (such a $\delta$ must exist by Lemma~\ref{lemma:agg-succeeds}).
+otherwise we declare the step a failure (see Line~\ref{line:too-small-step} of Algorithm~\ref{alg:simple-agg-step}). However to ensure the step is taken, on line~\ref{simple-agg-large-delta} of Algorithm~\ref{simple-one-phase} we choose a sufficiently large delta  such that $\alpha_{P}$ selected by Algorithm~\ref{alg:simple-agg-step} satisfies $\alpha_{P} \ge \minStepFunc(\mu, s)$ (such a $\delta$ must exist by Lemma~\ref{lemma:agg-succeeds}).
 
 \begin{algorithm}[H]
 \textbf{Input:} Some $\delta > 0$, the current point $(\mu, x, s, y)$ and the matrix $\Schur$.  \\
@@ -709,7 +710,7 @@ otherwise we declare the step a failure (see Line~\ref{line:too-small-step} of A
 \item Compute direction $(\dir{x}, \dir{s}, \dir{y})$ via  \eqref{eq:Schur-complement-system} and \eqref{compute-ds-dy}.
 \item \label{simple-agg-select-alpha-P} Select the largest $\alpha_{P} \in [0,1]$ such that the iterates $(\mu^{+}, x^{+}, s^{+}, y^{+})$, defined by \eqref{eq:iterate-update}, satisfy \eqref{eq:comp-slack-plus} for some $\alpha_{D} \in [0,1]$.
 \item With the previous $\alpha_{P}$ fixed, select the largest $\alpha_{D}$ such that the iterates $(\mu^{+}, x^{+}, s^{+}, y^{+})$, defined by \eqref{eq:iterate-update}, satisfy \eqref{eq:comp-slack-plus}.
-\item \label{line:too-small-step} If $\alpha_{P} \ge \theta(\mu, s)$  then $\status =\success$ otherwise $\status =\failure$.
+\item \label{line:too-small-step} If $\alpha_{P} \ge \minStepFunc(\mu, s)$  then $\status =\success$ otherwise $\status =\failure$.
 \end{enumerate}
 \caption{Simplified aggressive step}\label{alg:simple-agg-step}
 \end{algorithm}
@@ -824,18 +825,15 @@ Assume the functions $f : \R^{\nvar} \rightarrow \R$ and $a : \R^{\nvar} \righta
 \end{restatable}
 
 The proof of Lemma~\ref{lemma:agg-succeeds} is given in Section~\ref{sec:lemma:agg-succeeds}.
-Next, we show that, for a infeasibility termination criterion, the term $y^T \conWeight$, remains bounded. Consequently, we know the algorithm will terminate in a finite number of steps.
+
+%Next, we show that, for a infeasibility termination criterion, the term $y^T \conWeight$, remains bounded. Consequently, we know the algorithm will terminate in a finite number of steps.
 
 \begin{restatable}{lemma}{lemAggFinite}\label{lem:agg-finite}
 Suppose Assumption~\ref{assume-convergence} holds.
-Consider a point $(\mu, x, s, y)$ that satisfies the criterion for an aggressive step \eqref{agg-criteron}, but does not satisfy the infeasibility termination criterion~\eqref{terminate-primal-infeasible}. Then:
-$$
-y^T \conWeight \le \frac{2 G}{\TOLall^2}.
-$$
-Furthermore, after a finite number of calls to Algorithm~\ref{alg:simple-agg-step}, Algorithm~\ref{simple-one-phase} will terminate.
+Consider a point $(\mu, x, s, y)$ that satisfies the criterion for an aggressive step \eqref{agg-criteron}, but does not satisfy the infeasibility termination criterion~\eqref{terminate-primal-infeasible} or the unboundness criterion~\eqref{terminate-dual-infeasible}. Then, after a finite number of calls to Algorithm~\ref{alg:simple-agg-step}, Algorithm~\ref{simple-one-phase} will terminate.
 \end{restatable}
 
-The proof of Lemma~\ref{lemma:agg-succeeds} is given in Section~\ref{sub:lem:agg-finite}.
+The proof of Lemma~\ref{lem:agg-finite} is given in Section~\ref{sub:lem:agg-finite}.
 However, Lemma~\ref{lem:agg-finite} does not rule out the possibility there is an infinite number of consecutive stabilization steps. Ruling out this possibility is the purpose of subsection~\ref{conv:stb}.
 
 \subsubsection{Convergence of stabilization steps}\label{conv:stb}
@@ -1013,32 +1011,6 @@ Equation~\eqref{eq:alphaD-least-squares} can be interpreted as choosing the step
 
 \hinder{discuss backtracking line search here}
 
-\inProgressHide{
-\subsection{Line search with quadratic approximation of constraints}
-
-\hinder{maybe add to reduce number of constraint evaluations}
-
-$$
-\tilde{s}(\eta) = s + \eta v + \eta^2 u
-$$
-
-$$
-u = \frac{s^{+} - s - \dir{s} \alpha_{P}}{\alpha_{P}^2}
-$$
-
-$$
-\tilde{s}(\eta) \ge l
-$$
-
-$$
-\eta^{*} \gets \frac{\dir{s}^2 \pm \sqrt{u(s-l) - 4 \dir{s}^2}}{2}
-$$
-
-$$
-\alpha_{P} \gets \min\{0.5 \alpha_{P}, \eta^{*} \}
-$$
-}
-
 \subsection{A filter using a KKT merit function}\label{sec:filter}
 
 In the stabilization search directions we accept steps that make progress on one of two merit functions, which form a filter. The first function $\phi_{\mu}$ is defined in Section~\ref{sec:simple-stable}. The second function, we call it the KKT merit function, measures the scaled dual feasibility and complementarity:
@@ -1133,7 +1105,7 @@ Note that \eqref{eq:agg-could-improve} always holds if $(\hat{x}, \hat{s},  \hat
 
 The backtracking line search of the aggressive step has a minimum step size. If during the backtracking line search (line~\ref{line:agg-back-too-small} of Algorithm~\ref{alg:aggressive}) the step size $\alpha_{P}$ is smaller than
  \begin{flalign}\label{min-step-size-aggresssive}
-\bar{\theta}(\mu, s) = \min \left\{ 1/2, \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{\parBacktracking \theta s_{i}}{2 \mu \conWeight_i} } \times \min\left\{ \frac{\parCompAgg - \parComp}{\parCompAgg}, 1 - \parFracBoundary \right\} \right\}
+\bar{\minStepFunc}(\mu, s) = \min \left\{ 1/2, \min_{i \in \{ 1, ..., \ncon \} : \conWeight_i > 0}{\frac{\parBacktracking s_{i}}{4 \mu \conWeight_i} } \times \min\left\{ \frac{\parCompAgg - \parComp}{\parCompAgg}, 1 - \parFracBoundary \right\} \right\}
 %\parMinStepAgg \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} },
 \end{flalign}
 then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Following this, $\delta$ is increased in Line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} and a new aggressive step is attempted. It is possible that $\delta$ will be increased many times; however, for sufficiently large $\delta$ an acceptable step will be found (see Lemma~\ref{lemma:agg-succeeds}). 
@@ -1157,7 +1129,7 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Fol
 %Terminate with $\status = \failure$.
 \item \label{agg:line:back-track} \emph{Perform a backtracking linesearch}. Starting from $\alpha_{P} \gets \alpha^{\max}_{P}$ repeat the following steps.
 \begin{enumerate}[label*=.{\arabic*}] % satisfies \eqref{min-step-size-aggresssive}
-\item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P} \le \bar{\theta}(\mu, s)$ then goto line~\ref{line:agg-terminate}.
+\item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P} \le \bar{\minStepFunc}(\mu, s)$ then goto line~\ref{line:agg-terminate}.
 \item Compute the trial primal variables $(\mu^{+}, x^{+}, s^{+})$ via~\eqref{eq:iterate-update}.
 \item If the fraction to the boundary rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
 \item Compute feasible dual step sizes $B( s^{+}, \dir{y} )$.
@@ -1446,6 +1418,8 @@ Fails & Succeed & 14 \\
 
 %Table~\ref{tbl:termination-status-counts} displays the 
 
+\hinder{present as bar chart? and maybe reduce to two tables.}
+
 \begin{table}[H]
 \caption{Termination status counts}\label{tbl:termination-status-counts}
 \begin{tabular}{ c c c r }
@@ -1644,34 +1618,6 @@ The purpose of this section is to provide proofs for supporting results for Theo
 \subsubsection{Proof of Lemma~\ref{lemma:agg-succeeds}}\label{sec:lemma:agg-succeeds}
 
 \lemAggSucceeds*
-
-\begin{proof}
-First, observe that as $\delta \rightarrow \infty$ the direction $\dir{x}$ computed from \eqref{eq:Schur-complement-system} tends to zero. Consider any $\alpha_{P} \in (0,1)$, since the function $a$ is continuous for sufficiently large $\delta$ we have
-\begin{flalign}\label{eq:a-bound}
-\| \cons(x) - \cons(x + \alpha_{P} \dir{x}) \|_{\infty} \le \frac{\theta}{2} \min\{ s_{i} \}
-\end{flalign}
-where $\theta$ is defined in equation~\eqref{min-step-size-aggresssive}.
-
-To obtain a contradiction assume that Algorithm~\ref{alg:aggressive} fails. This implies by \eqref{min-step-size-aggresssive} that the backtracking line search of the algorithm will have attempted some $\alpha_{P}$ such that
-\begin{flalign}\label{eq:alpha-bound}
-\alpha_{P} \in \left[ 0, \min_{i : w_i > 0}{ \frac{\theta s_{i}}{2 \mu \conWeight_i} }  \right], %\frac{1}{1 + (\mu / (  \parCompAgg \mu) ) \| y \|_{\infty}}\right]
-\end{flalign}
-then for this choice of $\alpha_{P}$ we have
-$$
-\| s^{+} - s \|_{\infty} = \|  -\alpha_{P} \mu\conWeight+  \cons(x) - \cons(x + \alpha_{P} \dir{x}) \|_{\infty} \le  \alpha_{P} \mu \|  \conWeight \|_{\infty} +  \| \cons(x) - \cons(x + \alpha_{P} \dir{x}) \|_{\infty} \le \theta \min_i\{ s_{i} \},
-$$
-where the first equality holds by \eqref{eq:slackVarUpdate} and final inequality holds by \eqref{eq:a-bound} and \eqref{eq:alpha-bound}.
-Since $\theta \le 1 - \parFracBoundary$ the fraction to the boundary rule~\eqref{fracBoundary-primal} is satisfied. Note that using the definition of $\theta$ from \eqref{min-step-size-aggresssive} and that $\parComp < \parCompAgg$ we get
-$$
-\frac{s^{+} Y}{\mu} \in [\parComp / \parCompAgg, \parCompAgg / \parComp]  \frac{s Y}{\mu} \subseteq  [\parComp, 1/\parComp ] e
-$$
-therefore $\alpha_{D} = 0$ gives a feasible dual iterate. We obtain a contradiction, because the step should have been accepted.
-\end{proof}
-
-\subsubsection{Proof of Lemma~\ref{lem:agg-finite}}\label{sub:lem:agg-finite}
-
-\lemAggFinite*
-
 \begin{proof}
 First, observe that as $\delta \rightarrow \infty$ the direction $\dir{x}$ computed from \eqref{eq:Schur-complement-system} tends to zero. Consider any $\alpha_{P} \in (0,1)$, since the function $a$ is continuous for sufficiently large $\delta$ we have
 \begin{flalign}\label{eq:a-bound}
@@ -1681,7 +1627,7 @@ First, observe that as $\delta \rightarrow \infty$ the direction $\dir{x}$ compu
 %To obtain a contradiction assume that Algorithm~\ref{alg:simple-agg-step} fails. This implies that for
 Consider what occurs when we set
 \begin{flalign}\label{eq:alpha-bound}
-\alpha_{P} = \theta(\mu, s) = \min_{i : w_i > 0}{ \frac{(\parCompAgg - \parComp) s_{i}}{2  \parCompAgg \mu \conWeight_i} } 
+\alpha_{P} = \minStepFunc(\mu, s) = \min_{i : w_i > 0}{ \frac{(\parCompAgg - \parComp) s_{i}}{2  \parCompAgg \mu \conWeight_i} } 
 \end{flalign}
 then for this choice of $\alpha_{P}$ we have
 $$
@@ -1694,8 +1640,47 @@ $$
 $$
 where the second transition follows from substituting our bound on $\| s^{+} - s \|_{\infty}$ and for the upper bound using $\frac{\parCompAgg - \parComp}{\parCompAgg} < \frac{\parCompAgg - \parComp}{\parComp}$, the final transition uses $ \frac{s Y}{\mu} \in e [\parCompAgg, 1/\parCompAgg]$.
 
-Therefore $\alpha_{D} = 0$ gives a feasible dual iterate. We conclude there exists a $\delta$ such that the $\alpha_{P}$ chosen by line~\ref{simple-agg-select-alpha-P} is at least $\theta(\mu, s)$, which proves the result.
+Therefore $\alpha_{D} = 0$ gives a feasible dual iterate. We conclude there exists a $\delta$ such that the $\alpha_{P}$ chosen by line~\ref{simple-agg-select-alpha-P} is at least $\minStepFunc(\mu, s)$, which proves the result.
 \end{proof}
+
+
+\subsubsection{Proof of Lemma~\ref{lem:agg-finite}}\label{sub:lem:agg-finite}
+
+\lemAggFinite*
+
+\begin{proof}
+Assume that \eqref{terminate-primal-infeasible} does not hold. In this case either $a(x)^T y \le 0$,
+$\infeasFuncOne (\mu,x,s,y) > \TOLinfOne$ or $\infeasFuncTwo (\mu,x,s,y) > \TOLinfTwo$. We consider these possibilities in order.
+
+If $a(x)^T y \le 0$ then $(\mu \conWeight - s)^T y = a(x)^T y \le 0$ by $\cons(\vec{x}) + \vec{s} = \mu \conWeight$ which implies $y^T \conWeight \le s^T y / \mu \le m / \parComp$.
+
+If $\TOLinfOne < \infeasFuncOne (\mu,x,s,y) = \frac{\| \grad  a(x)^T y \|_{1}}{ a(x)^T y }$ then
+$$
+w^T y \le m / \parComp + \frac{\| \grad  a(x)^T y \|_{1}}{ \TOLinfOne  } \le m / \parComp + \frac{\| \nabla f(x) \|_{1} + \mu \| \grad r(x) \|_{1} + \| \grad \Lag_{\mu}(x,y) \|_{1}}{ \TOLinfOne  }
+$$
+??????????
+{assume that $x$ is bounded?}????
+
+
+\begin{flalign*}
+y^T \conWeight &\le \frac{\max\{ \| \grad \cons(x)^T y \|_{\infty}, \| S y \|_{\infty} \}}{ \TOLinf \min\{  1, \mu \}} \\
+& \le  \frac{\max\{\| \grad \obj(x) \|_{\infty} + \| \grad \Lag_{\mu} (x , y) \|_{\infty}, \mu / \parComp \}}{ \TOLinf \min\{  1, \mu \}} \\
+& \le \frac{ 2 G }{\TOLall^2} 
+\end{flalign*}
+where the first inequality follows from the fact that the \eqref{terminate-primal-infeasible} is not satisfied; the second inequality from the triangle inequality applied to $\| \grad \Lag_{\mu} (x , y) \|_{\infty}$ and inequality \eqref{agg-criteron-buffer}; and the third inequality from inequality \eqref{agg-criteron-farkas} and the Lemma's assumptions.
+
+Next, for any trial step size $\alpha_{P}$ by \eqref{min-step-size-aggresssive} we have
+\begin{flalign*}
+\alpha_{P} &\ge  \min_{i : w_i > 0}{ \frac{\parBacktracking \theta s_{i}}{2 \mu \conWeight_i} }
+\ge \min_{i : w_i > 0}{ \frac{ \parBacktracking \theta \parCompAgg}{2 \conWeight_i  y_{i}}  } 
+\ge \frac{ \parBacktracking \theta \parCompAgg \TOLinf \TOLopt}{4 G}
+\end{flalign*}
+where the first inequality is from the minimum trial step size from \eqref{min-step-size-aggresssive}, the second inequality from \eqref{agg-criteron-buffer} and the final inequality from our bound on $\| Y\conWeight\|_{\infty}$.
+
+Therefore we reduce $\mu$ by at least $\alpha_{P} \mu$ each call to Algorithm~\ref{alg:aggressive} that terminates with $\status = \success$. Furthermore,  for sufficiently small $\mu$ whenever \eqref{agg-criteron} holds the optimality criterion \eqref{terminate-kkt} is satisfied. Combining these facts proves the Lemma.
+\end{proof}
+
+
 
 \subsection{Convergence results for stabilization steps}
 

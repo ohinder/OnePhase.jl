@@ -51,7 +51,11 @@ end
 function eval_r(it::Class_iterate)
     x = it.point.x
     beta = it.x_norm_penalty_par
-    x_norm_pen = beta * sum(sqrt(x.^2 + 1.0 / beta^2))
+    if beta > 0.0
+      x_norm_pen = beta * sum(sqrt(x.^2 + 1.0 / beta^2))
+    else
+      x_norm_pen = 0.0
+    end
     a_norm_pen = it.a_norm_penalty_par * sum(get_cons(it))
     return (x_norm_pen + a_norm_pen) * it.use_reg
 end
@@ -60,9 +64,13 @@ function eval_grad_r(it::Class_iterate)
     x = it.point.x
     beta = it.x_norm_penalty_par
     #@show it.x_norm_penalty_par
-    x_norm_grad =  beta * x ./ sqrt(x.^2 + 1.0 / beta^2)
     a_norm_grad = it.a_norm_penalty_par * eval_jac_T_prod(it, ones(length(get_cons(it))))
-    return (x_norm_grad + a_norm_grad) * it.use_reg
+    if beta > 0.0
+      x_norm_grad =  beta * x ./ sqrt(x.^2 + 1.0 / beta^2)
+      return (x_norm_grad + a_norm_grad) * it.use_reg
+    else
+      return a_norm_grad * it.use_reg
+    end
 end
 
 function get_fval(it::Class_iterate)
