@@ -61,7 +61,9 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
         buffer = 2.0
         y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
-        if all(s .>= (mu / 20.0) * conWeight) && norm(g - J' * y,1) / (length(s) + norm(y,1)) < mu * pars.init.dual_threshold
+        min_s = (mu / 20.0) * conWeight + max(0.0,-minimum(a))
+
+        if all(s .>= min_s) && norm(g - J' * y,1) / (length(s) + norm(y,1)) < mu * pars.init.dual_threshold
           break
         else
           mu *= 2.0

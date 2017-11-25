@@ -49,7 +49,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("TRAINF") # 140 ITS or 81 ITS if AGG starts
 #nlp_raw2 = CUTEstModel("ARTIF") # 14 ITS, IPOPT infeasible
 #nlp_raw2 = CUTEstModel("AVGASB") # 9 ITS
-#nlp_raw2 = CUTEstModel("HYDROELM")
+nlp_raw2 = CUTEstModel("HYDROELM")
 #nlp_raw2 = CUTEstModel("STEENBRC")
 #nlp_raw2 = CUTEstModel("QPCSTAIR")
 #nlp_raw2 = CUTEstModel("QPNBOEI2")
@@ -59,7 +59,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("DRUGDISE")
 
-nlp_raw2 = CUTEstModel("ROCKET")
+#nlp_raw2 = CUTEstModel("ROCKET")
 #nlp_raw2 = CUTEstModel("DISC2")
 #nlp_raw2 = CUTEstModel("OET7")
 #nlp_raw2 = CUTEstModel("ACOPR57")

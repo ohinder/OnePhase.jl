@@ -79,7 +79,8 @@ end
 function linear_cons(m::Class_CUTEst)
     is_linear = zeros(m.nlp.meta.ncon)
     is_linear[m.nlp.meta.lin] = 1.0
-    vec = [lb(is_linear, m.bcon); ub(is_linear, m.bcon); ones(nbounds_orginal(m))]
+    vec = [lb(is_linear, m.bcon); -ub(is_linear, m.bcon); ones(nbounds_orginal(m))]
+    
     return 1.0 .== vec
 end
 

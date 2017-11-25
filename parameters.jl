@@ -103,15 +103,29 @@ type Class_init_parameters
     start_satisfying_bounds::Bool
     dual_threshold::Float64
     linear_scale::Float64
+    nl_scale::Float64
 
     function Class_init_parameters()
         this = new()
-        this.mu_scale = 1.0
-        this.mehotra_scaling = true
-        this.init_style = :mehotra
-        this.dual_threshold = 100.0
-        this.start_satisfying_bounds = true
-        this.linear_scale = 0.1
+        #mode = :experimentation
+        mode = :standard
+        if mode == :standard
+          this.mu_scale = 1.0
+          this.mehotra_scaling = true
+          this.init_style = :mehotra
+          this.dual_threshold = 1.0
+          this.start_satisfying_bounds = true
+          this.linear_scale = 1.0
+          this.nl_scale = 1.0
+        else
+          this.mu_scale = 1500
+          this.mehotra_scaling = false
+          this.init_style = :mehotra
+          this.dual_threshold = 1.0
+          this.start_satisfying_bounds = true
+          this.linear_scale = 1.0
+          this.nl_scale = 10.0
+        end
 
         return this
     end

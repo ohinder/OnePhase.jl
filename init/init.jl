@@ -29,6 +29,7 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
     s, y = mehortra_guess( nlp, pars, timer, x, a, J, g )
 
     li = linear_cons(nlp)
+    nl = li .!= true
 
     if pars.init.mehotra_scaling
       mu = mean(s .* y)
@@ -41,7 +42,12 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
       #li = linear_cons(nlp, x)
     end
 
+    #@show li
+    #@show nl
+
+    conWeight[nl] *= pars.init.nl_scale
     conWeight[li] *= pars.init.linear_scale
+    #*= pars.init.linear_scale
 
     @assert(all(conWeight .>= 0.0))
 
