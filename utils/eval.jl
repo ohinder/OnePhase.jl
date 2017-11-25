@@ -63,7 +63,6 @@ end
 function eval_grad_r(it::Class_iterate)
     x = it.point.x
     beta = it.x_norm_penalty_par
-    #@show it.x_norm_penalty_par
     a_norm_grad = it.a_norm_penalty_par * eval_jac_T_prod(it, ones(length(get_cons(it))))
     if beta > 0.0
       x_norm_grad =  beta * x ./ sqrt(x.^2 + 1.0 / beta^2)

@@ -53,7 +53,7 @@ function switching_condition(iter::Class_iterate, last_step_was_superlinear::Boo
       dual_progress = dual_avg < get_mu(iter)
     end
     delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
-    lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),1) < max(length(iter.point.s) * get_mu(iter)/ pars.comp_feas_agg, norm(get_grad(iter),1)) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
+    lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),1) < sum(iter.point.s .* iter.point.y) + norm(get_grad(iter) + iter.point.mu * eval_grad_r(iter),1) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
 
     be_aggressive = is_feas && dual_progress && lag_grad && (delta_small || !pars.inertia_test)
     be_aggressive |= last_step_was_superlinear && dual_progress && lag_grad && (delta_small || !pars.inertia_test)

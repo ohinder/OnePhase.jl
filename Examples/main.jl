@@ -59,7 +59,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("DRUGDISE")
 
-#nlp_raw2 = CUTEstModel("ROCKET")
+nlp_raw2 = CUTEstModel("ROCKET")
 #nlp_raw2 = CUTEstModel("DISC2")
 #nlp_raw2 = CUTEstModel("OET7")
 #nlp_raw2 = CUTEstModel("ACOPR57")
@@ -133,7 +133,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("TOYSARAH")
-nlp_raw2 = CUTEstModel("AGG")
+#nlp_raw2 = CUTEstModel("AGG")
 #problem_list = get_problem_list(100000,9999999999)
 # BIG PROBLEMS
 #BDRY2
@@ -151,7 +151,7 @@ nlp_raw2 = CUTEstModel("AGG")
 #nlp_raw2 = CUTEstModel("CHAIN")
 
 my_pars = Class_parameters()
-#my_pars.term.tol_opt = 1e-6
+my_pars.term.tol_opt = 1e-8
 one_phase_solve(nlp_raw2,my_pars);
 
 finalize(nlp_raw2)
