@@ -27,6 +27,11 @@ type Schur_KKT_solver <: abstract_schur_solver
     end
 end
 
+function diag_min(kkt_solver::abstract_schur_solver)
+    return minimum(kkt_solver.true_diag)
+end
+
+
 function kkt_associate_rhs!(kkt_solver::abstract_schur_solver, iter::Class_iterate, reduct_factors::Class_reduction_factors, timer::class_advanced_timer)
     start_advanced_timer(timer, "KKT/rhs");
 
@@ -135,6 +140,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   pars = kkt_solver.pars
 
   Σ_vec = ( y_org ./ s_org )
+  sqrt_Σ_vec = sqrt( y_org ./ s_org )
 
   # generalize!!!
   output_level = pars.output_level
@@ -149,21 +155,25 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   end
 
   for i = 1:pars.ItRefine_Num
+      if output_level >= 4
+        println("res", i, " ", rd(Float64(norm(res_old,2))))
+      end
+
       start_advanced_timer(timer, "SCHUR/iterative_refinement");
-      dir_x += ls_solve(kkt_solver.ls_solver, res_old, timer)[:];
+      dir_x += ls_solve(kkt_solver.ls_solver, res_old, timer);
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
       jac_res = eval_jac_T_prod( fit , Σ_vec .* eval_jac_prod(fit, dir_x) )
       hess_res = hess_product(fit, dir_x) + kkt_solver.delta_x_vec .* dir_x
-      res = schur_rhs - ( jac_res + hess_res )
+      res_old = schur_rhs - ( jac_res + hess_res )
       pause_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
 
-      if output_level >= 4
-        println("res", i, " ", rd(Float64(norm(res,2))))
-      end
-
-      res_old = res
+      #res_old = res
       pause_advanced_timer(timer, "SCHUR/iterative_refinement");
+  end
+
+  if output_level >= 4
+    println("res", i, " ", rd(Float64(norm(res_old,2))))
   end
 
   return dir_x

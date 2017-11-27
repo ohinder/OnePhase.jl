@@ -54,6 +54,7 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
       s = zeros(length(a))
 
       i = 1
+      min_s = deepcopy(s)
       for i = 1:100
         s = a + mu * conWeight
         #@assert()
@@ -61,7 +62,7 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
         buffer = 2.0
         y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
-        min_s = (mu / 20.0) * conWeight + max(0.0,-minimum(a))
+        min_s = (mu / 20.0) * conWeight #+ conWeight * max(0.0,-minimum(a))
 
         if all(s .>= min_s) && norm(g - J' * y,1) / (length(s) + norm(y,1)) < mu * pars.init.dual_threshold
           break
@@ -71,6 +72,8 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
       end
 
       if i == 100
+        @show mu, norm(conWeight), all(s .>= min_s), minimum(a)
+        @show norm(g - J' * y,1) / (length(s) + norm(y,1))
         error("init error max it")
       end
 

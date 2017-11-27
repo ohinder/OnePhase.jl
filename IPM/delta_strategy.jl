@@ -6,39 +6,49 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     DELTA_MIN = pars.delta.min
     DELTA_MAX = pars.delta.max
 
+
+
+    num_fac = 0
+
+    inertia = 0
+    status = :none
+
+    min_di = min(0.0,diag_min(kkt_solver))
     delta = DELTA_ZERO
+
+    # see if we can succeed with delta = DELTA_ZERO
+    if min_di > 0.0
+      inertia = factor!( kkt_solver, delta, timer )
+      num_fac += 1
+      if inertia == 1
+        return :success, num_fac, delta
+      end
+    end
 
     if pars.output_level >= 4
         println(pd("delta"), pd("inertia"))
     end
-    inertia = 0
-    num_fac = 0
-    status = :none
 
     for i = 1:MAX_IT
-        if pars.use_delta_s
-          inertia = factor!( kkt_solver, delta , delta, timer )
-        else
-          inertia = factor!( kkt_solver, delta, timer )
-        end
-        num_fac += 1
-
         if pars.output_level >= 4
           println("delta=",rd(delta), "inertia=", pd(inertia))
         end
 
-        if inertia == 1
-          return :success, num_fac, delta
-        elseif i == 1
+        if i == 1
           if get_delta(iter) != 0.0
-            delta = max(DELTA_MIN, get_delta(iter) * pars.delta.dec)
+            delta = max(DELTA_MIN - min_di, get_delta(iter) * pars.delta.dec)
           else
-            delta = choose_delta_start(iter, kkt_solver, pars)
-            #@show delta
-            #delta = DELTA_START
+            delta = choose_delta_start(iter, kkt_solver, pars) - min_di
           end
         else
             delta = delta * pars.delta.inc
+        end
+
+        inertia = factor!( kkt_solver, delta, timer )
+        num_fac += 1
+
+        if inertia == 1
+          return :success, num_fac, delta
         end
 
         if delta > DELTA_MAX

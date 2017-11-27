@@ -1,5 +1,5 @@
-include("../include.jl")
 using Ipopt
+include("../include.jl")
 
 nlp_raw2 = CUTEstModel("NET4")
 

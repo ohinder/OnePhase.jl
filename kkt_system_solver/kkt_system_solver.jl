@@ -195,26 +195,27 @@ function pick_KKT_solver(pars::Class_parameters)
   kkt_solver_type = pars.kkt_solver_type
   linear_solver_type = pars.linear_solver_type
   safe = pars.linear_solver_safe_mode
+  recycle = pars.linear_solver_recycle
   if kkt_solver_type == :symmetric
     my_kkt_solver = Symmetric_KKT_solver()
     if linear_solver_type == :julia
-      my_kkt_solver.ls_solver = linear_solver_JULIA(:unsymmetric, safe)
+      my_kkt_solver.ls_solver = linear_solver_JULIA(:unsymmetric, safe, recycle)
     elseif linear_solver_type == :mumps
-      my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe)
+      my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
     end
   elseif kkt_solver_type == :schur
     my_kkt_solver = Schur_KKT_solver()
     if linear_solver_type == :julia
-      my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe)
+      my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe, recycle)
     elseif linear_solver_type == :mumps
-      my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe)
+      my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe, recycle)
     end
   elseif kkt_solver_type == :schur_direct
     my_kkt_solver = Schur_KKT_solver_direct()
     if linear_solver_type == :julia
-      my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe)
+      my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe, recycle)
     elseif linear_solver_type == :mumps
-      my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe)
+      my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe, recycle)
     end
   else
       error("pick a solver!")
