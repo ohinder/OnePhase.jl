@@ -6,7 +6,7 @@ include("../include.jl")
 # LARGE dual variables
 #nlp_raw2 = CUTEstModel("HVYCRASH")
 #nlp_raw2 = CUTEstModel("MSS1")
-nlp_raw2 = CUTEstModel("MSS2")
+#nlp_raw2 = CUTEstModel("MSS2")
 
 # INFEASIBLE PROBLEMS
 #nlp_raw2 = CUTEstModel("10FOLDTR")
@@ -122,7 +122,7 @@ nlp_raw2 = CUTEstModel("MSS2")
 #nlp_raw2 = CUTEstModel("ACOPR118")
 #nlp_raw2 = CUTEstModel("ACOPP57")
 #nlp_raw2 = CUTEstModel("ACOPP300")
-#nlp_raw2 = CUTEstModel("LEAKNET")
+nlp_raw2 = CUTEstModel("LEAKNET")
 #nlp_raw2 = CUTEstModel("TFI1")
 #nlp_raw2 = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
 #nlp_raw2 = CUTEstModel("AVION2") # HARD and poorly conditioned
@@ -151,7 +151,12 @@ nlp_raw2 = CUTEstModel("MSS2")
 #nlp_raw2 = CUTEstModel("CHAIN")
 
 my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-8
+my_pars.term.tol_opt = 1e-6
 one_phase_solve(nlp_raw2,my_pars);
 
 finalize(nlp_raw2)
+
+#=
+using Ipopt
+IpoptSolve(nlp_raw2);
+=#

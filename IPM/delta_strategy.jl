@@ -13,11 +13,12 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     inertia = 0
     status = :none
 
-    min_di = min(0.0,diag_min(kkt_solver))
+    tau = diag_min(kkt_solver)
     delta = DELTA_ZERO
 
     # see if we can succeed with delta = DELTA_ZERO
-    if min_di > 0.0
+    if tau > 0.0
+      tau = 0.0
       inertia = factor!( kkt_solver, delta, timer )
       num_fac += 1
       if inertia == 1
@@ -36,9 +37,9 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
 
         if i == 1
           if get_delta(iter) != 0.0
-            delta = max(DELTA_MIN - min_di, get_delta(iter) * pars.delta.dec)
+            delta = max(DELTA_MIN - tau, get_delta(iter) * pars.delta.dec)
           else
-            delta = choose_delta_start(iter, kkt_solver, pars) - min_di
+            delta = choose_delta_start(iter, kkt_solver, pars) - tau
           end
         else
             delta = delta * pars.delta.inc

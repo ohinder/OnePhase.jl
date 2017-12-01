@@ -1,4 +1,4 @@
-\begin{thebibliography}{41}
+\begin{thebibliography}{40}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -89,7 +89,7 @@ P.~E. Gill, M.~A. Saunders, and J.~R. Shinnerl.
 
 \bibitem[Gill et~al.(2015)Gill, Saunders, and Wong]{gill2015performance}
 P.~E. Gill, M.~A. Saunders, and E.~Wong.
-\newblock On the performance of sqp methods for nonlinear optimization.
+\newblock On the performance of {SQP} methods for nonlinear optimization.
 \newblock In \emph{Modeling and Optimization: Theory and Applications}, pages
   95--123. Springer, 2015.
 
@@ -119,12 +119,6 @@ G.~Haeser, O.~Hinder, and Y.~Ye.
   infeasible interior point methods.
 \newblock \emph{arXiv preprint arXiv:1707.07327}, 2017.
 
-\bibitem[Hager and Gowda(1999)]{hager1999stability}
-W.~W. Hager and M.~S. Gowda.
-\newblock Stability in the presence of degeneracy and error estimation.
-\newblock \emph{Mathematical Programming}, 85\penalty0 (1):\penalty0 181--192,
-  1999.
-
 \bibitem[Huang and Mehrotra(2016)]{huang2016solution}
 K.-L. Huang and S.~Mehrotra.
 \newblock Solution of monotone complementarity and general convex programming
@@ -140,8 +134,8 @@ N.~Karmarkar.
 
 \bibitem[Kaustuv(2008)]{walterThesis2}
 Kaustuv.
-\newblock \emph{IPSOL: AN INTERIOR POINT SOLVER FOR NONCONVEX OPTIMIZATION
-  PROBLEMS}.
+\newblock \emph{IPSOL: an interior point solver for nonconvex optimization
+  problems}.
 \newblock PhD thesis, Stanford, 2008.
 
 \bibitem[Kojima et~al.(1989)Kojima, Mizuno, and Yoshise]{kojima1989primal}

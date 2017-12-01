@@ -180,25 +180,20 @@ This assumption simplifies the analysis.
 \subsection{Local infeasibility certificate(s)} 
 
 \startframenote
-\frametitle{Local infeasibility certificate(s)}
+\frametitle{Scaled KKT conditions}
 
-\begin{enumerate}
-\item
-\emph{First-order  local L1-infeasibility certificate}, if $x^{*}$ is a first-order local optimum of:
-\begin{flalign*}
-\min e^T (a(x))^{+}
-\end{flalign*}
-With $e^T (a(x^{*}))^{+}> 0$.
+\end{frame}
 
-\vs
-\item
-\emph{First-order local farkas infeasibility certificate}, if there exists $y \ge 0$ such that $x^{*}$ is a first-order local optimum of:
+\startframenote
+\frametitle{Local infeasibility measure}
+
 \begin{flalign*}
-\min y^T a(x)^{+}
+\min_{x} \max_{i}{a_i(x)}
 \end{flalign*}
 
-With $y^T a(x^{*})^{+} > 0$.
-\end{enumerate}
+Find scaled KKT point of this problem.
+
+%With $y^T a(x^{*})^{+} > 0$.
 
 
 \note{
@@ -294,13 +289,9 @@ Fails to converge to either a local optimum or infeasibility certificate
 
 \begin{enumerate}
 \item Two phases (IPOPT)
-%\begin{itemize}
-%\item Each phase has a different variables
-%\item Awkward convergence assumptions
-%\item Poor performance on infeasible problems
-%\end{itemize}
 \item Compute two directions (KNITRO)
 \item Penalty (or big-M) method e.g. \cite{Chen06,curtis2012penalty}
+\item Play with bounds ...
 \end{enumerate}
 
 
@@ -592,51 +583,7 @@ We have found that the practical performance of the algorithm can be improved su
 \end{frame}
 \fi
 
-\section{Empirical results} 
-
-\subsection{Starting point} 
-
-
-\startframenote
-\frametitle{One possible starting point selection}
-
-\begin{enumerate}
-\item
-Set $x_{1}$ to be the projection of $x_{0}$ onto the interior of the lower and upper bounds, set slack variables so bounds are satisfied.
-\item
-Then compute:
-$$
-\tilde{y}_{1} \gets \arg \min_{y} \| \nabla a(x_{1})^T y - \nabla g(x_1) \|_2^{2}
-$$
-\item
-Perform guarding strategy to ensure $s$ and $y$ are sufficiently large (i.e. $a(x) - s = \kappa e$). 
-\item
-Set $\mu_{1} \gets \frac{s^T y}{n}$.
-\end{enumerate}
-\end{frame}
-
-\startframenote
-\frametitle{Ratio of complementary to primal feasiblity}
-
-Recall we start with
-$$
-a(x) + s = \kappa_{1} e
-$$
-And some barrier parameter $\mu_{1}$. We keep:
-$$
-\frac{\mu_{k}}{\kappa_{k}} = \frac{\mu_{1}}{\kappa_{1}} \approx 1
-$$
-The choice of this ratio has a large effect on performance.
-\end{frame}
-
-
-\startframenote
-\frametitle{Starting point}
-
-\includegraphics[scale=0.5]{mu_compare}
-
-
-\end{frame}
+\section{Numerical results} 
 
 \subsection{Netlib results} 
 
@@ -656,7 +603,7 @@ The choice of this ratio has a large effect on performance.
 \subsection{CUTEst results} 
 
 \startframenote
-\frametitle{Empirical results with CUTEst}
+\frametitle{Numerical results with CUTEst}
 
 \begin{enumerate}
 \item Selected problems with $100$-$1000$ variables and $100$-$1000$ constraints.
@@ -666,40 +613,6 @@ The choice of this ratio has a large effect on performance.
 
 
 \end{frame}
-
-\startframenote
-\frametitle{Some infeasible problems}
-
-\begin{center}
-\begin{tabular}{ c |  c | c | }
-  Problem name & IPOPT & One phase \\ 
-  \hline
- MODEL & primal infeasible (29)  & primal infeasible (37) \\ 
-CRESC50 & primal infeasible (491) & factorization failure (1245) \\
-HIMMELBD & primal infeasible (20) & primal infeasible (35) \\
-FLOSP2HL & primal infeasible (11) & primal infeasible (22) \\
-FLOSP2HM & primal infeasible (16) & primal infeasible (36) \\
-WOODSNE & primal infeasible (9) & primal infeasible (13) \\
-ARTIF & primal infeasible (98) & optimal (15) \\
-EQC & Restoration Failed! (35) & optimal (314) \\
-HIMMELBJ & Restoration Failed! (28) & optimal (28) \\
-%\\
-%CONT6-QQ & primal infeasible (183) & primal infeasible (13) 
-\end{tabular}
-\end{center}
-
-\end{frame}
-
-\startframenote
-\frametitle{Conclusions and future work}
-\begin{enumerate}
-\item Promising initial results
-\item Look at dual values for CUTEst
-\item Adaptive $\mu$ choice?
-\item Better $\delta$ choice
-\end{enumerate}
-\end{frame}
-
 
 \startframenote
 

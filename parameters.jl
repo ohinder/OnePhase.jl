@@ -18,6 +18,10 @@ type Class_line_search_parameters
   move_primal_seperate_to_dual::Bool
   dual_ls::Int64
 
+  # to add
+  min_step_size_stable::Float64
+  min_step_size_agg_ratio::Float64
+
   function Class_line_search_parameters()
     this = new()
     # LINE SEARCH
@@ -103,12 +107,13 @@ type Class_init_parameters
     start_satisfying_bounds::Bool
     dual_threshold::Float64
     linear_scale::Float64
-    nl_scale::Float64
+    nl_ineq_scale::Float64
+    nl_eq_scale::Float64
 
     function Class_init_parameters()
         this = new()
-        #mode = :experimentation
-        mode = :standard
+        mode = :experimentation
+        #mode = :standard
         if mode == :standard
           this.mu_scale = 1.0
           this.mehotra_scaling = true
@@ -116,15 +121,17 @@ type Class_init_parameters
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1.0
-          this.nl_scale = 1.0
+          this.nl_ineq_scale = 100.0
+          this.nl_eq_scale = 1.0
         else
-          this.mu_scale = 1500
+          this.mu_scale = 1000.0
           this.mehotra_scaling = false
           this.init_style = :mehotra
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1.0
-          this.nl_scale = 10.0
+          this.nl_ineq_scale = 10.0
+          this.nl_eq_scale = 1000.0
         end
 
         return this
@@ -181,6 +188,7 @@ type Class_parameters
     kkt_solver_type::Symbol
     linear_solver_type::Symbol
     linear_solver_safe_mode::Bool
+    linear_solver_recycle::Bool
     #move_type::Symbol
 
     stable_reduct_factors::abstract_reduct_factors
@@ -195,7 +203,7 @@ type Class_parameters
         this.ls = Class_line_search_parameters()
 
         # init
-        this.aggressive_dual_threshold = 1.0 #1.0 #1.0
+        this.aggressive_dual_threshold = 1.0 #1.0 #1.0 #1.0
         this.dual_scale_threshold = 100.0;
         this.threshold_type = :mu
         #this.threshold_type = :mu_primal
@@ -206,7 +214,7 @@ type Class_parameters
         #this.dual_scale_mode = :exact
         #this.dual_scale_mode = :primal_dual
         this.inertia_test = false # true
-        this.max_it_corrections = 3 #3 ######
+        this.max_it_corrections = 2 #3 ######
         this.comp_feas_agg_inf = Inf
         this.comp_feas = 1/100.0 #1/100.0
         this.comp_feas_agg = 1/50.0 #1/50.0 #1/70.0 #1/50.0
@@ -251,6 +259,7 @@ type Class_parameters
           this.linear_solver_type = :mumps
         end
         this.linear_solver_safe_mode = false #true
+        this.linear_solver_recycle = false
 
         return this
     end

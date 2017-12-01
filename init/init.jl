@@ -30,23 +30,33 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
 
     li = linear_cons(nlp)
     nl = li .!= true
+    ineq = ineq_cons(nlp)
+    eq = ineq .!= true
+    nl_eq = ineq & nl
+    nl_ineq = eq & nl
 
     if pars.init.mehotra_scaling
       mu = mean(s .* y)
       conWeight = ((s - a) / mu) / pars.init.mu_scale
     else
-      mu = 1e-6 + norm(g,1) / length(s)
+      mu = (1e-6 + norm(s,Inf) + norm(g,1))
+      #mu = 1e-6 + norm(g,1) / length(s)
       conWeight = zeros(length(s))
       ais = cons_indicies(nlp)
       conWeight[ais] = 1.0 / pars.init.mu_scale
+
       #li = linear_cons(nlp, x)
     end
 
     #@show li
     #@show nl
 
-    conWeight[nl] *= pars.init.nl_scale
-    conWeight[li] *= pars.init.linear_scale
+    #@show li
+    if true
+      conWeight[nl_eq] *= pars.init.nl_eq_scale
+      conWeight[nl_ineq] *= pars.init.nl_ineq_scale
+      conWeight[li] *= pars.init.linear_scale
+    end
     #*= pars.init.linear_scale
 
     @assert(all(conWeight .>= 0.0))

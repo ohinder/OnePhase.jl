@@ -25,9 +25,11 @@ type Class_filter_ls <: abstract_ls_info
         this.cur_merit = eval_merit_function(iter, pars)
 
         sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * norm(g,2)^2 / norm(get_lag_hess(iter),2)^2
+        merit_reduce = merit_function_predicted_reduction(iter, dir, 1.0) < this.predict_red / 2.0
         #comp_sufficient = -get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 100.0 * get_mu(iter)
-        comp_sufficient = -get_mu(iter) * pars.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.comp_feas_agg - 1.0)
-        this.do_ls = sufficient_descent && comp_sufficient
+        #comp_sufficient = -get_mu(iter) * pars.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.comp_feas_agg - 1.0)
+        this.do_ls = sufficient_descent #&& merit_reduce
+        #&& comp_sufficient
         #-0.5 * merit_function_anticipated_reduction(iter, dir)
 
         return this
