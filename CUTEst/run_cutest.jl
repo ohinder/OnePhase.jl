@@ -103,8 +103,6 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           redirect_stdout(file)
           summary[problem_name] = problem_summary()
 
-          tic()
-
           nlp_raw = false
 
           try
@@ -117,6 +115,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               nlp = Class_CUTEst(nlp_raw)
 
+              tic()
+
               timer = class_advanced_timer()
               start_advanced_timer(timer)
               #include("include.jl")
@@ -127,7 +127,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               #intial_it = initial_point_generic(nlp, par, nlp_raw.meta.x0)
 
-              @assert(is_feasible(intial_it, par.comp_feas))
+              @assert(is_feasible(intial_it, par.ls.comp_feas))
               iter, status, history, t, err = one_phase_IPM(intial_it, par, timer);
 
               pause_advanced_timer(timer)
@@ -287,15 +287,17 @@ function select_problem_with_sparse_rows(problem_list::Array{String,1},max_densi
     return sparse_names, dense_names
 end
 
-function default_list()
+function default_list(sparsify=false)
     problem_list = get_problem_list(100,10000)
     # only run problems with max row density 1000.
-    sparse_names, dense_names = select_problem_with_sparse_rows(problem_list, 1000)
-    problem_list = sparse_names
-    println("these problems are included ...")
-    @show sparse_names
-    println("these problems are excluded ...")
-    @show dense_names
+    if sparsify
+      sparse_names, dense_names = select_problem_with_sparse_rows(problem_list, 1000)
+      problem_list = sparse_names
+      println("these problems are included ...")
+      @show sparse_names
+      println("these problems are excluded ...")
+      @show dense_names
+    end
 
     return problem_list
 end

@@ -122,7 +122,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("ACOPR118")
 #nlp_raw2 = CUTEstModel("ACOPP57")
 #nlp_raw2 = CUTEstModel("ACOPP300")
-nlp_raw2 = CUTEstModel("LEAKNET")
+#nlp_raw2 = CUTEstModel("LEAKNET")
 #nlp_raw2 = CUTEstModel("TFI1")
 #nlp_raw2 = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
 #nlp_raw2 = CUTEstModel("AVION2") # HARD and poorly conditioned
@@ -149,14 +149,19 @@ nlp_raw2 = CUTEstModel("LEAKNET")
 #IpoptSolve(nlp_raw2);
 #nlp_raw2 = CUTEstModel("AIRPORT")
 #nlp_raw2 = CUTEstModel("CHAIN")
+nlp_raw2 = CUTEstModel("LEUVEN1")
+#nlp_raw2 = CUTEstModel("CHARDIS1")
 
 my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-6
+my_pars.term.tol_opt = 1e-5
+my_pars.term.tol_inf_1 = 1e-8
+
 one_phase_solve(nlp_raw2,my_pars);
 
-finalize(nlp_raw2)
 
 #=
 using Ipopt
 IpoptSolve(nlp_raw2);
 =#
+
+finalize(nlp_raw2)

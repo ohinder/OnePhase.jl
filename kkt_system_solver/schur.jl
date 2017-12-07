@@ -150,11 +150,11 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   end
 
   dir_x = zeros(length(dir.x));
-  if pars.ItRefine_BigFloat
+  if pars.kkt.ItRefine_BigFloat
     dir_x = convert(Array{BigFloat,1}, dir_x)
   end
 
-  for i = 1:pars.ItRefine_Num
+  for i = 1:pars.kkt.ItRefine_Num
       if output_level >= 4
         println("res", i, " ", rd(Float64(norm(res_old,2))))
       end

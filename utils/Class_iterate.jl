@@ -48,9 +48,7 @@ type Class_iterate
     frac_bd_predict::Array{Float64,1}
 
     # regularizer info
-    x_norm_penalty_par::Float64
     a_norm_penalty_par::Float64
-    use_reg::Bool
 
     function Class_iterate()
         return new();
@@ -64,9 +62,7 @@ type Class_iterate
       this.local_info = local_info
       this.nvar = length(intial_point.x)
       this.ncon = length(intial_point.y)
-      this.x_norm_penalty_par = pars.x_norm_penalty;
       this.a_norm_penalty_par = pars.a_norm_penalty;
-      this.use_reg = pars.use_reg
       this.frac_bd = pars.ls.fraction_to_boundary * ones(this.ncon)
       this.frac_bd_predict = pars.ls.fraction_to_boundary_predict * ones(this.ncon)
 
@@ -107,8 +103,6 @@ function copy(it::Class_iterate, timer::class_advanced_timer)
    new_it.ncon = it.ncon
 
    new_it.a_norm_penalty_par = it.a_norm_penalty_par;
-   new_it.x_norm_penalty_par = it.x_norm_penalty_par;
-   new_it.use_reg = it.use_reg
    new_it.frac_bd = it.frac_bd
    new_it.frac_bd_predict = it.frac_bd_predict
 
@@ -277,18 +271,11 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
     begin
 
       lambda = it.point.mu #* use_prox(it)
-      y_rx = lambda * it.a_norm_penalty_par * pars.use_prox
+      y_rx = lambda * it.a_norm_penalty_par
 
       x = it.point.x
-      beta = it.x_norm_penalty_par
-      if beta > 0.0
-        denominator = ( x.^2 + 1.0 / beta^2 ).^(3/2)
-        H_x_norm = spdiagm( beta^2 *  lambda ./ denominator)
-        
-        it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0) + H_x_norm * pars.use_prox
-      else
-        it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0)
-      end
+
+      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0)
       #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
       it.cache.H_updated = true
     end

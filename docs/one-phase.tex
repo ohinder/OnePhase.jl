@@ -517,7 +517,7 @@ $$
 is factorable. In Lemma~\ref{lem:when-factorable} we show for a large set of perturbations system~\eqref{eq:ldl-system} is factorable. The matrix $Q$ corresponds to $Y^{-1} S$
 
 \begin{lemma}\label{lem:when-factorable}
-Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $Q \in \R^{\ncon \times \ncon}$ with $H$ symmetric and $Q$ quasi-definite. Let $M = H + A^T Q^{-1} A$. If $M \succ 0$ then for all permutation matrices $P_{1}$ and $P_{2}$ the matrix
+Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $Q \in \R^{\ncon \times \ncon}$ with $H$ symmetric and $Q$ is a diagonal matrix with non-zero entries. Let $M = H + A^T Q^{-1} A$. If $M \succ 0$ then for all permutation matrices $P_{1}$ and $P_{2}$ the matrix
 $$
 \left( \begin{matrix}
 P_{1} & 0 \\
@@ -536,7 +536,7 @@ is factorable.
 \end{lemma}
 
 \begin{proof}
-It is sufficient to show each of the leading principal sub-matrices are non-singular. Since any principal sub-matrix with less than $\ncon$ rows is non-singular by \citet[Theorem 2.1]{vanderbei1995symmetric}, let us consider some principal sub-matrix with at least $\ncon$ rows and denote it by
+It is sufficient to show each of the leading principal sub-matrices are non-singular [REF!!!]. Since any principal sub-matrix with less than $\ncon$ rows is non-singular (i.e., it is a sub-matrix of $Q$), let us consider some principal sub-matrix with at least $\ncon$ rows and denote it by
 $$
 \left(\begin{matrix}
 -Q & A_{S}  \\
@@ -545,8 +545,6 @@ A^T_{S} & H_{S}
 $$
 Note that since $Q$ is quasi-definite (and therefore non-singular) this matrix is singular only if $H_{S} + A^T_{S} Q^{-1} A_{S}$ is singular (otherwise the linear system involving this principal sub-matrix has a solution for any right hand side). However, $H_{S} + A^T_{S} Q^{-1} A_{S}$ is a sub-matrix of $M$ hence $H_{S} + A^T_{S} Q^{-1} A_{S} \succ 0$.
 \end{proof}
-
-Therefore, we intend to add an \LDL{} factorization (by modifying the pivot ordering of an existing \LDL{} solver) as a future option for our solver.
 
 \fi
 

@@ -1,12 +1,50 @@
+function is_diag_dom(Q::SparseMatrixCSC{Float64,Int64})
+    for i = 1:size(Q,2)
+      if 3 * Q[i,i] < sum(Q[:,i]) + sum(Q[i,:])
+        return false
+      end
+    end
+
+    return true
+end
+
+function dist_diag_dom(Q::SparseMatrixCSC{Float64,Int64})
+    delta_dist = 0.0
+    for i = 1:size(Q,2)
+      delta_dist = max(delta_dist,sum(Q[:,i]) + sum(Q[i,:]) - 3 * Q[i,i])
+    end
+
+    return delta_dist
+end
+
+#function bisection_search_delta!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, min_delta::Float64, max_delta::Float64,  pars::Class_parameters, timer::class_advanced_timer)
+#max_exponent = ceil(log(max_delta/min_delta))
+
+function int_bisection(f::Function, a::Int64, b::Int64)
+    for i = 1:10000
+        if a == b - 1
+          return b
+        end
+        midpoint = ceil((a + b)/2.0)
+        if f(midpoint) == true
+          b = midpoint
+        else
+          a = midpoint
+        end
+    end
+end
+
 function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters, timer::class_advanced_timer)
     step_info = Blank_ls_info()
 
     MAX_IT = pars.delta.max_it
     DELTA_ZERO = pars.delta.zero
+    #DELTA_MIN = iter.point.mu * norm(iter.point.y,Inf) / 100.0 #
     DELTA_MIN = pars.delta.min
     DELTA_MAX = pars.delta.max
 
-
+    #Q = get_lag_hess(iter)
+    #@show dist_diag_dom(Q)
 
     num_fac = 0
 
@@ -14,6 +52,12 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     status = :none
 
     tau = diag_min(kkt_solver)
+    #Q = Symmetric(kkt_solver.M,:L)
+    #eigvals,vec, = eigs(Q,nev=1,which=:SR,maxiter=10,tol=1e4)
+    #@show eigvals
+    #v = randn(length(iter.point.x))
+    #v = v /norm(v,2)
+    #@show dot(v,Q * v)
     delta = DELTA_ZERO
 
     # see if we can succeed with delta = DELTA_ZERO

@@ -1,8 +1,12 @@
 include("../include.jl")
 include("create_report.jl")
-results = get_CUTEst_results()
+overlapping_results = get_CUTEst_results()
+dual_inf_free_results = remove_errors(overlapping_results, [:dual_infeasible,:primal_infeasible])
+overlapping_opt_results = overlap(dual_inf_free_results)
+overlapping_opt_results = restrict_to_set(overlapping_opt_results,[:optimal])
+overlapping_opt_results = overlap(overlapping_opt_results)
 
-f_TOL = 1e-1
+f_TOL = 1e-2
 
 problem_list = collect(keys(first(overlapping_opt_results)[2]))
 method_list = collect(keys(overlapping_opt_results))
@@ -96,5 +100,13 @@ tot(overlapping_results["one phase"],[:dual_infeasible]),
 using StatPlots
 red2 = RGBA(1.0,0.0,0.0,0.6)
 colour = [[:red,:red] [red2,red2] [:orange,:orange] [:green,:green] [:blue,:blue]]
-label = ["both fail" "one fails" "infeasible" "unbounded" "worse KKT"]
-groupedbar(rand(2,5), bar_position = :stack, bar_width=0.7, colour=colour, label=label)
+label = ["both fail" "one fails" "worse KKT" "infeasible" "unbounded"]
+arr = Array(df)
+data = convert(Array{Float64,2},arr[:,2:3])'
+space = " "^55
+groupedbar(data, bar_position = :stack,
+bar_width=0.7,
+colour=colour,
+label=label,
+xticks=[],
+xlabel="ipopt $space one phase")

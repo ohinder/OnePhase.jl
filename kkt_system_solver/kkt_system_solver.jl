@@ -192,10 +192,11 @@ function compute_eigenvector!(kkt_solver::abstract_KKT_system_solver, iter::Clas
 end
 
 function pick_KKT_solver(pars::Class_parameters)
-  kkt_solver_type = pars.kkt_solver_type
-  linear_solver_type = pars.linear_solver_type
-  safe = pars.linear_solver_safe_mode
-  recycle = pars.linear_solver_recycle
+  kkt_solver_type = pars.kkt.kkt_solver_type
+  linear_solver_type = pars.kkt.linear_solver_type
+  safe = pars.kkt.linear_solver_safe_mode
+  recycle = pars.kkt.linear_solver_recycle
+  
   if kkt_solver_type == :symmetric
     my_kkt_solver = Symmetric_KKT_solver()
     if linear_solver_type == :julia

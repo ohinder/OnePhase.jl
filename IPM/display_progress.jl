@@ -81,7 +81,7 @@ function record_progress!(t::Int64, step_type::String, iter::Class_iterate, kss:
     hist.primal_residual = norm(get_primal_res(iter),Inf)
     hist.con_vio = get_max_vio(iter)
     hist.comp = norm(comp(iter),Inf)
-    hist.comp_ratio = comp_ratio_max(iter) * par.comp_feas_agg #norm(comp(iter),Inf)
+    hist.comp_ratio = comp_ratio_max(iter) * par.ls.comp_feas_agg #norm(comp(iter),Inf)
     hist.farkas = eval_farkas(iter)
     hist.delta = get_delta(iter)
     hist.fval = get_fval(iter)

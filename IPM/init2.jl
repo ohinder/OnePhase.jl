@@ -226,7 +226,7 @@ function mehortra_least_squares_estimate( nlp, pars, timer )
 
       y_c = mu ./ s
       buffer = 2.0
-      y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+      y = min( y_c / (pars.ls.comp_feas * buffer), max(y, pars.ls.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
       #Delta_s = norm(g - J' * y,1) / (length(y) + norm(y,1))
       Delta_s = norm(g - J' * y,Inf) / (1.0 + norm(y,Inf))

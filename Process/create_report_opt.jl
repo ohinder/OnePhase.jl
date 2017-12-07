@@ -1,6 +1,6 @@
 include("../include.jl")
 include("create_report.jl")
-results = get_CUTEst_results()
+overlapping_results = get_CUTEst_results()
 
 ####
 #### Lets do an overall summary of the results
@@ -10,7 +10,6 @@ results = get_CUTEst_results()
 
 # compute median number of iterations
 
-overlapping_results = overlap(results)
 
 ##### Comparison on time to find a KKT point
 #####
@@ -20,10 +19,6 @@ overlapping_results = overlap(results)
 ##### - if both find a local optima the local optima are the same
 #####
 
-dual_inf_free_results = remove_errors(overlapping_results, [:dual_infeasible,:primal_infeasible])
-overlapping_opt_results = overlap(dual_inf_free_results)
-overlapping_opt_results = restrict_to_set(overlapping_opt_results,[:optimal])
-overlapping_opt_results = overlap(overlapping_opt_results)
 f_TOL = 1e-1
 
 function create_opt_res(res::Dict{String, Dict{String,problem_summary}}, method_list)
@@ -69,10 +64,10 @@ its, best, ratios, times = compute_its_etc(opt_res,MAX_IT=3000);
 using PyPlot
 
 plot_iteration_ratios(its, best, ratios)
-savefig("opt_iter_ratios.pdf")
+savefig("output/opt_iter_ratios.pdf")
 
 plot_iterations(its, best, ratios, 3000)
-savefig("opt_iter_curve.pdf")
+savefig("output/opt_iter_curve.pdf")
 
 
 

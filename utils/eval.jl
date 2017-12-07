@@ -50,26 +50,14 @@ end
 
 function eval_r(it::Class_iterate)
     x = it.point.x
-    beta = it.x_norm_penalty_par
-    if beta > 0.0
-      x_norm_pen = beta * sum(sqrt(x.^2 + 1.0 / beta^2))
-    else
-      x_norm_pen = 0.0
-    end
     a_norm_pen = it.a_norm_penalty_par * sum(get_cons(it))
-    return (x_norm_pen + a_norm_pen) * it.use_reg
+    return a_norm_pen
 end
 
 function eval_grad_r(it::Class_iterate)
     x = it.point.x
-    beta = it.x_norm_penalty_par
     a_norm_grad = it.a_norm_penalty_par * eval_jac_T_prod(it, ones(length(get_cons(it))))
-    if beta > 0.0
-      x_norm_grad =  beta * x ./ sqrt(x.^2 + 1.0 / beta^2)
-      return (x_norm_grad + a_norm_grad) * it.use_reg
-    else
-      return a_norm_grad * it.use_reg
-    end
+    return a_norm_grad
 end
 
 function get_fval(it::Class_iterate)
@@ -164,7 +152,7 @@ function eval_farkas(it::Class_iterate)
 end
 
 function eval_merit_function(it::Class_iterate, pars::Class_parameters)
-    if is_feasible(it, pars.comp_feas)
+    if is_feasible(it, pars.ls.comp_feas)
         if length(it.point.s) > 0
           comp_penalty = norm(comp(it), Inf)^3 / (it.point.mu)^2
         else
@@ -186,7 +174,7 @@ function eval_phi_diff(it::Class_iterate, candidate::Class_iterate, mu::Float64)
 end
 
 function eval_merit_function_difference(it::Class_iterate, candidate::Class_iterate, pars::Class_parameters)
-    if is_feasible(candidate, pars.comp_feas)
+    if is_feasible(candidate, pars.ls.comp_feas)
         if length(it.point.s) > 0
           comp_penalty = norm(comp(candidate), Inf)^3 / (it.point.mu)^2 - norm(comp(it), Inf)^3 / (it.point.mu)^2
         else

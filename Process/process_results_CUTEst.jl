@@ -166,7 +166,7 @@ end
 
 
 print_failure_problems(overlapping_results);
-its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=10000);
+its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
 
 
 ##

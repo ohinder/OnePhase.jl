@@ -83,7 +83,7 @@ function run_netlib_problems_using_our_solver(problem_list::Array{String,1}, tes
         start_advanced_timer(timer, "INIT")
         intial_it = init(nlp, my_par, timer)
         pause_advanced_timer(timer, "INIT")
-        @assert(is_feasible(intial_it, my_par.comp_feas))
+        @assert(is_feasible(intial_it, my_par.ls.comp_feas))
         iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
         pause_advanced_timer(timer)
 
@@ -165,7 +165,7 @@ start_advanced_timer(timer);
 start_advanced_timer(timer, "INIT");
 intial_it = init(nlp, my_par, timer);
 pause_advanced_timer(timer, "INIT");
-@assert(is_feasible(intial_it, my_par.comp_feas));
+@assert(is_feasible(intial_it, my_par.ls.comp_feas));
 iter, status, hist, t, err = one_phase_IPM(intial_it, my_par, timer);
 pause_advanced_timer(timer);
 

@@ -19,7 +19,7 @@ type Class_agg_ls <: abstract_ls_info
         this.actual_red = NaN
         #mu_ = get_mu(iter) - dir.mu
         #this.do_ls = 0.1 < minimum(comp_predicted_scaled(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) .< 10 * get_mu(iter)
-        #comp_max = (get_mu(iter) - dir.mu) / pars.comp_feas_agg + get_mu(iter) / 4.0
+        #comp_max = (get_mu(iter) - dir.mu) / pars.ls.comp_feas_agg + get_mu(iter) / 4.0
         #this.do_ls = true
         eta = - dir.mu / get_mu(iter)
         gamma = 1.0 - eta
@@ -27,7 +27,7 @@ type Class_agg_ls <: abstract_ls_info
         this.do_ls = dot(eval_grad_lag(iter, get_mu(iter) * gamma, y_tilde), dir.x) < 0.0
 
         #this.do_ls = true
-        #norm(comp_predicted(iter,dir,1.0),Inf) < get_mu(iter) / pars.comp_feas_agg
+        #norm(comp_predicted(iter,dir,1.0),Inf) < get_mu(iter) / pars.ls.comp_feas_agg
         return this
     end
 end

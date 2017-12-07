@@ -81,7 +81,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
 
         if move_status == :success
             start_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")
-            lb, ub = dual_bounds(candidate, candidate.point.y, dir.y, pars.comp_feas)
+            lb, ub = dual_bounds(candidate, candidate.point.y, dir.y, pars.ls.comp_feas)
             lb_y_new = lb_y(iter,dir,pars) #min(dir.y .* (dir.s + norm(dir.x,Inf)^2) ./ candidate.point.s, pars.ls.fraction_to_boundary * candidate.point.y)
             ub = min(ub, simple_max_step(candidate.point.y, dir.y, lb_y_new))
             pause_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")

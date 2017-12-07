@@ -32,7 +32,7 @@ function one_phase_solve(nlp_raw, pars::Class_parameters)
 
     start_advanced_timer(timer)
 
-    @assert(is_feasible(intial_it, pars.comp_feas))
+    @assert(is_feasible(intial_it, pars.ls.comp_feas))
     iter, status, hist, t, err = one_phase_IPM(intial_it, pars, timer);
 
     pause_advanced_timer(timer)
@@ -43,7 +43,8 @@ function one_phase_solve(nlp_raw, pars::Class_parameters)
 end
 
 function switching_condition(iter::Class_iterate, last_step_was_superlinear::Bool, pars::Class_parameters)
-    is_feas = is_feasible(iter, pars.comp_feas_agg) && norm(comp(iter),Inf) < pars.comp_feas_agg_inf
+    is_feas = is_feasible(iter, pars.ls.comp_feas_agg)
+    #&& norm(comp(iter),Inf) < pars.ls.comp_feas_agg_inf
     #dual_avg = norm(eval_grad_lag(iter),1) / length(iter.point.mu)
     dual_avg = scaled_dual_feas(iter, pars)
 
@@ -86,7 +87,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       last_step_was_superlinear = false
 
       for t = 1:pars.term.max_it
-             @assert(is_feasible(iter, pars.comp_feas))
+             @assert(is_feasible(iter, pars.ls.comp_feas))
 
              for i = 1:pars.max_it_corrections
                tot_num_fac = 0; inertia_num_fac = 0;

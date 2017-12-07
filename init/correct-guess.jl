@@ -12,7 +12,7 @@ function correct_guess1( nlp, pars, timer, x, a, J, g, s, y )
 
         y_c = mu ./ s
         buffer = 2.0
-        y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+        y = min( y_c / (pars.ls.comp_feas * buffer), max(y, pars.ls.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
         #Delta_s = norm(g - J' * y,1) / (length(y) + norm(y,1))
         Delta_s = norm(g - J' * y,Inf) / (1.0 + norm(y,Inf))
@@ -60,7 +60,7 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
         #@assert()
         y_c = mu ./ s
         buffer = 2.0
-        y = min( y_c / (pars.comp_feas * buffer), max(y, pars.comp_feas * y_c * buffer)) # project onto complementarity constraints
+        y = min( y_c / (pars.ls.comp_feas * buffer), max(y, pars.ls.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
         min_s = (mu / 20.0) * conWeight #+ conWeight * max(0.0,-minimum(a))
 

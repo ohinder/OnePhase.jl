@@ -79,15 +79,15 @@ end
 function linear_cons(m::Class_CUTEst)
     is_linear = zeros(m.nlp.meta.ncon)
     is_linear[m.nlp.meta.lin] = 1.0
-    vec = [lb(is_linear, m.bcon); -ub(is_linear, m.bcon); ones(nbounds_orginal(m))]
-
+    vec = [is_linear[m.bcon.l_i]; is_linear[m.bcon.u_i]; ones(nbounds_orginal(m))]
+    
     return 1.0 .== vec
 end
 
 function ineq_cons(m::Class_CUTEst)
     is_ineq = zeros(m.nlp.meta.ncon)
     is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] = 1.0
-    vec = [lb(is_ineq, m.bcon); -ub(is_ineq, m.bcon); zeros(nbounds_orginal(m))]
+    vec = [is_ineq[m.bcon.l_i]; is_ineq[m.bcon.u_i];; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
 end

@@ -138,7 +138,7 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
 
     new_it.point.y += dir.y * step_size_D
 
-    if !is_feasible(new_it, pars.comp_feas)
+    if !is_feasible(new_it, pars.ls.comp_feas)
       @show minimum(new_it.point.y), maximum(new_it.point.s)
       println("line=",@__LINE__, "file=",@__FILE__)
       my_warn("infeasibility should have been detected earlier!!!")

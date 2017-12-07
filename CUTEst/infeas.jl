@@ -121,7 +121,7 @@ function one_phase_solve!(snlp::AbstractNLPModel, problem_name, test_name, my_pa
         intial_it = init(nlp, my_par, timer)
         pause_advanced_timer(timer, "INIT")
 
-        @assert(is_feasible(intial_it, my_par.comp_feas))
+        @assert(is_feasible(intial_it, my_par.ls.comp_feas))
         iter, status, history, t, err = one_phase_IPM(intial_it, my_par, timer);
 
         pause_advanced_timer(timer)

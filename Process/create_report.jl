@@ -1,7 +1,8 @@
 function get_CUTEst_results()
   results = Dict{String, Dict{String,problem_summary}}()
 
-  results["one phase"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+  #results["ipopt"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
+  results["one phase"] = load("../results/one_phase/Dec1/summary.jld", "summary")
   results["ipopt"] = convert_JuMP(load("../results/ipopt/plain/summary.jld", "summary"))
 
   min_num = 100
@@ -11,6 +12,8 @@ function get_CUTEst_results()
   problem_list = convert(Array{String,1},problem_list);
 
   results = restrict_problems(results, problem_list)
+
+  overlapping_results = overlap(results)
 
   return results
 end
