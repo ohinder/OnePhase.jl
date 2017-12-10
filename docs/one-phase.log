@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  6 DEC 2017 15:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  8 DEC 2017 12:43
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2331,21 +2331,21 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[19] <figures/ls-options.pdf, id=918, 462.52798pt x 346.89601pt>
+[19] <figures/ls-options.pdf, id=847, 462.52798pt x 346.89601pt>
 File: figures/ls-options.pdf Graphic file (type pdf)
 
 <use figures/ls-options.pdf>
 Package pdftex.def Info: figures/ls-options.pdf used on input line 1387.
 (pdftex.def)             Requested size: 161.8872pt x 121.41542pt.
 
-<figures/num-corrections.pdf, id=919, 462.52798pt x 346.89601pt>
+<figures/num-corrections.pdf, id=848, 462.52798pt x 346.89601pt>
 File: figures/num-corrections.pdf Graphic file (type pdf)
 
 <use figures/num-corrections.pdf>
 Package pdftex.def Info: figures/num-corrections.pdf used on input line 1388.
 (pdftex.def)             Requested size: 161.8872pt x 121.41542pt.
 
-<figures/regularizer-ratios.pdf, id=920, 462.52798pt x 346.89601pt>
+<figures/regularizer-ratios.pdf, id=849, 462.52798pt x 346.89601pt>
 File: figures/regularizer-ratios.pdf Graphic file (type pdf)
 
 <use figures/regularizer-ratios.pdf>
@@ -2371,7 +2371,7 @@ f): PDF inclusion: multiple pdfs with page group included in a single page
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./figures/regularizer-ratios
 .pdf): PDF inclusion: multiple pdfs with page group included in a single page
->] <figures/ratios-IPOPT-one-phase.pdf, id=1041, 462.52798pt x 346.89601pt>
+>] <figures/ratios-IPOPT-one-phase.pdf, id=969, 462.52798pt x 346.89601pt>
 File: figures/ratios-IPOPT-one-phase.pdf Graphic file (type pdf)
 
 <use figures/ratios-IPOPT-one-phase.pdf>
@@ -2379,7 +2379,7 @@ Package pdftex.def Info: figures/ratios-IPOPT-one-phase.pdf used on input line
 1463.
 (pdftex.def)             Requested size: 231.26341pt x 173.44757pt.
 
-<figures/iterations-IPOPT-one-phase.pdf, id=1042, 462.52798pt x 346.89601pt>
+<figures/iterations-IPOPT-one-phase.pdf, id=970, 462.52798pt x 346.89601pt>
 File: figures/iterations-IPOPT-one-phase.pdf Graphic file (type pdf)
 
 <use figures/iterations-IPOPT-one-phase.pdf>
@@ -2393,7 +2393,7 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[21] <figures/infeas-ratios.png, id=1053, 462.528pt x 346.896pt>
+[21] <figures/infeas-ratios.png, id=981, 462.528pt x 346.896pt>
 File: figures/infeas-ratios.png Graphic file (type png)
 
 <use figures/infeas-ratios.png>
@@ -2497,146 +2497,56 @@ Package rerunfilecheck Warning: File `one-phase.out' has changed.
 (rerunfilecheck)                or use package `bookmark'.
 
 Package rerunfilecheck Info: Checksums for `one-phase.out':
-(rerunfilecheck)             Before: 62DA4539358298ABF54DCC993A0FB618;3827
-(rerunfilecheck)             After:  9CEC2951BA8C3AB4E9A8980B623E5429;2766.
+(rerunfilecheck)             Before: 9CEC2951BA8C3AB4E9A8980B623E5429;2766
+(rerunfilecheck)             After:  59DF9E775EC1633CE131BF735152FE9B;2765.
 
 LaTeX Warning: There were multiply-defined labels.
 
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2032.
  ) 
 Here is how much of TeX's memory you used:
- 27504 strings out of 493089
- 510323 string characters out of 6134842
- 575897 words of memory out of 5000000
- 30179 multiletter control sequences out of 15000+600000
+ 27438 strings out of 493089
+ 509220 string characters out of 6134842
+ 574929 words of memory out of 5000000
+ 30143 multiletter control sequences out of 15000+600000
  20431 words of font info for 74 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  64i,18n,75p,10434b,739s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{Item.96} has been referenced but does not exist, 
-replaced by a fixed one
-
-pdfTeX warning (dest): name{Item.89} has been referenced but does not exist, re
-placed by a fixed one
-
-pdfTeX warning (dest): name{Item.88} has been referenced but does not exist, re
-placed by a fixed one
-
-pdfTeX warning (dest): name{definition.11} has been referenced but does not exi
-st, replaced by a fixed one
-
-pdfTeX warning (dest): name{corollary.14} has been referenced but does not exis
-t, replaced by a fixed one
-
-pdfTeX warning (dest): name{lemma.13} has been referenced but does not exist, r
-eplaced by a fixed one
-
-pdfTeX warning (dest): name{figure.caption.5} has been referenced but does not 
-exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{lemma.6} has been referenced but does not exist, re
-placed by a fixed one
-
-pdfTeX warning (dest): name{corollary.5} has been referenced but does not exist
-, replaced by a fixed one
-
-pdfTeX warning (dest): name{lemma.4} has been referenced but does not exist, re
-placed by a fixed one
-
-pdfTeX warning (dest): name{theorem.7} has been referenced but does not exist, 
-replaced by a fixed one
-
-pdfTeX warning (dest): name{appendix.F} has been referenced but does not exist,
- replaced by a fixed one
-
-pdfTeX warning (dest): name{appendix.E} has been referenced but does not exist,
- replaced by a fixed one
-
-pdfTeX warning (dest): name{appendix.D} has been referenced but does not exist,
- replaced by a fixed one
-
-pdfTeX warning (dest): name{appendix.C} has been referenced but does not exist,
- replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.B.3} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.B.2} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.B.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{section.8} has been referenced but does not exist, 
-replaced by a fixed one
-
-pdfTeX warning (dest): name{section.7} has been referenced but does not exist, 
-replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.4.9} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.4.8} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.4.7} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.3.4} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsubsection.3.3.2} has been referenced but does n
-ot exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsubsection.3.3.1} has been referenced but does n
-ot exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.3.3} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsubsection.2.5.2} has been referenced but does n
-ot exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsubsection.2.5.1} has been referenced but does n
-ot exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.2.5} has been referenced but does not ex
-ist, replaced by a fixed one
-
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pfb>
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmbsy7.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmb
-sy8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
-10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx1
-2.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.p
-fb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.p
-fb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
-></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></u
-sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
-ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
-al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local
-/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/te
-xlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texli
-ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
-2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/201
-5/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2015/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/local/texlive/2015/texmf-dist
-/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-
-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on one-phase.pdf (30 pages, 553729 bytes).
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmbsy
+7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/c
+mbsy8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+bx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmb
+x12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
+7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.p
+fb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb><
+/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/
+texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2
+015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/201
+5/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/local/texlive/2015/texmf-di
+st/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texm
+f-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
+Output written on one-phase.pdf (30 pages, 553781 bytes).
 PDF statistics:
- 1447 PDF objects out of 1728 (max. 8388607)
- 1232 compressed objects within 13 object streams
- 355 named destinations out of 1000 (max. 500000)
- 451 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1366 PDF objects out of 1440 (max. 8388607)
+ 1152 compressed objects within 12 object streams
+ 325 named destinations out of 1000 (max. 500000)
+ 331 words of extra memory for PDF output out of 10000 (max. 10000000)
 

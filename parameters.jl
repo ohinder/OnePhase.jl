@@ -1,6 +1,7 @@
 abstract abstract_reduct_factors;
+abstract abstract_pars;
 
-type Class_kkt_solver_options
+type Class_kkt_solver_options <: abstract_pars
     ItRefine_Num::Int64
     ItRefine_BigFloat::Bool
     saddle_err_tol::Float64
@@ -37,7 +38,7 @@ type Class_kkt_solver_options
     end
 end
 
-type Class_line_search_parameters
+type Class_line_search_parameters <: abstract_pars
   kkt_reduction_factor::Float64
   kkt_include_comp::Bool
   filter_type::Symbol
@@ -98,7 +99,7 @@ type Class_IPM_parameters
   # fill in
 end
 
-type Class_termination_parameters
+type Class_termination_parameters <: abstract_pars
     max_it::Int64
     max_time::Float64
     tol_opt::Float64
@@ -122,7 +123,7 @@ type Class_termination_parameters
     end
 end
 
-type Class_delta_parameters
+type Class_delta_parameters <: abstract_pars
     max::Float64
     max_it::Int64
     start::Float64
@@ -133,7 +134,7 @@ type Class_delta_parameters
 
     function Class_delta_parameters()
         this = new()
-        this.max = 10.0^(60.0)
+        this.max = 10.0^(50.0)
         this.max_it = 200
         this.start = 1e-6
         this.zero = 0.0
@@ -146,7 +147,7 @@ type Class_delta_parameters
 end
 
 
-type Class_init_parameters
+type Class_init_parameters <: abstract_pars
     mu_scale::Float64
     mehotra_scaling::Bool
     init_style::Symbol
@@ -184,12 +185,24 @@ type Class_init_parameters
     end
 end
 
-type Class_parameters
+type Class_testing <: abstract_pars
+    response_to_failure::Symbol
+    function Class_testing()
+        this = new()
+        #this.response_to_failure = :default
+        this.response_to_failure = :lag_delta_inc
+
+        return this
+    end
+end
+
+type Class_parameters <: abstract_pars
     term::Class_termination_parameters
     init::Class_init_parameters
     delta::Class_delta_parameters
     ls::Class_line_search_parameters
     kkt::Class_kkt_solver_options
+    test::Class_testing
 
 
     # debugging
@@ -220,6 +233,7 @@ type Class_parameters
         this.init = Class_init_parameters()
         this.ls = Class_line_search_parameters()
         this.kkt = Class_kkt_solver_options()
+        this.test = Class_testing()
 
         # init
         this.aggressive_dual_threshold = 1.0 #1.0 #1.0 #1.0

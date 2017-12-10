@@ -152,7 +152,13 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                      elseif i < 100 && get_delta(iter) < pars.delta.max
                        #8.0
                        #println("increase delta")
-                       set_delta(iter, max(get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
+                       if pars.test.response_to_failure == :lag_delta_inc
+                         set_delta(iter, max(norm(eval_grad_lag(iter,iter.point.mu),Inf) / norm(kkt_solver.dir.x,Inf),get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
+                       elseif pars.test.response_to_failure == :default
+                         set_delta(iter, max(get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
+                       else
+                          error("pars.test.response_to_failure parameter incorrectly set")
+                       end
                        inertia = factor!(kkt_solver, get_delta(iter), timer)
                        tot_num_fac += 1
                      else

@@ -56,7 +56,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("READING1")
 #nlp_raw2 = CUTEstModel("READING4")
 #nlp_raw2 = CUTEstModel("YORKNET")
-#nlp_raw2 = CUTEstModel("CHAIN")
+nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("DRUGDISE")
 
 #nlp_raw2 = CUTEstModel("ROCKET")
@@ -119,6 +119,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("QPNBOEI1")
 #nlp_raw2 = CUTEstModel("STEENBRD")
 #nlp_raw2 = CUTEstModel("ACOPR14")
+#nlp_raw2 = CUTEstModel("SAWPATH")
 #nlp_raw2 = CUTEstModel("ACOPR118")
 #nlp_raw2 = CUTEstModel("ACOPP57")
 #nlp_raw2 = CUTEstModel("ACOPP300")
@@ -149,12 +150,15 @@ include("../include.jl")
 #IpoptSolve(nlp_raw2);
 #nlp_raw2 = CUTEstModel("AIRPORT")
 #nlp_raw2 = CUTEstModel("CHAIN")
-nlp_raw2 = CUTEstModel("LEUVEN1")
+#nlp_raw2 = CUTEstModel("LEUVEN1")
 #nlp_raw2 = CUTEstModel("CHARDIS1")
+#nlp_raw2 = CUTEstModel("MSQRTA")
+#nlp_raw2 = CUTEstModel("MSQRTA")
+#nlp_raw2 = CUTEstModel("CHEMRCTB")
 
 my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-5
-my_pars.term.tol_inf_1 = 1e-8
+my_pars.term.tol_opt = 1e-4
+#my_pars.term.tol_inf_1 = 1e-8
 
 one_phase_solve(nlp_raw2,my_pars);
 

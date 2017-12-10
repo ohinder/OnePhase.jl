@@ -26,12 +26,21 @@ type problem_summary
 end
 =#
 
-
-function write_pars(stream::IOStream, par::Class_parameters)
+#::IOStream
+function write_pars(stream, par::Class_parameters)
     write(stream, "PAR \t\t\t\t\t\t VALUE \n")
 
     for fieldname in fieldnames(par)
-        write(stream, "$(pd(fieldname,40)) \t $(getfield(par, fieldname)) \n")
+        fieldval = getfield(par, fieldname)
+        if isa(fieldval,abstract_pars)
+          write(stream, "$(pd(fieldname,40)) \n")
+          for subfieldname in fieldnames(fieldval)
+            subfieldval = getfield(fieldval, subfieldname)
+            write(stream, "\t $(pd(subfieldname,40)) \t $(subfieldval) \n")
+          end
+        else
+          write(stream, "$(pd(fieldname,40)) \t $(fieldval) \n")
+        end
     end
 end
 

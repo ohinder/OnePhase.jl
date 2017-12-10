@@ -51,7 +51,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     inertia = 0
     status = :none
 
-    tau = diag_min(kkt_solver)
+    tau = 1.5 * diag_min(kkt_solver)
     #Q = Symmetric(kkt_solver.M,:L)
     #eigvals,vec, = eigs(Q,nev=1,which=:SR,maxiter=10,tol=1e4)
     #@show eigvals
