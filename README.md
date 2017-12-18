@@ -7,7 +7,9 @@ $$
 $$
 -->
 
-![alt text](problem-statement.gif)
+![min f(x) s.t. a(x) < 0](problem-statement.gif)
+
+where the functions ![f : R^n -> R](f.gif) and ![a : R^n -> R^m](a.gif) are twice differentiable. The one phase algorithm also handles bound constraints and nonlinear equalities.
 
 Currently, the package is in development. Please let me know if there are any bugs etc. Note that the code is generally significantly slower than Ipopt in terms of raw runtime, particularly on small problems (the iteration count is competitive). However, we recommend trying our one-phase IPM if Ipopt is failing to solve, the problem is very large or might be infeasible.
 
