@@ -106,7 +106,8 @@ type Class_termination_parameters <: abstract_pars
     tol_unbounded::Float64
     tol_inf_1::Float64
     tol_inf_2::Float64
-    max_gradient::Float64
+    dual_scale_threshold::Float64
+    dual_scale_mode::Symbol
 
     function Class_termination_parameters()
         this = new()
@@ -114,10 +115,11 @@ type Class_termination_parameters <: abstract_pars
         this.max_it = 3000
         this.max_time = 60.0^2
         this.tol_opt = 1e-6
-        this.tol_unbounded = 1e-10
+        this.tol_unbounded = 1e-12
         this.tol_inf_1 = 1e-3
         this.tol_inf_2 = 1e-6
-        this.max_gradient = 1e15
+        this.dual_scale_threshold = 100.0;
+        this.dual_scale_mode = :ipopt
 
         return this
     end
@@ -125,7 +127,7 @@ end
 
 type Class_delta_parameters <: abstract_pars
     max::Float64
-    max_it::Int64
+    #max_it::Int64
     start::Float64
     dec::Float64
     inc::Float64
@@ -135,7 +137,7 @@ type Class_delta_parameters <: abstract_pars
     function Class_delta_parameters()
         this = new()
         this.max = 10.0^(50.0)
-        this.max_it = 200
+        #this.max_it = 200
         this.start = 1e-6
         this.zero = 0.0
         this.min = 1e-12
@@ -171,14 +173,14 @@ type Class_init_parameters <: abstract_pars
           this.nl_ineq_scale = 1.0
           this.nl_eq_scale = 1.0
         else
-          this.mu_scale = 1000.0
+          this.mu_scale = 1.0
           this.mehotra_scaling = false
           this.init_style = :mehotra
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
-          this.linear_scale = 1.0
-          this.nl_ineq_scale = 1.0
-          this.nl_eq_scale = 1000.0
+          this.linear_scale = 1e-2
+          this.nl_ineq_scale = 1e-1
+          this.nl_eq_scale = 1.0
         end
 
         return this
@@ -211,13 +213,8 @@ type Class_parameters <: abstract_pars
     throw_error_nans::Bool
 
     # IPM GENERAL
-    inertia_test::Bool
     aggressive_dual_threshold::Float64
     max_it_corrections::Int64
-    dual_scale_threshold::Float64
-    dual_scale_mode::Symbol
-    threshold_type::Symbol
-    lag_grad_test::Bool
 
     superlinear_theory_mode::Bool
 
@@ -228,6 +225,9 @@ type Class_parameters <: abstract_pars
     function Class_parameters()
         this = new()
 
+        ############################
+        ### groups of parameters ###
+        ############################
         this.delta = Class_delta_parameters()
         this.term = Class_termination_parameters()
         this.init = Class_init_parameters()
@@ -235,28 +235,26 @@ type Class_parameters <: abstract_pars
         this.kkt = Class_kkt_solver_options()
         this.test = Class_testing()
 
-        # init
-        this.aggressive_dual_threshold = 1.0 #1.0 #1.0 #1.0
-        this.dual_scale_threshold = 100.0;
-        this.threshold_type = :mu
-        #this.threshold_type = :mu_primal
-        #this.threshold_type = :primal
-        this.lag_grad_test = true
-        this.dual_scale_mode = :scaled
-        this.primal_bounds_dual_feas = false
-        #this.dual_scale_mode = :sqrt
-        #this.dual_scale_mode = :exact
-        #this.dual_scale_mode = :primal_dual
-        this.inertia_test = false # true
-        this.max_it_corrections = 2 #3 ######
+        ########################
+        ## general parameters ##
+        ########################
 
+        # switching condition
+        this.aggressive_dual_threshold = 1.0
+        this.primal_bounds_dual_feas = false
+
+        # algorithm parameters
+        this.max_it_corrections = 2
         this.superlinear_theory_mode = false
 
+        # penalty parameter size
+        this.a_norm_penalty = 1e-4
+
+        # debugging
         this.output_level = 3
         this.debug_mode = 0
         this.throw_error_nans = false
 
-        this.a_norm_penalty = 1e-4
 
         return this
     end

@@ -5,15 +5,10 @@ function probe(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, pars
 
     lb_s = lb_s_predict(iter, kkt_solver.dir, pars)
 
-    if false
-      y_temp = abs(iter.point.y + kkt_solver.dir.y)
-      y_temp = y_temp - minimum(y_temp) * 2
-      s_temp = iter.point.s #abs(iter.point.s + kkt_solver.dir.s)
-      s_temp = s_temp - minimum(s_temp) * 2
-      mu_est = dot(y_temp, s_temp) / length(y_temp)
-      primal_feas = -minimum(iter.point.s) + mean(iter.point.s) / mu_est
-      @show norm(y_temp,1) / norm(iter.point.x,1) #
-    end
+    #@show minimum(abs(iter.point.s ./ kkt_solver.dir.y)), minimum(abs(iter.point.s ./ iter.point.y))
+    #if true
+    #  KNITRO_guess(iter,kkt_solver.dir, pars)
+    #end
 
     m = length(iter.point.s)
     alpha_s = simple_max_step(iter.point.s, kkt_solver.dir.s, lb_s)

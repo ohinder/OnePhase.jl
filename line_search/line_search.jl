@@ -122,6 +122,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
 
         @assert(is_updated_correction(iter.cache))
 
+
         # SOME DEBUGGING CODE
         if pars.debug_mode >= 1
           obj = copy(get_fval(iter))
@@ -144,11 +145,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
           kkt_diff = norm(eval_grad_lag(candidate, get_mu(candidate)),Inf) / norm(eval_grad_lag(iter, get_mu(iter)),Inf)
           println(rd(step_size_P), rd(step_size_D), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
         end
-
-        #if is_feas
-        #  pause_advanced_timer(timer,"SIMPLE_LS/feas")
-        #end
-
+        
         if status == :success
           pause_advanced_timer(timer,"SIMPLE_LS")
           return :success, candidate, accept_obj

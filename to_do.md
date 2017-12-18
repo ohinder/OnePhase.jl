@@ -1,7 +1,12 @@
+- low tolerance Ipopt
+- infeasible Ipopt
+
 Short term:
+- mu autotune scaling -- run on whole test set.
 - increase delta to min stable line search??? *test*
-- new delta strategy with loglog rate.
+- new delta strategy with loglog rate???
 - write code that saves all the CUTEst files need for the paper in one go! (i.e., have an experimental script and a paper producing script)
+
 - add COPS problems
 - improved initial delta selection
 

@@ -41,9 +41,8 @@ function run_netlib_problems_using_IPOPT(problem_list::Array{String,1}, test_nam
           save("$(jld_folder)/$(problem_name).jld","history",hist)
 
           summary[problem_name] = problem_summary()
-          summary[problem_name].status = status;
           summary[problem_name].total_time = time() - start_time
-          set_info_me!(summary[problem_name], hist)
+          ≈summary[problem_name], hist, status)
 
           save("$(folder_name)/summary.jld","summary",summary)
 
@@ -93,8 +92,7 @@ function run_netlib_problems_using_our_solver(problem_list::Array{String,1}, tes
 
         save("$(jld_folder)/$(problem_name).jld","history",hist)
         summary[problem_name] = problem_summary()
-        summary[problem_name].status = status
-        set_info_me!(summary[problem_name], hist)
+        set_info_me!(summary[problem_name], hist, status)
         summary[problem_name].total_time = time() - start_time
 
         redirect_stdout(ORG_STDOUT)

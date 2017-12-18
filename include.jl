@@ -1,4 +1,5 @@
-using advanced_timer, JLD
+using advanced_timer, NLPModels
+using JLD
 BLAS.set_num_threads(1)
 USE_MUMPS = false
 include("parameters.jl")
@@ -8,4 +9,3 @@ include("kkt_system_solver/include.jl")
 include("line_search/line_search.jl")
 include("IPM/ipm.jl")
 include("init/init.jl")
-include("AbstractNLPModel/infeas.jl")

@@ -56,6 +56,7 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
       i = 1
       min_s = deepcopy(s)
       for i = 1:100
+        @show mu
         s = a + mu * conWeight
         #@assert()
         y_c = mu ./ s

@@ -28,8 +28,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("OSCIPANE")
 #nlp_raw2 = CUTEstModel("TRO4X4")
 #nlp_raw2 = CUTEstModel("A4X12")
-#nlp_raw2 = CUTEstModel("BRAINPC1")
-#nlp_raw2 = CUTEstModel("BRAINPC7")
+#nlp_raw2 = CUTEstModel("BRAINPC2")
 #nlp_raw2 = CUTEstModel("SYNPOP24")
 #nlp_raw2 = CUTEstModel("ACOPR300")
 #nlp_raw2 = CUTEstModel("SPIN2OP")
@@ -56,7 +55,7 @@ include("../include.jl")
 #nlp_raw2 = CUTEstModel("READING1")
 #nlp_raw2 = CUTEstModel("READING4")
 #nlp_raw2 = CUTEstModel("YORKNET")
-nlp_raw2 = CUTEstModel("CHAIN")
+#nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("DRUGDISE")
 
 #nlp_raw2 = CUTEstModel("ROCKET")
@@ -134,7 +133,7 @@ nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("TOYSARAH")
-#nlp_raw2 = CUTEstModel("AGG")
+nlp_raw2 = CUTEstModel("RK23")
 #problem_list = get_problem_list(100000,9999999999)
 # BIG PROBLEMS
 #BDRY2
@@ -155,17 +154,37 @@ nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("MSQRTA")
 #nlp_raw2 = CUTEstModel("MSQRTA")
 #nlp_raw2 = CUTEstModel("CHEMRCTB")
+#nlp_raw2 = CUTEstModel("CHEMRCTA")
+#nlp_raw2 = CUTEstModel("BLOWEYA")
+#nlp_raw2 = CUTEstModel("BIGBANK")
+#nlp_raw2 = CUTEstModel("ZAMB2")
+#nlp_raw2 = CUTEstModel("TRAINH")
+#nlp_raw2 = CUTEstModel("SVANBERG")
+
+#nlp_raw2 = CUTEstModel("NET2")
+#nlp_raw2 = CUTEstModel("BRITGAS")
+#nlp_raw2 = CUTEstModel("bridgend")
+#nlp_raw2 = CUTEstModel("TWIRIBG1")
+#nlp_raw2 = CUTEstModel("TWIRIBG1")
+#nlp_raw2 = CUTEstModel("ROTDISC")
 
 my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-4
-#my_pars.term.tol_inf_1 = 1e-8
-
-one_phase_solve(nlp_raw2,my_pars);
+my_pars.term.tol_opt = 1e-6
 
 
-#=
+#my_pars.init.mu_scale = 1e-2
+if false
+  my_pars.term.max_it = 100
+  autotune(nlp_raw2, my_pars)
+end
+
+iter = one_phase_solve(nlp_raw2,my_pars);
+#get_fval(iter)
+#eval_f(nlp,iter.point.x)
+#obj(nlp_raw2,iter.point.x) - get_fval(iter)
+if false
 using Ipopt
 IpoptSolve(nlp_raw2);
-=#
+end
 
 finalize(nlp_raw2)

@@ -79,7 +79,7 @@ savefig("output/opt_iter_curve.pdf")
 ##
 
 
-function best_fvals(method_name1, method_name2)
+function best_fvals(method_name1, method_name2, overlapping_opt_results)
     better_fval = Dict()
     succeed = Dict()
 
@@ -91,6 +91,8 @@ function best_fvals(method_name1, method_name2)
 
     succeed[method_name1] = 0
     succeed[method_name2] = 0
+
+    problem_list = keys(first(overlapping_opt_results)[2])
 
     for problem_name in problem_list
       fval1 = overlapping_opt_results[method_name1][problem_name].fval
@@ -122,9 +124,9 @@ function best_fvals(method_name1, method_name2)
     return better_fval, succeed
 end
 
-method_name1 = "IPOPT"
-method_name2 = "IPOPT no perturb"
-best_fvals(method_name1, method_name2)
+method_name1 = "ipopt"
+method_name2 = "one phase"
+best_fvals(method_name1, method_name2, overlapping_opt_results)
 
 
 
@@ -152,3 +154,41 @@ xlabel("times ratio to best solver")
 ylabel("proportion of problems")
 
 legend()
+
+function create_opt_res(res::Dict{String, Dict{String,problem_summary}}, method_list; f_TOL = 1e-1)
+    opt_res = Dict{String, Dict{String,problem_summary}}()
+    for method in method_list
+        opt_res[method] = Dict{String,problem_summary}()
+    end
+
+    problem_list = keys(first(res)[2])
+    for problem_name in problem_list
+      same_fval = true
+      first = true
+      fval_others = Inf
+
+      for method in method_list
+         fval = res[method][problem_name].fval
+         if res[method][problem_name].status == :optimal
+           if first || abs(fval_others - fval) / (1.0 + max(abs(fval),abs(fval_others))) < f_TOL
+             fval_others = min(fval_others, fval)
+             first = false
+           else
+             same_fval = false
+           end
+         else
+           same_fval = false
+         end
+      end
+
+      if same_fval #|| some_method_failed
+          for method in method_list
+             opt_res[method][problem_name] = res[method][problem_name]
+          end
+      end
+    end
+    return opt_res
+end
+
+method_list = keys(overlapping_opt_results)
+#opt_res = create_opt_res(overlapping_opt_results, method_list, f_TOL = 1e-2)

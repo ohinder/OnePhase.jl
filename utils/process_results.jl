@@ -176,6 +176,34 @@ function overlap(dics::Dict{String, Dict{String,problem_summary}})
   end=#
 end
 
+
+function all_status(res::Dict{String, Dict{String,problem_summary}},status::Symbol)
+  method_list = keys(res)
+  
+  opt_res = Dict{String, Dict{String,problem_summary}}()
+  for method in method_list
+      opt_res[method] = Dict{String,problem_summary}()
+  end
+
+  problem_list = keys(first(res)[2])
+  for problem_name in problem_list
+      include_prob = true
+      for method in method_list
+        if res[method][problem_name].status != status
+          include_prob = false
+        end
+      end
+
+      if include_prob
+        for method in method_list
+           opt_res[method][problem_name] = res[method][problem_name]
+        end
+      end
+  end
+
+  return opt_res
+end
+
 function restrict_to_set(dics::Dict{String, Dict{String,problem_summary}}, set)
     p_list = []
     for (method_name,data) in dics

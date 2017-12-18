@@ -37,15 +37,15 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
 
     if pars.init.mehotra_scaling
       mu = mean(s .* y)
-      conWeight = ((s - a) / mu) / pars.init.mu_scale
+      conWeight = ((s - a) / mu)
       v = conWeight[conWeight .> 0.0]
       conWeight[conWeight .> 0.0] = min(10.0,max(v,1e-4))
     else
-      mu = (1e-6 + norm(s,Inf) + norm(g,1))
+      mu = (1e-6 + norm(s,Inf) + norm(g,Inf))
       #mu = 1e-6 + norm(g,1) / length(s)
       conWeight = zeros(length(s))
       ais = cons_indicies(nlp)
-      conWeight[ais] = 1.0 / pars.init.mu_scale
+      conWeight[ais] = 1.0
 
       #li = linear_cons(nlp, x)
     end
@@ -59,6 +59,8 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
       conWeight[nl_ineq] *= pars.init.nl_ineq_scale
       #@show li, nl_ineq
       conWeight[li] *= pars.init.linear_scale
+      conWeight ./= pars.init.mu_scale
+      #mu *= pars.init.mu_scale
     end
     #*= pars.init.linear_scale
 

@@ -37,7 +37,7 @@ end
 function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters, timer::class_advanced_timer)
     step_info = Blank_ls_info()
 
-    MAX_IT = pars.delta.max_it
+    MAX_IT = 500
     DELTA_ZERO = pars.delta.zero
     #DELTA_MIN = iter.point.mu * norm(iter.point.y,Inf) / 100.0 #
     DELTA_MIN = pars.delta.min

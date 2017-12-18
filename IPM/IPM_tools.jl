@@ -6,14 +6,16 @@ end
 
 
 function dual_scale(iter::Class_iterate, pars::Class_parameters)
-    if pars.dual_scale_mode == :scaled
-      return pars.dual_scale_threshold / max(mean(get_y(iter)), pars.dual_scale_threshold)
-    elseif pars.dual_scale_mode == :sqrt
-      return pars.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf)), pars.dual_scale_threshold)
-    elseif pars.dual_scale_mode == :exact
+    if pars.term.dual_scale_mode == :ipopt
+      return pars.term.dual_scale_threshold / max(mean(get_y(iter)), pars.term.dual_scale_threshold)
+    elseif pars.term.dual_scale_mode == :scaled
+      return pars.term.dual_scale_threshold / max(norm(get_y(iter),Inf), pars.term.dual_scale_threshold)
+    elseif pars.term.dual_scale_mode == :sqrt
+      return pars.term.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf)), pars.term.dual_scale_threshold)
+    elseif pars.term.dual_scale_mode == :exact
       return 1.0
-    elseif pars.dual_scale_mode == :primal_dual
-      return pars.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf) * norm(get_s(iter), Inf)), + pars.dual_scale_threshold)
+    elseif pars.term.dual_scale_mode == :primal_dual
+      return pars.term.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf) * norm(get_s(iter), Inf)), + pars.term.dual_scale_threshold)
     else
       throw("dual scale type does not exist")
     end

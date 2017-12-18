@@ -88,24 +88,24 @@ column_name = [
 "failure",
 "infeasible",
 "unbounded",
-"worse obj",
-"better obj",
+#"worse obj",
+#"better obj",
 "KKT"
 ],
 ipopt = [
 fail_only["ipopt"],
 tot(different_status_results["ipopt"],[:primal_infeasible]),
 tot(different_status_results["ipopt"],[:dual_infeasible]),
-winners["one phase"],
-winners["ipopt"],
+#winners["one phase"],
+#winners["ipopt"],
 tot(different_status_results["ipopt"],[:optimal])
 ],
 one_phase = [
 fail_only["one phase"],
 tot(different_status_results["one phase"],[:primal_infeasible]),
 tot(different_status_results["one phase"],[:dual_infeasible]),
-winners["ipopt"],
-winners["one phase"],
+#winners["ipopt"],
+#winners["one phase"],
 tot(different_status_results["one phase"],[:optimal])
 ]
 )
@@ -118,13 +118,13 @@ tot(different_status_results["one phase"],[:optimal])
 using StatPlots
 red2 = RGBA(1.0,0.0,0.0,0.6) #[red2,red2]
 green2 = RGBA(1.0,65.0/256.0,256.0/256.0,63.0/256.0)
-colour = [[:red,:red] [:orange,:orange] [:purple,:purple] [:blue,:blue] [:green,:green] [green2, green2]]
-label = ["failure" "infeasible" "unbounded" "worse obj" "better obj" "KKT"]
+colour = [[:red,:red] [:orange,:orange] [:blue,:blue] [:green,:green]]
+label = ["failure" "infeasible" "unbounded" "KKT"] #"worse obj" "better obj"
 arr = Array(df)
 data = convert(Array{Float64,2},arr[:,2:3])'
 space = " "^50
 
-for i = 1:6
+for i = 1:length(label)
     groupedbar(data[:,1:i], bar_position = :stack,
     bar_width=0.9,
     colour=colour[:,1:i],
@@ -136,3 +136,10 @@ for i = 1:6
     )
     savefig("output/bar_$i.pdf")
 end
+
+
+
+#its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
+
+
+#times["ipopt"]

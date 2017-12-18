@@ -11,7 +11,7 @@ function perturb_cons(nr::CUTEstModel,scale::Float64)
     f(x) = obj(nr, x)
     #shift = scale * (rand(length(lcon)) - 0.5)
     shift = scale * ones(length(lcon)) #(rand(length(lcon)) - 0.5)
-    c(x) = cons(nr, x) - shift
+    c(x) = cons(nr, x) #
     g(x) = grad(nr, x)
     J(x) = jac(nr, x)
     H(x; obj_weight=1.0, y=zeros) = hess(nr, x, obj_weight=obj_weight, y=y)
@@ -20,7 +20,7 @@ function perturb_cons(nr::CUTEstModel,scale::Float64)
 
     snlp = SimpleNLPModel(f, nr.meta.x0;
     lvar = lvar, uvar = uvar,
-    lcon = lcon, ucon = ucon,
+    lcon = lcon - shift, ucon = ucon - shift,
     name = "Generic",
     g=g,
     c=c,
@@ -33,7 +33,7 @@ function perturb_cons(nr::CUTEstModel,scale::Float64)
 end
 
 function ipopt_solve!(snlp::AbstractNLPModel, problem_name, test_name, my_par, summary)
-    solver = IpoptSolver(print_level=3, tol=1e-6, max_iter=3000, max_cpu_time=60.0, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
+    solver = IpoptSolver(print_level=3, tol=1e-6, max_iter=3000, max_cpu_time=60.0^2, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
 
     println("RUNNING $problem_name")
 
@@ -132,8 +132,7 @@ function one_phase_solve!(snlp::AbstractNLPModel, problem_name, test_name, my_pa
 
         save("../results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
 
-        summary[problem_name].status = status;
-        set_info_me!(summary[problem_name], history)
+        set_info_me!(summary[problem_name], history, status)
         #.it_count = t;
     catch(e)
         println("Uncaught error in algorithm!!!")
@@ -187,5 +186,6 @@ end
 
 problem_list = get_problem_list(100,10000)
 
-run_infeas("ipopt/infeas-4", problem_list, my_par, ipopt_solve!)
-run_infeas("one_phase/infeas-4", problem_list, my_par, one_phase_solve!)
+my_par = Class_parameters()
+#run_infeas("one_phase/infeas-test", problem_list, my_par, one_phase_solve!)
+run_infeas("ipopt/infeas-Dec15", problem_list, my_par, ipopt_solve!)

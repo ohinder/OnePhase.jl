@@ -118,3 +118,45 @@ function mehortra_guarding( s_tilde::Array{Float64,1}, y_tilde::Array{Float64,1}
 
     return s, y
 end
+#=
+kkt_solver = pick_KKT_solver(pars);
+form_system!(kkt_solver, iter, timer)
+fact_succeed, inertia_num_fac, new_delta = ipopt_strategy!(iter, kkt_solver, pars, timer)
+kkt_associate_rhs!(kkt_solver, iter, Reduct_affine(), timer)
+compute_direction!(kkt_solver, timer)
+=#
+function change_mu!(iter::Class_iterate,new_mu::Float64, pars::Class_parameters)
+    iter.point.mu = new_mu
+    #iter.primal_residual_intial = (get_cons(iter) - iter.point.s) / new_mu
+    #iter.primal_residual_intial = (iter.point.s - get_cons(iter)) / new_mu
+
+    y_c = new_mu ./ iter.point.s
+    buffer = 2.0
+    y = iter.point.y
+    y = min( y_c / (pars.ls.comp_feas * buffer), max(y, pars.ls.comp_feas * y_c * buffer)) # project onto complementarity constraints
+
+    iter.point.y = y
+end
+
+#=
+GLOBAL_COUNT = 0
+function KNITRO_guess(iter::Class_iterate, dir::Class_point, pars::Class_parameters)
+    global GLOBAL_COUNT
+    GLOBAL_COUNT += 1
+    if GLOBAL_COUNT == 100
+      y = iter.point.y
+      s = iter.point.s
+      y_temp = y + dir.y
+      s_temp = s + dir.s
+      y_est = y_temp - 2.0 * min(0.0, minimum(y))
+      s_est = s_temp - 2.0 * min(0.0, minimum(s))
+
+      mu = iter.point.mu
+      mu_est = norm(y,Inf) * norm(get_primal_res(iter),Inf)
+      #0.5 * (iter)+ mean(-y_guess .* get_primal_res(iter))
+      #mu_est = norm(dir.x,1) #min(mu * 2.0, max(mu/2.0, mu_est)) #+ get_cons(iter) .* iter.point.y
+      suggested_mu = min(100.0 * mu,max(mu_est,0.01 * mu)) #
+      #@show suggested_mu
+      change_mu!(iter,suggested_mu,pars)
+    end
+end=#

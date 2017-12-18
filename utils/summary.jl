@@ -51,10 +51,23 @@ function write_summary(stream::IOStream, summary::Dict{String, problem_summary})
     end
 end
 
-function set_info_me!(info::problem_summary, hist)
+function set_info_me!(info::problem_summary, hist, status::Symbol)
     info.it_count = hist[end].t
     info.fval = hist[end].fval;
     info.con_vio = hist[end].con_vio;
     info.dual_feas = hist[end].norm_grad_lag;
     info.comp = hist[end].comp;
+    info.status = status
+end
+
+function set_cutest_info_ipopt!(info::problem_summary, ipopt_solver, nlp_raw::AbstractNLPModel, x::Array{Float64})
+  num_vars = length(nlp_raw.meta.lvar)
+  x_true = x[1:num_vars]
+
+  info.fval = obj(nlp_raw, x_true)
+  a = cons(nlp_raw, x_true);
+  info.con_vio = max(0.0, maximum(nlp_raw.meta.lvar - x_true), maximum(x_true - nlp_raw.meta.uvar), maximum(nlp_raw.meta.lcon - a), maximum(a - nlp_raw.meta.ucon))
+
+  info.dual_feas = norm(grad(nlp_raw, x_true) + jac(nlp_raw, x_true)' * ipopt_solver.mult_g + ipopt_solver.mult_x_U - ipopt_solver.mult_x_L, Inf);
+  info.comp = maximum(ipopt_solver.mult_x_U .* min(1e16, abs(nlp_raw.meta.uvar - x_true) ) ) + maximum( ipopt_solver.mult_x_L .* min(1e16, abs(x_true - nlp_raw.meta.lvar)) )
 end

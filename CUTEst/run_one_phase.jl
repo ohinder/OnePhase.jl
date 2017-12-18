@@ -13,10 +13,10 @@ RUN_LIST = ["Dec10"]
 if "Dec10" in RUN_LIST
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
-my_par.tol_opt = 1e-4
-my_par.tol_unbounded = 1e-10
-my_par.tol_inf_1 = 1e-3
-my_par.tol_inf_2 = 1e-4
+my_par.term.tol_opt = 1e-4
+my_par.term.tol_unbounded = 1e-10
+my_par.term.tol_inf_1 = 1e-3
+my_par.term.tol_inf_2 = 1e-4
 folder_name = "one_phase/Dec10"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)

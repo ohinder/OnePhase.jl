@@ -2,18 +2,6 @@ include("../include.jl")
 
 #folder_name = ARGS[1]
 
-function set_cutest_info_ipopt!(info::problem_summary, ipopt_solver, nlp_raw::AbstractNLPModel, x::Array{Float64})
-  num_vars = length(nlp_raw.meta.lvar)
-  x_true = x[1:num_vars]
-
-  info.fval = obj(nlp_raw, x_true)
-  a = cons(nlp_raw, x_true);
-  info.con_vio = max(0.0, maximum(nlp_raw.meta.lvar - x_true), maximum(x_true - nlp_raw.meta.uvar), maximum(nlp_raw.meta.lcon - a), maximum(a - nlp_raw.meta.ucon))
-
-  info.dual_feas = norm(grad(nlp_raw, x_true) + jac(nlp_raw, x_true)' * ipopt_solver.mult_g + ipopt_solver.mult_x_U - ipopt_solver.mult_x_L, Inf);
-  info.comp = maximum(ipopt_solver.mult_x_U .* min(1e16, abs(nlp_raw.meta.uvar - x_true) ) ) + maximum( ipopt_solver.mult_x_L .* min(1e16, abs(x_true - nlp_raw.meta.lvar)) )
-end
-
 function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, solver)
     summary = Dict{String, problem_summary}()
 
@@ -138,8 +126,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               save("../results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
 
-              summary[problem_name].status = status;
-              set_info_me!(summary[problem_name], history)
+              set_info_me!(summary[problem_name], history, status)
               #.it_count = t;
           catch(e)
               println("Uncaught error in algorithm!!!")
