@@ -6,7 +6,9 @@ $$
 \min f(x)  \quad \text{s.t.} \quad a(x) \le 0.
 $$
 -->
+
 ![alt text](problem-statement.gif)
+
 Currently, the package is in development. Please let me know if there are any bugs etc. Note that the code is generally significantly slower than Ipopt in terms of raw runtime, particularly on small problems (the iteration count is competitive). However, we recommend trying our one-phase IPM if Ipopt is failing to solve, the problem is very large or might be infeasible.
 
 ## How to install
