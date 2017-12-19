@@ -1977,6 +1977,22 @@ This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006impl
 where $\parDeltaDecrease, \parDeltaIncreaseFailure, \parDeltaMin$ have default values of $\parDeltaDecreaseValue, \parDeltaIncreaseFailureValue, \parDeltaMinValue$ respectively.
 
 
+\section{Details for IPOPT experiments}
+
+We used the following options with IPOPT:
+
+\begin{enumerate}
+\item tol: $10^{-6}$
+\item max\_iter: $3000$
+\item max\_cpu\_time: $3600$
+\item nlp\_scaling\_method: `none'
+\item bound\_relax\_factor: $0.0$
+\item acceptable\_iter: $999999$
+\end{enumerate}
+All other options remained at their default values.
+
+
+
 
 \if\inProgress1
 
