@@ -3,6 +3,12 @@ function one_phase_solve(m::JuMP.Model)
     return one_phase_solve(nlp_raw)
 end
 
+function one_phase_solve(m::JuMP.Model, pars::Class_parameters)
+    nlp_raw = MathProgNLPModel(m);
+    return one_phase_solve(nlp_raw, pars::Class_parameters)
+end
+
+
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel)
     pars = Class_parameters()
     return one_phase_solve(nlp_raw, pars)
@@ -37,9 +43,9 @@ function switching_condition(iter::Class_iterate, last_step_was_superlinear::Boo
     dual_avg = scaled_dual_feas(iter, pars)
 
     if pars.primal_bounds_dual_feas
-      dual_progress = dual_avg < norm(get_primal_res(iter), Inf)
+      dual_progress = dual_avg < pars.aggressive_dual_threshold * norm(get_primal_res(iter), Inf)
     else
-      dual_progress = dual_avg < get_mu(iter)
+      dual_progress = dual_avg < pars.aggressive_dual_threshold * get_mu(iter)
     end
     delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
     lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),1) < sum(iter.point.s .* iter.point.y) + norm(get_grad(iter) + iter.point.mu * eval_grad_r(iter),1) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))

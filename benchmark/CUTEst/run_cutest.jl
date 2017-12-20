@@ -1,7 +1,7 @@
 include("../benchmark.jl")
 
 function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, solver)
-    summary = Dict{String, problem_summary}()
+    summary = Dict{String, problem_summary2}()
 
     if_mkdir("../results/$test_name")
     if_mkdir("../results/$test_name/log")
@@ -13,7 +13,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
           file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           nlp_raw = CUTEstModel(problem_name)
-          summary[problem_name] = problem_summary()
+          summary[problem_name] = problem_summary2()
           tic()
 
           try
@@ -68,7 +68,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
     if isfile("../results/$(test_name)/summary.jld")
       summary = load("../results/$(test_name)/summary.jld","summary")
     else
-      summary = Dict{String, problem_summary}()
+      summary = Dict{String, problem_summary2}()
     end
 
     already_solved_problems = keys(summary)
@@ -87,7 +87,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           ORG_STDOUT = STDOUT
           file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
-          summary[problem_name] = problem_summary()
+          summary[problem_name] = problem_summary2()
 
           nlp_raw = false
 
@@ -273,7 +273,7 @@ function select_problem_with_sparse_rows(problem_list::Array{String,1},max_densi
 end
 
 function default_list(sparsify=false)
-    problem_list = get_problem_list(100,10000)
+    problem_list = get_problem_list(50,10000)
     # only run problems with max row density 1000.
     if sparsify
       sparse_names, dense_names = select_problem_with_sparse_rows(problem_list, 1000)

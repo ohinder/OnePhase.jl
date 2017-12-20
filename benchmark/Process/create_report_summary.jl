@@ -1,6 +1,15 @@
-include("../include.jl")
+include("../benchmark.jl")
 include("create_report.jl")
 overlapping_results = get_CUTEst_results()
+
+using PyPlot
+its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
+plot_iterations(its, best, ratios, 3000)
+savefig("$folder/opt_iter_curve.pdf")
+
+#############
+############# SUMMARY TABLE
+#############
 
 f_TOL = 1e-2
 
@@ -111,6 +120,8 @@ tot(different_status_results["one phase"],[:optimal])
 )
 
 
+using CSV
+CSV.write("$folder/summary.csv",df)
 
 
 ## bar plot of data frame
@@ -134,8 +145,9 @@ for i = 1:length(label)
     ylabel="number of problems",
     ylims=(0,80)
     )
-    savefig("output/bar_$i.pdf")
+    savefig("$folder/bar_$i.pdf")
 end
+
 
 
 

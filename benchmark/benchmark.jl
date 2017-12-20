@@ -1,5 +1,5 @@
 using JLD
-USE_IPOPT = true
+USE_IPOPT = false
 if USE_IPOPT
   using Ipopt
 end

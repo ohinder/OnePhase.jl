@@ -1,0 +1,3 @@
+- run tests with infeasible one_phase with default pars.
+- go for a run then have lunch.
+- start writing new report. commit it all first.

@@ -1,26 +1,34 @@
 # RUN_LIST as input
 include("run_cutest.jl")
-my_par = Class_parameters()
 
 problem_list = default_list()
 
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["Dec10"]
+RUN_LIST = ["Dec19"]#"LowTol_Dec19",
 
-if "Dec10" in RUN_LIST
+if "HighTol_Dec19" in RUN_LIST
+my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
-my_par.term.tol_opt = 1e-4
-my_par.term.tol_unbounded = 1e-10
-my_par.term.tol_inf_1 = 1e-3
-my_par.term.tol_inf_2 = 1e-4
-folder_name = "one_phase/Dec10"
+folder_name = "one_phase/Dec19"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
+
+if "LowTol_Dec19" in RUN_LIST
+my_par = Class_parameters()
+my_par.term.max_time = 60.0 * 60
+my_par.term.max_it = 3000
+my_par.term.tol_opt = 1e-2
+my_par.term.tol_inf_1 = 1e-2
+my_par.term.tol_inf_2 = 1e-2
+folder_name = "one_phase/LowTol_Dec19"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
 
 if "init" in RUN_LIST
 my_par.term.max_time = 10.0 * 60.0

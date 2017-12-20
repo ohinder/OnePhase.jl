@@ -11,30 +11,6 @@ type problem_summary # for backward compatibility
         return new(:Blank,-2,NaN,NaN,NaN,NaN)
     end
 end
-
-function convert_problem_summary(ps::problem_summary)
-    ps_new = problem_summary2()
-    ps_new.status = ps.status
-    ps_new.it_count = ps.it_count
-    ps_new.total_time = ps.total_time
-    ps_new.fval = ps.fval
-    ps_new.con_vio = ps.con_vio
-    ps_new.dual_feas = ps.dual_feas
-    ps_new.comp = ps.comp
-    ps_new.dual_max = NaN
-
-    return ps_new
-end
-
-function convert_problem_summary(ls::Dict{String,problem_summary})
-    new_ls = Dict{String,problem_summary2}()
-    for (problem_name,info) in ls
-      new_ls[problem_name] = info
-    end
-
-    return new_ls
-end
-
 type problem_summary2
     status::Symbol
     it_count::Int64
@@ -48,6 +24,33 @@ type problem_summary2
     function problem_summary2()
         return new(:Blank,-2,NaN,NaN,NaN,NaN,NaN)
     end
+end
+
+function cps(ps::problem_summary)
+    ps_new = problem_summary2()
+    ps_new.status = ps.status
+    ps_new.it_count = ps.it_count
+    ps_new.total_time = ps.total_time
+    ps_new.fval = ps.fval
+    ps_new.con_vio = ps.con_vio
+    ps_new.dual_feas = ps.dual_feas
+    ps_new.comp = ps.comp
+    ps_new.dual_max = NaN
+
+    return ps_new
+end
+
+function cps(ls::Dict{String,problem_summary})
+    new_ls = Dict{String,problem_summary2}()
+    for (problem_name,info) in ls
+      new_ls[problem_name] = cps(info)
+    end
+
+    return new_ls
+end
+
+function cps(ls::Dict{String,problem_summary2})
+    return ls
 end
 
 

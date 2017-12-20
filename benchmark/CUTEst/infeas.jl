@@ -33,7 +33,7 @@ function perturb_cons(nr::CUTEstModel,scale::Float64)
 end
 
 function run_infeas(test_name, problem_list, my_par, solve_func!)
-    summary = Dict{String, problem_summary}()
+    summary = Dict{String, problem_summary2}()
 
     if_mkdir("../results/$test_name")
     if_mkdir("../results/$test_name/log")
@@ -50,8 +50,8 @@ function run_infeas(test_name, problem_list, my_par, solve_func!)
     end
 end
 
-problem_list = get_problem_list(100,200)
+problem_list = get_problem_list(50,10000)
 
 my_par = Class_parameters()
-#run_infeas("one_phase/infeas-test", problem_list, my_par, one_phase_solve)
-run_infeas("ipopt/infeas-test", problem_list, my_par, ipopt_solve)
+run_infeas("one_phase/infeas-Dec20", problem_list, my_par, one_phase_solve)
+#run_infeas("ipopt/infeas-test", problem_list, my_par, ipopt_solve)

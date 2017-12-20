@@ -45,5 +45,4 @@ ml load julia/precompiled/0.5.0
 ml load hdf5
 # You can use srun if your job is parallel
 # otherwise:
-cd ~/one-phase-2.0/CUTEst
 julia run_one_phase.jl

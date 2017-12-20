@@ -10,5 +10,5 @@ m = Model()
 
 it = one_phase_solve(m);
 @show it.point.x
-
+nlp_raw = MathProgNLPModel(m);
 IpoptSolve(nlp_raw)

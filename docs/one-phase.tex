@@ -175,7 +175,7 @@
 
 
 \newcommand{\TOLunbounded}{\epsilon_{\textbf{unbd}}}
-\newcommand{\TOLunboundedValue}{10^{-8}}
+\newcommand{\TOLunboundedValue}{10^{-12}}
 \newcommand{\TOLunboundedInterval}{(0,1)}
 
 
@@ -1099,19 +1099,19 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Not
 \textbf{Input:} The matrix $\Schur + \delta \eye$, its factorization, the current point $(\mu, x, s, y)$ and the point $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the outer iteration.  \\
 \textbf{Output:} A new point $(\mu^{+}, x^{+}, s^{+}, y^{+})$ and a $\status$ of either $\success$ or $\failure$.
 \begin{enumerate}[label*=A.{\arabic*}]
-\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.\hinder{fix!!!}
+\item \emph{Use Mehrotra's predictor-corrector heuristic to choose $\gamma$.} 
+\begin{enumerate}[label*=.{\arabic*}]
+\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.
+\item Compute the search direction $(\dir{x}, \dir{s}, \dir{y})$ using \eqref{practical-direction}
+\item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
+\item Set $\gamma \gets \min\{0.5, (1 - \alpha_{\max})^2 \}$.
+\end{enumerate}
+\item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma$ as chosen in previous step.
 \item Compute the search direction $(\dir{x}, \dir{s}, \dir{y})$ using \eqref{practical-direction}
 \item \emph{Check that the direction has a reasonable chance of being accepted.} If \eqref{eq:agg-could-improve} is not satisfied then terminate with $\status = \failure$.
 \item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
-%\item \label{agg:back-track} \backtrackBlurb
-%\begin{enumerate}[label=({\roman*})] 
-%\item The \fracBound{} rule \eqref{fracBoundary-primal} is satisfied
-%\item The set of valid dual step sizes is non-empty, i.e., $B( s^{+}, \dir{y} ) \neq \emptyset$ 
-%%\item If either \fracBound{} rule \eqref{} is satisfied or $\meritKKT_{\mu} ( x^{+}, y^{+}, s^{+} )  \le \beta (\| \cons(x^{+}) + s^{+} \|_{\infty} + \| \cons(x^{+}) + s^{+} \|_{\infty}^{1/2}) $
-%\end{enumerate}
-%Terminate with $\status = \failure$.
 \item \label{agg:line:back-track} \emph{Perform a backtracking linesearch}. Starting from $\alpha_{P} \gets \alpha^{\max}_{P}$ repeat the following steps.
-\begin{enumerate}[label*=.{\arabic*}] % satisfies \eqref{min-step-size-aggresssive}
+\begin{enumerate}[label*=.{\arabic*}]
 \item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P} \le \bar{\minStepFunc}(\mu, s)$ then goto line~\ref{line:agg-terminate}.
 \item Compute the trial primal variables $(\mu^{+}, x^{+}, s^{+})$ via~\eqref{eq:iterate-update}.
 \item If the \fracBound{} rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
@@ -1325,7 +1325,7 @@ National Laboratories, Nov. 1990.
 % and (ii) the NETLIB linear programming
 To obtain the numerical results we use the CUTEst nonlinear programming test set. The results are structured as follows. Section~\ref{alg:comparison-options} explores different algorithm options on CUTEst.  Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems constructed from CUTEst. We remark that these results are based on a slightly older version of our algorithm (this paper is a draft).
 
-We selected a subset from CUTEst with more than $100$ variables and constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems.
+We selected a subset from CUTEst with more than $100$ variables and $100$ constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems.
 
 Table~\ref{avg:evaluations} compares the number of calls and runtime of different elements of our algorithm. We do not currently compare the number of function evaluations with IPOPT, but in general we would anticipate that IPOPT needs slightly fewer evaluations per outer iteration. In particular, our algorithm may make multiple objective, constraint and Jacobian evaluations per inner iteration. We evaluate the Lagrangian of the Hessian once per outer iteration. For problems where function evaluations are expensive relative to factorization, one is often better off using SQP methods rather than interior point methods. For example, it is known that SNOPT generally requires fewer function evaluations than IPOPT \cite[Figure 2, Figure 3]{gill2015performance}. 
 %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
@@ -1345,6 +1345,26 @@ Successful inner iterations & 2.3 & \\
 \end{tabular}
 \caption{Number of calls and runtime of different algorithm elements.}\label{avg:evaluations}
 \end{table}
+
+\begin{enumerate}
+\item CUTEst
+\begin{enumerate}
+\item Number of calls to components
+\item IPOPT
+\item Description in text of raw runtime
+\item Table of when algorithm fails
+\item Plot of iterations to success
+\item Plot of iterations ratios given both algorithms declare problem optimal
+\item Distribution of maximum dual variable.
+\item Table of results
+\end{enumerate}
+\item Infeasible problems
+\begin{enumerate}
+\item perturbed CUTEst: table of when algorithm fails, iteration ratios given both declare problem infeasible
+\item infeasible netlib problems: iteration ratios
+\end{enumerate}
+\end{enumerate}
+
 
 \subsection{Comparison of different algorithm options}\label{alg:comparison-options}
 

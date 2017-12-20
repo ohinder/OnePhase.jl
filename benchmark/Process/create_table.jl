@@ -1,4 +1,4 @@
-include("../include.jl")
+include("../benchmark.jl")
 include("create_report.jl")
 
 results = get_CUTEst_results()
@@ -13,7 +13,7 @@ for (method_name,method_results) in results
   for (name,info) in method_results
     push!(df_results[method_name],[name,info.it_count,info.total_time,info.fval,info.con_vio,string(info.status)])
   end
-  CSV.write("output/table_$method_name.csv", df_results[method_name])
+  CSV.write("$folder/table_$method_name.csv", df_results[method_name])
 end
 
 using CSV
@@ -23,14 +23,14 @@ using CSV
 ### ITER/TIMING BREAK DOWN
 ###
 
-df_summary = DataFrame(name=[],median_it=[],median_time=[],mean_time=[])
+df_summary = DataFrame(name=[],median_it=[],median_time=[],total_time=[])
 for (method_name,method_results) in results
-    push!(df_summary,[method_name,median(df_results[method_name][:it]),median(df_results[method_name][:time]),mean(df_results[method_name][:time])])
+    push!(df_summary,[method_name,median(df_results[method_name][:it]),median(df_results[method_name][:time]),sum(df_results[method_name][:time])])
 end
 
 df_summary
 
-CSV.write("output/runtime_summary.csv", df_summary)
+CSV.write("$folder/runtime_summary.csv", df_summary)
 
 using FreqTables
 

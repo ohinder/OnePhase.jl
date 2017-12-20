@@ -22,7 +22,7 @@
 # We are submitting to the dev partition, there are several on sherlock: normal, gpu, owners, hns, bigmem (jobs requiring >64Gigs RAM)
 # The more partitions you can submit to the less time you will wait, you can submit to multiple partitions with -p at once in comma separated format.
 # srun -p owners -c 8 --mem=32000 -t 2880 --mail-type=ALL --mail-user=ohinder  --epilog /home/wlaw/killvnc.sh /home/wlaw/sherlock-eznovnc.sh
-#SBATCH -p normal
+#SBATCH -p jduchi
 #################
 #number of nodes you are requesting, the more you ask for the longer you wait
 #SBATCH --nodes=1
@@ -43,5 +43,4 @@ ml load julia/precompiled/0.5.0
 ml load hdf5
 # You can use srun if your job is parallel
 # otherwise:
-cd ~/one-phase-2.0/CUTEst
 julia infeas.jl

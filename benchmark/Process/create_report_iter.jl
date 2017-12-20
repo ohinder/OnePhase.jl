@@ -1,4 +1,4 @@
-include("../include.jl")
+include("../benchmark.jl")
 include("create_report.jl")
 
 overlapping_results = get_CUTEst_results()
@@ -22,16 +22,17 @@ overlapping_results = get_CUTEst_results()
 ##### - both solvers return a KKT point with the same objective
 #####
 #####
+
+
 res = all_status(overlapping_results, mode)
 its, best, ratios, times = compute_its_etc(res,MAX_IT=3000);
+
+println("number of overlapping results = ", length(res["ipopt"]))
 
 using PyPlot
 
 plot_iteration_ratios(its, best, ratios)
-savefig("output/opt_iter_ratios.pdf")
-
-plot_iterations(its, best, ratios, 3000)
-savefig("output/opt_iter_curve.pdf")
+savefig("$folder/opt_iter_ratios.pdf")
 
 ##
 ## PLOT TIME CURVES
