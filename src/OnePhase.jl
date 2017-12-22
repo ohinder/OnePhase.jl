@@ -1,5 +1,20 @@
+ __precompile__()
+
 module OnePhase
 
-# package code goes here
+export Class_parameters, one_phase_solve
+export pd, rd # utils
 
-end # module
+using advanced_timer, NLPModels, Compat, JuMP
+
+BLAS.set_num_threads(1) # this is because the server i uses does not correctly measure threads
+USE_MUMPS = false
+include("parameters.jl")
+include("utils/utils.jl")
+include("linear_system_solvers/linear_system_solvers.jl")
+include("kkt_system_solver/include.jl")
+include("line_search/line_search.jl")
+include("IPM/ipm.jl")
+include("init/init.jl")
+
+end
