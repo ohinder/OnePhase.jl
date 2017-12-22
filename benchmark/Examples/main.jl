@@ -166,11 +166,12 @@
 #nlp_raw2 = CUTEstModel("TWIRIBG1")
 #nlp_raw2 = CUTEstModel("ROTDISC")
 include("../../src/OnePhase.jl")
-nlp_raw2 = CUTEstModel("RK23")
+using CUTEst, OnePhase
+#nlp_raw2 = CUTEstModel("RK23")
 
 my_pars = Class_parameters()
 my_pars.term.tol_opt = 1e-6
-
+nlp_raw2 = CUTEstModel("WACHBIEG")
 
 #my_pars.init.mu_scale = 1e-2
 if false
@@ -178,7 +179,7 @@ if false
   autotune(nlp_raw2, my_pars)
 end
 
-iter = one_phase_solve(nlp_raw2,my_pars);
+iter, status, hist, t, err = one_phase_solve(nlp_raw2,my_pars);
 #get_fval(iter)
 #eval_f(nlp,iter.point.x)
 #obj(nlp_raw2,iter.point.x) - get_fval(iter)

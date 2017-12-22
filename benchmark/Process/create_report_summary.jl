@@ -2,78 +2,29 @@ include("../benchmark.jl")
 include("create_report.jl")
 overlapping_results = get_CUTEst_results()
 
-using PyPlot
-its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
-plot_iterations(its, best, ratios, 3000)
-savefig("$folder/opt_iter_curve.pdf")
-
 #############
 ############# SUMMARY TABLE
 #############
 
-f_TOL = 1e-2
-
 problem_list = collect(keys(first(overlapping_results)[2]))
 method_list = collect(keys(overlapping_results))
-
-winners = Dict()
-winners["tie"] = 0
-winners["fail"] = 0
 
 different_status_problems = Array{String,1}()
 
 begin
-  for method_name in method_list
-      print(pd(""), pd(method_name))
-      winners[method_name] = 0
-  end
-  print("\n")
-
   for problem_name in problem_list
 
       previous_status = :none
       same_status = false
 
-      print(pd(problem_name))
-      best = "fail"
-      both_kkt = true
-      fbest = 1e14
       for method_name in method_list
         info = overlapping_results[method_name][problem_name]
-        fval = info.fval
-        con_vio = info.con_vio
-        print(rd(con_vio))
-        print(rd(fval))
 
         if info.status == previous_status
           same_status = true
         end
         previous_status = info.status
-
-        if info.status == :optimal
-          if con_vio > 1e-6
-            both_kkt = false
-            println("CON VIOLATION!!")
-          else
-            @assert(con_vio < 1e-6)
-            ftol_scaled = f_TOL * (1.0 + abs(fbest))
-            if fval <= fbest - ftol_scaled
-              fbest = fval
-              best = method_name
-            elseif fbest - ftol_scaled < fval && fval <= fbest + ftol_scaled
-              fbest = fval
-              best = "tie"
-            end
-          end
-        else
-          both_kkt = false
-        end
       end
-      if both_kkt
-        winners[best] += 1
-      end
-      print(pd(best))
-      print("\n")
 
       if !same_status
         push!(different_status_problems,problem_name)
@@ -85,6 +36,7 @@ shared_fails = shared_failures(overlapping_results)
 fail_only = Dict()
 for (method_name, sum_data) in overlapping_results
     fail_only[method_name] = tot_failures(sum_data) - shared_fails
+    println("total failures of $method_name is ", tot_failures(sum_data))
 end
 
 different_status_results = restrict_problems(overlapping_results,different_status_problems)
@@ -147,11 +99,3 @@ for i = 1:length(label)
     )
     savefig("$folder/bar_$i.pdf")
 end
-
-
-
-
-#its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
-
-
-#times["ipopt"]

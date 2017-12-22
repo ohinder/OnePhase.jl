@@ -28,12 +28,14 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
             MathProgBase.optimize!(mp)
             #x = MathProgBase.getsolution(mp)
             #solver = MathProgBase.getrawsolver(mp)
+
             status = MathProgBase.status(mp)
             summary[problem_name].status = status;
             summary[problem_name].it_count = t;
 
             x = MathProgBase.getsolution(mp)
             set_cutest_info_ipopt!(summary[problem_name], mp.inner, nlp_raw, x)
+            println("here4")
           catch(e)
             println("Uncaught error in algorithm!!!")
             @show e;

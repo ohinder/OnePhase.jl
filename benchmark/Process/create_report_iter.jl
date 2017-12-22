@@ -23,16 +23,26 @@ overlapping_results = get_CUTEst_results()
 #####
 #####
 
+using PyPlot
+PyPlot.close()
+its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);
+plot_iterations(its, best, ratios, 3000)
+savefig("$folder/iter_curve.pdf")
+PyPlot.close()
+
+plot_iteration_ratios(its, best, ratios)
+savefig("$folder/iter_ratios.pdf")
+PyPlot.close()
+
 
 res = all_status(overlapping_results, mode)
 its, best, ratios, times = compute_its_etc(res,MAX_IT=3000);
 
 println("number of overlapping results = ", length(res["ipopt"]))
 
-using PyPlot
-
 plot_iteration_ratios(its, best, ratios)
 savefig("$folder/opt_iter_ratios.pdf")
+PyPlot.close()
 
 ##
 ## PLOT TIME CURVES

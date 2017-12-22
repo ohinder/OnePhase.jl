@@ -1,6 +1,13 @@
-using advanced_timer, NLPModels, Compat
+ __precompile__()
 
-BLAS.set_num_threads(1)
+module OnePhase
+
+export Class_parameters, one_phase_solve
+export pd, rd # utils
+
+using advanced_timer, NLPModels, Compat, JuMP
+
+BLAS.set_num_threads(1) # this is because the server i uses does not correctly measure threads
 USE_MUMPS = false
 include("parameters.jl")
 include("utils/utils.jl")
@@ -9,3 +16,5 @@ include("kkt_system_solver/include.jl")
 include("line_search/line_search.jl")
 include("IPM/ipm.jl")
 include("init/init.jl")
+
+end

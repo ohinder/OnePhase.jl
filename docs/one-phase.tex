@@ -942,10 +942,12 @@ Section~\ref{sec:simple-alg} presented a simple one-phase algorithm that is guar
 \item The introduction of inner iterations that reuse the factorizations of $\Schur$. This reduces the total number of factorizations (Section~\ref{schur-reuse}).
 \item How to choose the step sizes $\alpha_{P}$ and $\alpha_{D}$ in a practical manner (Section~\ref{step-acceptance}).
 \item Using a filter to encourage steps that significantly reduce the KKT error (Section~\ref{sec:filter}).
-\item How to compute $\delta$ in a practical manner (Section~\ref{sec:practical-alg-outline}).
-\item How choose the initial variable values (Section~\ref{sec:initialization}).
+\item How to compute $\delta$ in a practical manner (Section~\ref{sec:practical-alg-outline} and Appendix~\ref{sec:mat-fact}).
+\item How choose the initial variable values (Appendix~\ref{sec:initialization}).
 \end{enumerate}
 The full algorithm is described in Section~\ref{sec:practical-alg-outline} with appropriately modified stabilization and aggressive steps. 
+
+!!!!!!!!!!!![Cite Robert Vanderbei on linear algebra]!!!!!!!!!!
 
 \subsection{Reusing the factorization of $\Schur$}\label{schur-reuse}
 
@@ -1232,95 +1234,9 @@ $\TOLunbounded$ & Tolerance for the unboundedness criterion \eqref{terminate-dua
 \caption{Parameters values and descriptions}
 \end{table}
 
-\hinder{move to appendix}
 %\section{Implementation details}\label{sec:implementation-details}
 
-\subsection{Initialization}\label{sec:initialization}
-
-\hinder{review and test!!! there should be three separate routines - one for correcting the $x$ variables, one for selection slack variables $s$ and dual variables $y$ and one for correcting the guessed $y$, $s$.}
-
-This section explains how given a starting point $x_{\text{start}}$, how to select initial variable values $(\mu^0,x^0, y^0, s^0)$ to pass to Algorithm~\ref{one-phase-IPM}.
-
-
-\ron{How does IPOPT do this?}
-The first goal is to modify $x_{\text{start}}$ to satisfy any bounds e.g., $l \le x \le u$. Let $\mathcal{B} \subseteq \{ 1, \dots, \ncon \}$ be the set of indices corresponding to variable bounds. More precisely, $i \in \mathcal{B}$ if and only if there exists $c \in \R$ such that $a_i(x) = e_j^T x + c$ or $a_i(x) = -e_j^T x + c$. We project $x_{\text{start}}$ onto the variable bounds in the same way as IPOPT \cite[Section 3.7]{wachter2006implementation}. Furthermore, we set $w_i = 0$ and $s_i^{0} = -a_i(x^0)$ for each $i \in \mathcal{B}$. This ensures that the variable bounds are satisfied throughout, and is useful because the constraints or objective may not be defined outside the bound constraints. To guarantee that any constraint $a_i(x)$ that was strictly feasible at the initial point $x^{0}$ remains feasible throughout the algorithm we could simply set $\conWeight_i = 0$ and $s_i^{0} = -a_i(x^0)$.
- 
-
-%This is done because often the nonlinear constraints or objective may not be defined outside the bound constraints. 
-
-%Note that the way we present our work the variables bound correspond to constraints indicies 
-%are a subset of the set constraints given by $a_i(x) \le 0$ for $i = 1, ..., m$. We project onto the bounds in the same way as \cite[Section 3.7]{wachter2006implementation}. Note that by setting $a_i(x)
-
-%\begin{flalign}
-%x_{i}^{0} \gets \min \{ x_{i}^{0}, u_i \} \\
-%x_{i}^{0} \gets \max \{ x_{i}^{0}, l_i \} 
-%\end{flalign}
-%where $l$ and $u$ correspond to the upper and lower bounds defined by the constraints $a$.
-
-%Recall that to start the algorithm, we must select points vector $w \ge 0$, slack variables $s > 0$ and initial barrier parameter $\mu^{0}$ such that
-%$$
-%\cons(x^{0}) + s^{0} = w \mu^{0}
-%$$
-%How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
-%we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
-The remainder of the initialization scheme is inspired by Mehrotra's work for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual variable and slack variables from
-\begin{flalign*}
-\tilde{y} &\gets \grad \cons(x^0) (\grad \cons(x^0)^T \grad \cons(x^0) + I \parInitialize)^{-1}  \grad \obj(x^0) \\
-\tilde{s} &\gets -\cons(x^{0})
-\end{flalign*}
-\hinder{check this matches!!!}
-for some parameter $\parInitialize \in (0,\infty)$ with default value $\parInitializeValue$.
-
-\hinder{this should be a loop}
-Consider the following scalar variables:
-\begin{flalign}
-& \varepsilon_{y} \gets \max\{ -2 \min_i{ \tilde{y}_i}, 0 \}  \\
-& \varepsilon_{s} \gets \max\left\{ - 2 \min_i{ \tilde{s}_i}, \frac{\| \grad \Lag_{\mu^0}(x^{0}, \tilde{y}) \|_{\infty}}{\| \tilde{y} \|_{\infty} + 1} \right\} %\frac{\tilde{s}^T y }{\| y \|_{1}} +
-\end{flalign}
-then set
-\begin{flalign}
-y^{0} &\gets \tilde{y} + \varepsilon_{y} \\
-s^{0} &\gets \tilde{s} + \varepsilon_{s} \\
-\mu^{0} &\gets \parMuScale \frac{(s^0)^T y^{0}}{\ncon}
-\end{flalign}
-where $\parMuScale$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm.
-
-We project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},10^{5}]$ and project the dual variables $y^{0}$ onto the interval $\mu S^{-1} \ones [\parComp, 1/\parComp]$. Finally, we set $\conWeight = \frac{a(x^0) - s^0}{\mu^0}$.
-
-\inProgressHide{
-
-%The default value is $\kappa = 10^{-3}$.
-
-%\begin{enumerate}
-%\item Dealing with bound constraints
-%\end{enumerate}
-%
-%For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\mu^{1}$ via
-%\begin{flalign*}
-%\mu^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
-%s^{1} &\gets \mu^{1} \ones - \cons(x^{1}) 
-%\end{flalign*}   
-
-\subsection{Handling bound constraints}
-
-\todo[inline]{explain how equality and lower/upper bounds can be handled}
-
-\subsection{Linear algebra}\label{sec:linear-algebra}
-
-\begin{enumerate}
-\item Splitting dense columns in sparse linear systems. Linear Algebra and its Applications. Robert J. Vanderbei. \cite{vanderbei1991splitting}
-\item \cite{lustig1991formulating} Get between 5 times and 80 times speed up from splitting dense columns for stochastic programs.
-\item Matrix Stretching for Sparse Least Squares \url{https://pdfs.semanticscholar.org/0054/9cc96c29f24c9d55d76962676fe5993f2b11.pdf}
-\item Matrix Stretching for Linear Equations \url{https://arxiv.org/abs/1203.2377}
-\item J. F. Grcar, Matrix stretching for linear equations, Tech. Report SAND90-8723, Sandia
-National Laboratories, Nov. 1990.
-\end{enumerate}
-
-\subsection{Iterative refinement}
-
-}
-
-\section{Numerical results on CUTEst}\label{sec:numerical-results}
+\section{Numerical results}\label{sec:numerical-results}
 
 % and (ii) the NETLIB linear programming
 To obtain the numerical results we use the CUTEst nonlinear programming test set. The results are structured as follows. Section~\ref{alg:comparison-options} explores different algorithm options on CUTEst.  Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems constructed from CUTEst. We remark that these results are based on a slightly older version of our algorithm (this paper is a draft).
@@ -1330,27 +1246,112 @@ We selected a subset from CUTEst with more than $100$ variables and $100$ constr
 Table~\ref{avg:evaluations} compares the number of calls and runtime of different elements of our algorithm. We do not currently compare the number of function evaluations with IPOPT, but in general we would anticipate that IPOPT needs slightly fewer evaluations per outer iteration. In particular, our algorithm may make multiple objective, constraint and Jacobian evaluations per inner iteration. We evaluate the Lagrangian of the Hessian once per outer iteration. For problems where function evaluations are expensive relative to factorization, one is often better off using SQP methods rather than interior point methods. For example, it is known that SNOPT generally requires fewer function evaluations than IPOPT \cite[Figure 2, Figure 3]{gill2015performance}. 
 %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
 
+[The code can be found here and table of results]
+
+\subsection{Summary of performance on CUTEst}
 
 \begin{table}[H]
 \begin{tabular}{l  p{3.0cm} l}
 &   Mean \# calls per outer iteration & \% runtime contribution \\ 
-Hessian & 1 & 2.6\% \\  
-Schur complement &1 & 14.8\% \\
-Jacobian & 2.3 & 4.5\%  \\
-Gradient & 2.3 & 4.5\%  \\
-Constraints & 6.1 & 0.6\% \\
-Factorizations & 2.0  & 58.2\%  \\
-Backsolves & 8.5 & 8\% \\
-Successful inner iterations & 2.3 & \\
+Hessian & 1 & 4.1\% \\  
+Schur complement &1 & 31.7\% \\
+Jacobian & 2.1 & 6.1\%  \\
+Gradient & 2.1 & 0.4\%  \\
+Constraints & 5.5 & 0.4\% \\
+Factorizations & 1.9  & 42.4 \%  \\
+Backsolves & 9.2 & 0.7\% \\
+Successful inner iterations & 2.1 & \\
 \end{tabular}
 \caption{Number of calls and runtime of different algorithm elements.}\label{avg:evaluations}
 \end{table}
+
+
+\subsection{Comparison with IPOPT on CUTEst}
+
+We consider algorithm to have failed on a problem if it did not return a status of infeasible, optimal or unbounded. Overall the number of failures is 39 for IPOPT and 21 for the one-phase algorithm. From Table~\ref{compare-outputs} we can see that the one-phase algorithm detects infeasibility and KKT points more often than IPOPT. If we reduce the termination tolerances of both algorithms to $10^{-2}$ and re-run them on the test set the one-phase algorithm fails 11 times versus 41 times for IPOPT (IPOPT's algorithm makes choices based on the termination criterion).
+
+\begin{table}[H]
+\caption{Comparison on problems where solver outputs are different.}\label{compare-outputs}
+\begin{tabular}{| c | c | c |}
+& IPOPT & one-phase \\
+\hline
+failure &  32 & 14 \\ 
+infeasible & 2 & 12 \\  
+unbounded & 0 & 0 \\
+KKT & 20 & 28 
+\end{tabular}
+\end{table}
+
+To run this test set it takes a total of 16 hours for IPOPT and 11 hours for our one-phase algorithm. However, IPOPT is generally significantly faster than our algorithm. It has a median runtime of $0.6$ seconds per problem versus $2.5$ seconds for our algorithm (including problems where the algorithm fails). This is not surprising since our code is written in Julia and is not optimized for speed; IPOPT is written in Fortran and has been in development for over 15 years. This speed difference is particularly acute on small problems where the overheads of Julia are large. Assuming factorization or computation of the hessian is the dominant computational cost we would expect the time per iteration to be similar if our algorithm was efficiently implemented in a compiled programming language. For this reason, we compare the algorithms based on iteration counts.
+
+To compare iteration counts our graphs use the performance profiling of \citet*{dolan2002benchmarking}. In particular, on the $x$-axis we plot:
+$$
+\frac{\text{iteration count of solver}}{\text{iteration count of fastest solver}}
+$$
+and the curve plotted is a cumulative distribution over the test set. We can see from Figure~\ref{fig:iter-count-CUTEst} that the overall distribution of iteration counts seems similar to IPOPT. Although given both algorithms declare the problem optimal IPOPT is more likely to be quicker (Figure~\ref{fig:iter-count-CUTEst-opt})
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{figures2/iter_ratios.pdf}
+\caption{Distribution of iterations ratios on problems until algorithm succeeds (i.e., returns a status of optimal, primal infeasible, or unbounded)}\label{fig:iter-count-CUTEst}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{figures2/opt_iter_ratios.pdf}
+\caption{Distribution of iteration ratios on problems where both algorithms declare problem optimal.}\label{fig:iter-count-CUTEst-opt}
+\end{figure}
+
+%? 1   ? failure     ? 35.0  ? 5.0       ?
+%? 2   ? infeasible  ? 2.0   ? 21.0      ?
+%? 3   ? unbounded   ? 0.0   ? 0.0       ?
+%? 4   ? KKT         ? 21.0  ? 32.0      ?
+
+
+
+\subsection{Comparison with IPOPT on infeasible problems}
+
+
+On few of the CUTEst problems both solvers declare the problems infeasible. Therefore to get an idea of how the solvers perform on infeasible problems we perturb the CUTEst test set. Recall that CUTEst writes problems in the form $l \le c(x) \le u$. To generate a test set that was more likely to contain infeasible problems we shift the constraints (excluding the variable bounds) as follows:
+$$
+\tilde{c}(x) \gets c(x) + e,
+$$
+and then input the problems to the one-phase solver and IPOPT. Note that the new problems may or may not be feasible. In Table~\ref{table-perturbed-solver-output} we compare the solver outputs on this perturbed test set. 
+
+\begin{table}[H]
+\caption{Comparison on perturbed CUTEst where solver outputs are different.}\label{table-perturbed-solver-output}
+\begin{tabular}{| c | c | c |}
+& IPOPT & one-phase \\
+\hline
+failure &  35 & 11 \\ 
+infeasible & 7 & 19 \\  
+unbounded & 0 & 4 \\
+KKT & 7 & 15 
+\end{tabular}
+\end{table}
+
+Overall we found that ???80/204??? problems were declared infeasible by both solvers. On this test set we compared the iteration counts of IPOPT and the one-phase algorithm (Figure~\ref{fig:inf_cutest_iter_ratios}). 
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{figures2/inf_cutest_iter_ratios.pdf}
+\caption{Distribution of iteration ratios on perturbed CUTEst problems where both algorithms declare the problem infeasible.}\label{fig:inf_cutest_iter_ratios}
+\end{figure}
+
+Since this perturbed CUTEst test set was somewhat artificial we also tested on the NETLIB test set containing infeasible linear programs (Figure~\ref{fig:inf_netlib_iter_ratios}). We remark that on these 15 problems the one-phase algorithm required less iterations on every problem.
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{figures2/inf_netlib_iter_ratios.pdf}
+\caption{Distribution of iteration ratios on NETLIB infeasible test set.}\label{fig:inf_netlib_iter_ratios}
+\end{figure}
+
+\subsection{Comparison with IPOPT on selected large scale problems}
+
 
 \begin{enumerate}
 \item CUTEst
 \begin{enumerate}
 \item Number of calls to components
-\item IPOPT
+\end{enumerate}
+\item Compare IPOPT
+\begin{enumerate}
 \item Description in text of raw runtime
 \item Table of when algorithm fails
 \item Plot of iterations to success
@@ -1973,10 +1974,11 @@ Suppose Assumption~\ref{second-order-sufficient-conditions} holds at the point $
 
 \fi
 
-\section{Matrix factorization strategy}\label{sec:mat-fact}
+\section{Further implementation details}
 
-\hinder{re-write and add initialization scheme}
+\subsection{Matrix factorization strategy}\label{sec:mat-fact}
 
+%\hinder{re-write and add initialization scheme}
 
 This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006implementation}.
 
@@ -1996,6 +1998,91 @@ This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006impl
 \end{algorithm}
 where $\parDeltaDecrease, \parDeltaIncreaseFailure, \parDeltaMin$ have default values of $\parDeltaDecreaseValue, \parDeltaIncreaseFailureValue, \parDeltaMinValue$ respectively.
 
+
+\subsection{Initialization}\label{sec:initialization}
+
+\hinder{review and test!!! there should be three separate routines - one for correcting the $x$ variables, one for selection slack variables $s$ and dual variables $y$ and one for correcting the guessed $y$, $s$.}
+
+This section explains how given a starting point $x_{\text{start}}$, how to select initial variable values $(\mu^0,x^0, y^0, s^0)$ to pass to Algorithm~\ref{one-phase-IPM}.
+
+
+\ron{How does IPOPT do this?}
+The first goal is to modify $x_{\text{start}}$ to satisfy any bounds e.g., $l \le x \le u$. Let $\mathcal{B} \subseteq \{ 1, \dots, \ncon \}$ be the set of indices corresponding to variable bounds. More precisely, $i \in \mathcal{B}$ if and only if there exists $c \in \R$ such that $a_i(x) = e_j^T x + c$ or $a_i(x) = -e_j^T x + c$. We project $x_{\text{start}}$ onto the variable bounds in the same way as IPOPT \cite[Section 3.7]{wachter2006implementation}. Furthermore, we set $w_i = 0$ and $s_i^{0} = -a_i(x^0)$ for each $i \in \mathcal{B}$. This ensures that the variable bounds are satisfied throughout, and is useful because the constraints or objective may not be defined outside the bound constraints. To guarantee that any constraint $a_i(x)$ that was strictly feasible at the initial point $x^{0}$ remains feasible throughout the algorithm we could simply set $\conWeight_i = 0$ and $s_i^{0} = -a_i(x^0)$.
+ 
+
+%This is done because often the nonlinear constraints or objective may not be defined outside the bound constraints. 
+
+%Note that the way we present our work the variables bound correspond to constraints indicies 
+%are a subset of the set constraints given by $a_i(x) \le 0$ for $i = 1, ..., m$. We project onto the bounds in the same way as \cite[Section 3.7]{wachter2006implementation}. Note that by setting $a_i(x)
+
+%\begin{flalign}
+%x_{i}^{0} \gets \min \{ x_{i}^{0}, u_i \} \\
+%x_{i}^{0} \gets \max \{ x_{i}^{0}, l_i \} 
+%\end{flalign}
+%where $l$ and $u$ correspond to the upper and lower bounds defined by the constraints $a$.
+
+%Recall that to start the algorithm, we must select points vector $w \ge 0$, slack variables $s > 0$ and initial barrier parameter $\mu^{0}$ such that
+%$$
+%\cons(x^{0}) + s^{0} = w \mu^{0}
+%$$
+%How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
+%we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
+The remainder of the initialization scheme is inspired by Mehrotra's work for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual variable and slack variables from
+\begin{flalign*}
+\tilde{y} &\gets \grad \cons(x^0) (\grad \cons(x^0)^T \grad \cons(x^0) + I \parInitialize)^{-1}  \grad \obj(x^0) \\
+\tilde{s} &\gets -\cons(x^{0})
+\end{flalign*}
+\hinder{check this matches!!!}
+for some parameter $\parInitialize \in (0,\infty)$ with default value $\parInitializeValue$.
+
+\hinder{this should be a loop}
+Consider the following scalar variables:
+\begin{flalign}
+& \varepsilon_{y} \gets \max\{ -2 \min_i{ \tilde{y}_i}, 0 \}  \\
+& \varepsilon_{s} \gets \max\left\{ - 2 \min_i{ \tilde{s}_i}, \frac{\| \grad \Lag_{\mu^0}(x^{0}, \tilde{y}) \|_{\infty}}{\| \tilde{y} \|_{\infty} + 1} \right\} %\frac{\tilde{s}^T y }{\| y \|_{1}} +
+\end{flalign}
+then set
+\begin{flalign}
+y^{0} &\gets \tilde{y} + \varepsilon_{y} \\
+s^{0} &\gets \tilde{s} + \varepsilon_{s} \\
+\mu^{0} &\gets \parMuScale \frac{(s^0)^T y^{0}}{\ncon}
+\end{flalign}
+where $\parMuScale$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm.
+
+We project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},10^{5}]$ and project the dual variables $y^{0}$ onto the interval $\mu S^{-1} \ones [\parComp, 1/\parComp]$. Finally, we set $\conWeight = \frac{a(x^0) - s^0}{\mu^0}$.
+
+\inProgressHide{
+
+%The default value is $\kappa = 10^{-3}$.
+
+%\begin{enumerate}
+%\item Dealing with bound constraints
+%\end{enumerate}
+%
+%For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\mu^{1}$ via
+%\begin{flalign*}
+%\mu^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
+%s^{1} &\gets \mu^{1} \ones - \cons(x^{1}) 
+%\end{flalign*}   
+
+\subsection{Handling bound constraints}
+
+\todo[inline]{explain how equality and lower/upper bounds can be handled}
+
+\subsection{Linear algebra}\label{sec:linear-algebra}
+
+\begin{enumerate}
+\item Splitting dense columns in sparse linear systems. Linear Algebra and its Applications. Robert J. Vanderbei. \cite{vanderbei1991splitting}
+\item \cite{lustig1991formulating} Get between 5 times and 80 times speed up from splitting dense columns for stochastic programs.
+\item Matrix Stretching for Sparse Least Squares \url{https://pdfs.semanticscholar.org/0054/9cc96c29f24c9d55d76962676fe5993f2b11.pdf}
+\item Matrix Stretching for Linear Equations \url{https://arxiv.org/abs/1203.2377}
+\item J. F. Grcar, Matrix stretching for linear equations, Tech. Report SAND90-8723, Sandia
+National Laboratories, Nov. 1990.
+\end{enumerate}
+
+\subsection{Iterative refinement}
+
+}
 
 \section{Details for IPOPT experiments}
 

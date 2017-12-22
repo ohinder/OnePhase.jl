@@ -107,7 +107,7 @@ function set_info_me!(info::problem_summary2, hist, status::Symbol)
     info.status = status
 end
 
-function set_cutest_info_ipopt!(info::problem_summary2, ipopt_solver, nlp_raw::AbstractNLPModel, x::Array{Float64})
+function set_cutest_info_ipopt!(info::problem_summary2, ipopt_solver, nlp_raw::AbstractNLPModel, x::Array{Float64,1})
   num_vars = length(nlp_raw.meta.lvar)
   x_true = x[1:num_vars]
 
@@ -117,5 +117,5 @@ function set_cutest_info_ipopt!(info::problem_summary2, ipopt_solver, nlp_raw::A
 
   info.dual_feas = norm(grad(nlp_raw, x_true) + jac(nlp_raw, x_true)' * ipopt_solver.mult_g + ipopt_solver.mult_x_U - ipopt_solver.mult_x_L, Inf);
   info.comp = maximum(ipopt_solver.mult_x_U .* min(1e16, abs(nlp_raw.meta.uvar - x_true) ) ) + maximum( ipopt_solver.mult_x_L .* min(1e16, abs(x_true - nlp_raw.meta.lvar)) )
-  info.dual_max = max(maximum(ipopt_solver.mult_x_U),maximum(ipopt_solver.mult_x_L), abs(ipopt_solver.mult_g))
+  info.dual_max = max(maximum(ipopt_solver.mult_x_U),maximum(ipopt_solver.mult_x_L), maximum(abs(ipopt_solver.mult_g)))
 end

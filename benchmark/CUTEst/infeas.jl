@@ -53,5 +53,5 @@ end
 problem_list = get_problem_list(50,10000)
 
 my_par = Class_parameters()
-run_infeas("one_phase/infeas-Dec20", problem_list, my_par, one_phase_solve)
-#run_infeas("ipopt/infeas-test", problem_list, my_par, ipopt_solve)
+#run_infeas("one_phase/infeas-Dec20", problem_list, my_par, one_phase_solve)
+run_infeas("ipopt/infeas-Dec22", problem_list, my_par, ipopt_solve)

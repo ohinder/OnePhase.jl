@@ -1,11 +1,3 @@
-#using MAT
-
-function if_mkdir(dir::String)
-  if !isdir(dir)
-     mkdir(dir)
-  end
-end
-
 function rd(num::Float64, digits::Int64=2) # round
     if digits == 2
       return pd(@sprintf("%.2e", num))
