@@ -82,6 +82,7 @@ type Class_line_search_parameters <: abstract_pars
     this.num_backtracks = 60;
 
     this.agg_gamma = :mehrotra_stb
+    #this.agg_gamma = :affine
 
     this.move_primal_seperate_to_dual = true
     this.dual_ls = 1

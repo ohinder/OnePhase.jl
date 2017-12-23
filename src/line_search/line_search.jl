@@ -39,8 +39,9 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
     # compute fraction to boundary
     lb_s = lb_s_predict(iter, dir, pars)
     step_size_P = simple_max_step(iter.point.s, dir.s, lb_s)
+    step_size_D = NaN
 
-    step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
+    #step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
 
     if accept_type == :accept_stable
       accept_obj = Class_stable_ls(iter, dir, pars)

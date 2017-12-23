@@ -30,7 +30,8 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         s = it.point.s[i]
         @assert(s > 0.0)
 
-        safety_factor = 1.01
+        #safety_factor = 1.0 #01
+        safety_factor = 1.0
         safety_add = 0.0
 
         #ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
@@ -65,17 +66,17 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
           mu_lb = (y[i] + lb * dy[i]) * s
           mu_ub = (y[i] + ub * dy[i]) * s
 
-          if mu_lb > mu / comp_feas
-              println("HERE1")
-          end
+          #if mu_lb > mu / comp_feas
+          #    println("HERE1")
+          #end
 
           if mu_ub > mu / comp_feas
             println("HERE2")
           end
 
-          if mu_ub < mu * comp_feas
-            println("HERE3")
-          end
+          #if mu_ub < mu * comp_feas
+          #  println("HERE3")
+          #end
 
           if mu_lb < mu * comp_feas
             println("HERE4")

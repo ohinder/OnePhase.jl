@@ -173,7 +173,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   end
 
   if output_level >= 4
-    println("res", i, " ", rd(Float64(norm(res_old,2))))
+    println("res ", rd(Float64(norm(res_old,2))))
   end
 
   return dir_x

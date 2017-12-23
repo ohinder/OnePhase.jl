@@ -1,6 +1,8 @@
-function IpoptSolve(nlp)
+function IpoptSolve(nlp;print_level=5)
     tic()
-    solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none", acceptable_iter=999999)
+    #solver = IpoptSolver(print_level=5, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none", acceptable_iter=999999)
+    solver = IpoptSolver(print_level=print_level, max_iter=3000, bound_relax_factor=0.0, nlp_scaling_method="none", acceptable_iter=999999)
+
     #,mehrotra_algorithm="yes") #, tol_dual_abs=1e-6)
     #solver = IpoptSolver(print_level=5, tol=1e-8)
     mp = NLPModels.NLPtoMPB(nlp, solver)

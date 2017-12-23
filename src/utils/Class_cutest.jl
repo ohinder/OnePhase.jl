@@ -1,6 +1,3 @@
-using CUTEst
-importall NLPModels
-
 type Class_bounds
     l_i::Array{Int64,1}
     u_i::Array{Int64,1}
@@ -28,17 +25,17 @@ end
 
 
 
-function _i_not_fixed(m::AbstractNLPModel)
+function _i_not_fixed(m::NLPModels.AbstractNLPModel)
     return (1:m.meta.nvar)[m.meta.lvar .!= m.meta.uvar]
 end
 
 type Class_CUTEst <: abstract_nlp
-    nlp::AbstractNLPModel
+    nlp::NLPModels.AbstractNLPModel
 
     bcon::Class_bounds
     bvar::Class_bounds
 
-    function Class_CUTEst(nlp::AbstractNLPModel)
+    function Class_CUTEst(nlp::NLPModels.AbstractNLPModel)
         ind = _i_not_fixed(nlp)
         return new(nlp, Class_bounds(nlp.meta.lcon[:], nlp.meta.ucon[:]), Class_bounds(nlp.meta.lvar[ind], nlp.meta.uvar[ind]))
     end
@@ -80,7 +77,7 @@ function linear_cons(m::Class_CUTEst)
     is_linear = zeros(m.nlp.meta.ncon)
     is_linear[m.nlp.meta.lin] = 1.0
     vec = [is_linear[m.bcon.l_i]; is_linear[m.bcon.u_i]; ones(nbounds_orginal(m))]
-    
+
     return 1.0 .== vec
 end
 

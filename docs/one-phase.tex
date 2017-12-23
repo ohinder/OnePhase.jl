@@ -61,7 +61,7 @@
 
 
 \newcommand{\parNumCor}{j_{\max}}
-\newcommand{\parNumCorValue}{3}
+\newcommand{\parNumCorValue}{2}
 
 
 %% beta
@@ -243,6 +243,8 @@
 
 \begin{abstract}
 The work of \citet*{wachter2000failure} suggests that infeasible-start interior point methods (IPMs) developed for linear programming cannot be adapted to nonlinear optimization without significant modification, i.e., using a two-phase or penalty method. We propose an IPM that, by careful initialization and updates of the slack variables, is guaranteed to find a first-order certificate of local infeasibility, local optimality or unboundedness of the (shifted) feasible region. Our proposed algorithm differs from other IPM methods for nonconvex programming because we reduce primal feasibility at the same rate as the barrier parameter. This gives an algorithm with more robust convergence properties and closely resembles successful algorithms from linear programming. We implement the algorithm and compare with IPOPT on a subset of CUTEst problems. Our algorithm requires a similar median number of iterations, but fails on only 9\%  of the problems compared with 16\% for IPOPT. Experiments on infeasible variants of the CUTEst problems indicate superior performance for detecting infeasibility. 
+
+The code for our implementation can be found \url{https://github.com/ohinder/OnePhase}.
 \end{abstract}
 
 \section{Introduction}
@@ -280,8 +282,8 @@ and most interior point codes for nonconvex optimization are built upon these id
 \begin{subequations}\label{failure-ex}
 \begin{flalign}
 \min { x }\\
-x^2 - s_1 - 1 &= 0 \\
-x - s_2 - 1/2 &= 0 \\
+x^2 - s_{1} &= -1 \\
+x - s_{2} &= 1 \\
 s_1, s_2 &\ge 0
 \end{flalign}
 \end{subequations}
@@ -584,7 +586,7 @@ The slack variable update does not use $\dir{s}$. Instead, \eqref{eq:slackVarUpd
 $$
 s^{+} = \mu^{+} \conWeight - \cons(x) - \alpha_{P} \grad \cons(x)  \dir{x} = \left(\mu \conWeight - \cons(x) \right) -  \alpha_{P}  \left( (1 - \gamma) \mu \conWeight + \grad \cons(x)  \dir{x} \right) = s + \alpha_{P} \dir{s}
 $$
-where the first equality uses \eqref{eq:slackVarUpdate} and linearity of $a$, the second uses \eqref{eq:muVarUpdate}, and the final uses \eqref{compute-ds}. Nonlinear updates for the slack variables have been used in other interior point methods \cite{andersen1998computational, curtis2012penalty}.
+where the first equality uses \eqref{eq:slackVarUpdate} and linearity of $a$, the second uses \eqref{eq:muVarUpdate}, and the final uses \eqref{compute-ds}. Furthermore, as $\dir{x} \rightarrow 0$ the linear approximation $\cons(x) + \alpha_{P} \grad \cons(x)$ of $\cons(x + \alpha_{P} \dir{x})$ becomes very accurate and we have $s^{+} \rightarrow  s + \alpha_{P} \dir{s}$. Nonlinear updates for the slack variables have been used in other interior point methods \cite{andersen1998computational, curtis2012penalty}.
 
 Finally, we only select steps that maintain \eqref{eq:comp-slack}, i.e., satisfy
 \begin{flalign}
@@ -947,7 +949,7 @@ Section~\ref{sec:simple-alg} presented a simple one-phase algorithm that is guar
 \end{enumerate}
 The full algorithm is described in Section~\ref{sec:practical-alg-outline} with appropriately modified stabilization and aggressive steps. 
 
-!!!!!!!!!!!![Cite Robert Vanderbei on linear algebra]!!!!!!!!!!
+{\color{red} !!!!!!!!!!!![Cite Robert Vanderbei on linear algebra]!!!!!!!!!!}
 
 \subsection{Reusing the factorization of $\Schur$}\label{schur-reuse}
 
@@ -1188,7 +1190,7 @@ The idea is to take steps only when it is possible to decrease $\barrier_{\mu}$.
  \hline
 Parameter & Description & Possible values & Chosen value  \\ 
  \hline
-$\parNumCor$ & Maximum number of steps per outer iteration. See \eqref{take-steps} of Algorithm~\ref{one-phase-IPM}.  & Any positive integer & $\parNumCorValue$  \\ 
+$\parNumCor$ & Maximum number inner iterations per outer iteration. See \eqref{take-steps} of Algorithm~\ref{one-phase-IPM}.  & Any positive integer & $\parNumCorValue$  \\ 
  %\hline
 % $\parRegularizer$ & Used in the regularizer defined in \eqref{def:regularizer}. & The interval $\parRegularizerInterval$ & $\parRegularizerValue$ \\
 \hline
@@ -1239,16 +1241,20 @@ $\TOLunbounded$ & Tolerance for the unboundedness criterion \eqref{terminate-dua
 \section{Numerical results}\label{sec:numerical-results}
 
 % and (ii) the NETLIB linear programming
-To obtain the numerical results we use the CUTEst nonlinear programming test set. The results are structured as follows. Section~\ref{alg:comparison-options} explores different algorithm options on CUTEst.  Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems constructed from CUTEst. We remark that these results are based on a slightly older version of our algorithm (this paper is a draft).
+ The numerical results are structured as follows. Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems. Section~\ref{sec:large-scale} compares the algorithms on selected large-scale problems. For a comparison of the practical behavior of the dual multipliers we refer the reader to \cite{haeser2017behavior}. The code for our implementation can be found \url{https://github.com/ohinder/OnePhase}.
+ 
+ %, the code for producing the numerical results inside the folder /benchmark/ and the table of results [The code can be found here and table of results].
+ 
+Overall, on the problems we tested, we found that our algorithm required significantly less iterations to detect infeasibility and failed less often. However, given both solvers found an optimal solution then IPOPT tended to require less iterations.
 
-We selected a subset from CUTEst with more than $100$ variables and $100$ constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems.
+ 
+
+\subsection{Comparison with IPOPT on CUTEst}\label{alg:comparison-IPOPT}
+
+To obtain numerical results we use the CUTEst nonlinear programming test set [REF]. We selected a subset from CUTEst with more than $100$ variables and $100$ constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems.
 
 Table~\ref{avg:evaluations} compares the number of calls and runtime of different elements of our algorithm. We do not currently compare the number of function evaluations with IPOPT, but in general we would anticipate that IPOPT needs slightly fewer evaluations per outer iteration. In particular, our algorithm may make multiple objective, constraint and Jacobian evaluations per inner iteration. We evaluate the Lagrangian of the Hessian once per outer iteration. For problems where function evaluations are expensive relative to factorization, one is often better off using SQP methods rather than interior point methods. For example, it is known that SNOPT generally requires fewer function evaluations than IPOPT \cite[Figure 2, Figure 3]{gill2015performance}. 
 %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
-
-[The code can be found here and table of results]
-
-\subsection{Summary of performance on CUTEst}
 
 \begin{table}[H]
 \begin{tabular}{l  p{3.0cm} l}
@@ -1265,8 +1271,6 @@ Successful inner iterations & 2.1 & \\
 \caption{Number of calls and runtime of different algorithm elements.}\label{avg:evaluations}
 \end{table}
 
-
-\subsection{Comparison with IPOPT on CUTEst}
 
 We consider algorithm to have failed on a problem if it did not return a status of infeasible, optimal or unbounded. Overall the number of failures is 39 for IPOPT and 21 for the one-phase algorithm. From Table~\ref{compare-outputs} we can see that the one-phase algorithm detects infeasibility and KKT points more often than IPOPT. If we reduce the termination tolerances of both algorithms to $10^{-2}$ and re-run them on the test set the one-phase algorithm fails 11 times versus 41 times for IPOPT (IPOPT's algorithm makes choices based on the termination criterion).
 
@@ -1288,7 +1292,7 @@ To compare iteration counts our graphs use the performance profiling of \citet*{
 $$
 \frac{\text{iteration count of solver}}{\text{iteration count of fastest solver}}
 $$
-and the curve plotted is a cumulative distribution over the test set. We can see from Figure~\ref{fig:iter-count-CUTEst} that the overall distribution of iteration counts seems similar to IPOPT. Although given both algorithms declare the problem optimal IPOPT is more likely to be quicker (Figure~\ref{fig:iter-count-CUTEst-opt})
+and the curve plotted is a cumulative distribution over the test set. We can see from Figure~\ref{fig:iter-count-CUTEst} that the overall distribution of iteration counts seems similar to IPOPT. Although given both algorithms declare the problem optimal IPOPT is more likely to require slightly less iterations (Figure~\ref{fig:iter-count-CUTEst-opt}).
 
 \begin{figure}[H]
 \includegraphics[scale=0.5]{figures2/iter_ratios.pdf}
@@ -1307,7 +1311,7 @@ and the curve plotted is a cumulative distribution over the test set. We can see
 
 
 
-\subsection{Comparison with IPOPT on infeasible problems}
+\subsection{Comparison with IPOPT on infeasible problems}\label{sec:infeas}
 
 
 On few of the CUTEst problems both solvers declare the problems infeasible. Therefore to get an idea of how the solvers perform on infeasible problems we perturb the CUTEst test set. Recall that CUTEst writes problems in the form $l \le c(x) \le u$. To generate a test set that was more likely to contain infeasible problems we shift the constraints (excluding the variable bounds) as follows:
@@ -1342,178 +1346,7 @@ Since this perturbed CUTEst test set was somewhat artificial we also tested on t
 \caption{Distribution of iteration ratios on NETLIB infeasible test set.}\label{fig:inf_netlib_iter_ratios}
 \end{figure}
 
-\subsection{Comparison with IPOPT on selected large scale problems}
-
-
-\begin{enumerate}
-\item CUTEst
-\begin{enumerate}
-\item Number of calls to components
-\end{enumerate}
-\item Compare IPOPT
-\begin{enumerate}
-\item Description in text of raw runtime
-\item Table of when algorithm fails
-\item Plot of iterations to success
-\item Plot of iterations ratios given both algorithms declare problem optimal
-\item Distribution of maximum dual variable.
-\item Table of results
-\end{enumerate}
-\item Infeasible problems
-\begin{enumerate}
-\item perturbed CUTEst: table of when algorithm fails, iteration ratios given both declare problem infeasible
-\item infeasible netlib problems: iteration ratios
-\end{enumerate}
-\end{enumerate}
-
-
-\subsection{Comparison of different algorithm options}\label{alg:comparison-options}
-
-
-
-%\begin{figure}[H]
-%\includegraphics[scale=0.5]{ratios-dynamic-static.png}
-%\caption{Comparison of dynamic and static $\mu$ updates for the one-phase algorithm.}
-%\end{figure}
-
-Figure~\ref{fig:alg-options} we trial different algorithm options. First, in the graph on the far left, we trial different line search conditions for the stabilization steps. In particular, we compare the default setting of a `filter' as described in line~\ref{line:filter} of Algorithm~\ref{alg:stable} against other possible conditions. The first baseline to replace this filter condition with  \eqref{eq:phi-sufficient-progress}, i.e., check that sufficient progress is made on the `log barrier' merit function. The other baseline is removing the filter condition entirely and simple taking the maximum step possible. Figure~\ref{fig:alg-options} indicates that the filter has superior performance of these three options. Note that Figure~\ref{fig:alg-options} (and other following figures) uses the performance profiling of \citet*{dolan2002benchmarking}. In particular, on the $x$-axis we plot:
-$$
-\frac{\text{iteration count of solver}}{\text{iteration count of fastest solver}}
-$$
-and the curve plotted is a cumulative distribution over the test set.
-
-\begin{figure}[H]
-\includegraphics[scale=0.35]{ls-options.pdf}
-\includegraphics[scale=0.35]{num-corrections.pdf}
-\includegraphics[scale=0.35]{regularizer-ratios.pdf}
-\caption{Comparison of different algorithm options for the one-phase algorithm. Left, comparison of different line search options. Center, comparison of choice for the parameter $\parNumCor$. Right, the algorithm with and without the regularizer.}
-\label{fig:alg-options}
-\end{figure}
-
-In the graph in the center of Figure~\ref{fig:alg-options} we compare different choices of the parameter $\parNumCor$, the maximum number of corrections ($\parNumCor$ is used on line~\ref{take-steps} in Algorithm~\ref{one-phase-IPM}). As one would expect, increasing the number of corrections decreases the iteration count, but has little impact on the failure rate. In the actual implementation of our one-phase algorithm we chose $\parNumCor=\parNumCorValue$. Finally, the graph on the right shows that the regularizer helps improve performance.
-
-\subsection{Comparison with IPOPT}\label{alg:comparison-IPOPT}
-
-\hinder{compare only on problems where on solver finds an optimal solution}
-
-For the comparisons we use IPOPT version 3.12.4 with the linear solver MUMPS \cite{amestoy1998mumps}. We turn off the nlp scaling, set the termination tolerance to $10^{-6}$ and set the boundary relaxation factor to zero. For both the one-phase algorithm and IPOPT we set the time limit to 1 hour and the maximum number of iterations $\parMaxItValue$. Currently, our code is written in Julia (using the default Cholesky factorization solver) and is not fully optimized for speed. Consequently, especially on small problems, it is slower than IPOPT. For some large-scale problems it is more competitive as we show in Section~\ref{sec:large-scale}. Therefore, for the CUTEst problems, we compare on the number of iterations rather than runtime. 
-
-%Ideally, we would compare based on the number of factorizations because for large-scale problems this is, often, the most computationally intensive.
-
-
-We consider the final function values $f_{A}^{*}$ and $f_{B}^{*}$ of algorithm $A$ and $B$ respectively approximately the same if:
-$$
-\frac{\abs{f_{A}^{*} - f_{B}^{*}}}{1 + \max \{ | f_{A}^{*} |, | f_{B}^{*} | \} } < 10^{-1},
-$$
-otherwise, we consider the solution of algorithm $A$ better than algorithm $B$ if $f_{A}^{*}  < f_{B}^{*}$. For problems where both algorithms find a KKT point is reported in the top three rows of Table~\ref{tbl:pairwise-outcomes}. The remainder of Table~\ref{tbl:pairwise-outcomes} shows the number of times both algorithms succeed, or fail, or just one algorithm fails. We consider the algorithm to have succeeded if it produces either a certificate of first-order local optimality, infeasibility or unboundedness. 
-
-Let us highlight a few interesting facts from Tables~\ref{tbl:pairwise-outcomes}-\ref{tbl:failure-reasons}. The one-phase algorithm seems to find better KKT points on $13$ problems versus $2$ for IPOPT (Table~\ref{tbl:pairwise-outcomes}). Furthermore, IPOPT fails on $39$ problems compared with $21$ problems for the one-phase algorithm (Table~\ref{tbl:termination-status-counts}). A large proportion of these failures occur before IPOPT has started (Table~\ref{tbl:failure-reasons}).
-
-\begin{table}[H]
-\caption{Pairwise comparison of outcomes for IPOPT and the one-phase algorithm}\label{tbl:pairwise-outcomes}
-\begin{tabular}{ c c r }
-  One Phase &  IPOPT &  \# \\
-  \hline
-same KKT & - & 158  \\
-- & better KKT & 2 \\
-better KKT & - &  13 \\
-\hline
-Succeed & Succeed & 185 \\
-Fails & Fails & 7 \\
-Succeed & Fails &  32 \\
-Fails & Succeed & 14 \\
-\end{tabular}
-\end{table}
-
-%Table~\ref{tbl:termination-status-counts} displays the 
-
-\hinder{present as bar chart? and maybe reduce to two tables.}
-
-\begin{table}[H]
-\caption{Termination status counts}\label{tbl:termination-status-counts}
-\begin{tabular}{ c c c r }
- &  One Phase &  IPOPT &  \\
-  \hline
-KKT &  201 & 191 \\
-unbounded & 4 & 0  \\
-primal infeasible & 12 &  8 \\
-fail & 21 & 39 \\
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\caption{Failure reasons}\label{tbl:failure-reasons}
-\begin{tabular}{ c c c r }
- &  One Phase & IPOPT \\
-  \hline
-max time & 10 & 9  \\
-max iter &  3 & 3 \\
-error before starting & 4 & 19 \\
-error during algorithm & 4 & 8 \\
-\hline
-total & 21 & 39
-\end{tabular}
-\end{table}
-
-Figure~\ref{fig:comparison-IPOPT-on-CUTEst} compares the iterations that IPOPT and the one-phase algorithm take to succeed (produce a certificate of first-order local optimality, infeasibility or unboundedness) on the CUTEst test set. Note that the iteration counts for the solvers are similar, except that the one-phase solver fails less frequently.
-
-
-\begin{figure}[H]
-\includegraphics[scale=0.5]{ratios-IPOPT-one-phase.pdf}
-\includegraphics[scale=0.5]{iterations-IPOPT-one-phase.pdf}
-%\includegraphics[scale=0.5]{ratios-n=50-10000.png}
-%\includegraphics[scale=0.5]{iterations-n=50-10000.png}
-\caption{Comparison of IPOPT and one-phase on CUTEst for problems where at least one solver declared the problem optimal, infeasible or unbounded.}\label{fig:comparison-IPOPT-on-CUTEst}
-\end{figure}
-
-\if\inProgress
-\todo[inline]{table or plot of maximum dual variables? this would significantly strengthen case.}
-\fi
-
-\subsection{Comparison on infeasible problems}\label{sec:infeas}
-
-Most of the CUTEst problems have feasible solutions. Recall that CUTEst writes problems in the form $l \le c(x) \le u$.
-To generate a test set that was more likely to contain infeasible problems we shift the constraints (excluding the variable bounds) as follows:
-$$
-\tilde{c}(x) \gets c(x) + e,
-$$
-and then input the problems to the one-phase solver and IPOPT. Note that the new problems may or may not be feasible.
-
-The solver terminated with the statuses described in the Table~\ref{tbl:termination-status-counts-peturbed}. This test was only run on problems with at most $1,000$ variables and constraints total.
-\begin{table}[H]
-\caption{Termination status counts for perturbed CUTEst problems.}\label{tbl:termination-status-counts-peturbed}
-\begin{tabular}{ c c c r }
- &  One Phase &  IPOPT &  \\
-  \hline
-KKT & 22 & 20 \\
-unbounded & 1 & 0  \\
-primal infeasible & 44 &  38 \\
-fail & 3 & 12 \\
-\end{tabular}
-\end{table}
-
-Next, in Figure~\ref{fig:comparison-IPOPT-on-perturbed-CUTEst} we compare IPOPT and the one-phase on the subset problems for which at least one solver declared local infeasiblity. From this figure we see that the one-phase solver is significantly quicker and more robust than IPOPT.
-
-\begin{figure}[H]
-\includegraphics[scale=0.5]{infeas-ratios.png}
-\caption{Comparison of IPOPT and one-phase on perturbed CUTEst problems for which at least one solver declares the problem locally infeasible.}\label{fig:comparison-IPOPT-on-perturbed-CUTEst}
-\end{figure}
-
-%
-%\subsection{Comparison on NETLIB for linear programming}\label{sec:netlib}
-%
-%The purpose of this Section is to show that the one-phase algorithm has good performance on linear programs, as one would expect since the algorithm is heavily influenced by ideas from linear programming [REF]. My experience from our previous paper is that there is a huge difference in the performance of IPOPT and the one-phase algorithm.
-%
-%[Use IPOPT option specialized for LP]
-%
-%\begin{figure}[H]
-%\missingfigure{...}
-%%\includegraphics[scale=0.5]{ratios-n=50-10000.png}
-%%\includegraphics[scale=0.5]{iterations-n=50-10000.png}
-%\caption{Comparison of IPOPT and one-phase on the NETLIB linear programming test set.}
-%\end{figure}
-
-\section{Comparison on selected large scale problems}\label{sec:large-scale}
+\subsection{Comparison on selected large scale problems}\label{sec:large-scale}
 \newcommand{\NETtimeOnePhase}{100}
 \newcommand{\NETtimeIPOPT}{963}
 \newcommand{\NETitOnePhase}{26}
@@ -1547,6 +1380,18 @@ ECON250 & 500 & 62,251 & 249,500 & 249,500 & 500 \\
 \caption{Runtime comparison on selected large-scale test problems}\label{compare-runtime}
 \end{table}
 
+\subsection{Performance on the example of \citeauthor{wachter2000failure}}
+
+As we discussed in the introduction, the two-phase algorithm of IPOPT was specifically designed to address that on the problem 
+\begin{flalign*}
+\min { x } & \\
+x^2 - s_{1} &= -1 \\
+x - s_{2} &= 1 \\
+s_1, s_2 &\ge 0
+\end{flalign*}
+infeasible-start IPMs based on the ideas of Lustig \cite{lustig1990feasibility} fail to either return a certificate of infeasibility or optimality. For this problem, starting at $x = -3$, $s_1, s_{2} > 0$ (the slacks are automatically selected by the algorithms) our one-phase algorithm finds the optimal solution in 9 iterations compared with 17 for IPOPT.
+
+
 \if\inProgress1
 \section{Remaining question: how to choose $\conWeight$?}
 
@@ -1579,6 +1424,10 @@ Picking $\conWeight$ small and selecting $\mu$ s.t. $s > 0$ gives an algorithm t
 \hinder{Given a strictly feasible starting point, by setting $\conWeight = 0$ one can remain strictly feasible for the remainder of the algorithm. Maybe give an example problem.}
 
 \hinder{If we set $\mu$ large and $\conWeight$ small then the algorithm is essentially a two-phase algorithm -- makes a lot of sense for problems with large interior. But works terribly for problems with a small interior.}
+
+\section{Conclusion}
+
+In this paper we develop a practical one-phase IPM. While 
 
 
 
