@@ -1,4 +1,5 @@
 include("../benchmark.jl")
+using OnePhase, advanced_timer
 
 function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, solver)
     summary = Dict{String, problem_summary2}()
@@ -92,35 +93,37 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           summary[problem_name] = problem_summary2()
 
           nlp_raw = false
+          nlp = false
 
           try
               try
                 nlp_raw = CUTEstModel(problem_name)
+                #nlp = Class_CUTEst(nlp_raw)
               catch(e)
                 println("$problem_name failed to load")
                 throw(e)
               end
 
-              nlp = Class_CUTEst(nlp_raw)
-
               tic()
 
-              timer = class_advanced_timer()
+              #=timer = class_advanced_timer()
               start_advanced_timer(timer)
               #include("include.jl")
               #intial_it = initial_point_satisfy_bounds(nlp, par)
               start_advanced_timer(timer, "INIT")
-              intial_it = init(nlp, par, timer)
+              intial_it = OnePhase.init(nlp, par, timer)
               pause_advanced_timer(timer, "INIT")
 
               #intial_it = initial_point_generic(nlp, par, nlp_raw.meta.x0)
 
-              @assert(is_feasible(intial_it, par.ls.comp_feas))
-              iter, status, history, t, err = one_phase_IPM(intial_it, par, timer);
+              @assert(OnePhase.is_feasible(intial_it, par.ls.comp_feas))
+              iter, status, history, t, err = OnePhase.one_phase_IPM(intial_it, par, timer);
 
               pause_advanced_timer(timer)
 
               print_timer_stats(timer)
+              =#
+              iter, status, history, t, err, timer = OnePhase.one_phase_solve(nlp_raw, par)
 
               master_timer = merge_timers(timer, master_timer)
 
@@ -128,6 +131,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               set_info_me!(summary[problem_name], history, status)
               #.it_count = t;
+
+              summary[problem_name].total_time = toc();
           catch(e)
               println("Uncaught error in algorithm!!!")
               @show e;
@@ -140,7 +145,6 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
                 summary[problem_name].it_count = -1;
               end
           end
-          summary[problem_name].total_time = toc();
 
           redirect_stdout(ORG_STDOUT)
           finalize(nlp_raw)

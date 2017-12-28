@@ -13,8 +13,8 @@
 #################
 #time you think you need; default is 2 hours
 #format could be dd-hh:mm:ss, hh:mm:ss, mm:ss, or mm
-#SBATCH --qos=long
-#SBATCH --time=10000
+##SBATCH --qos=long
+#SBATCH --time=2880
 ###2880
 #################
 #Quality of Service (QOS); think of it as job priority, there is also --qos=long for with a max job length of 7 days, qos normal is 48 hours.
@@ -24,7 +24,7 @@
 # We are submitting to the dev partition, there are several on sherlock: normal, gpu, owners, hns, bigmem (jobs requiring >64Gigs RAM)
 # The more partitions you can submit to the less time you will wait, you can submit to multiple partitions with -p at once in comma separated format.
 # srun -p owners -c 8 --mem=32000 -t 2880 --mail-type=ALL --mail-user=ohinder  --epilog /home/wlaw/killvnc.sh /home/wlaw/sherlock-eznovnc.sh
-#SBATCH -p hns,normal
+#SBATCH -p jduchi
 #################
 #number of nodes you are requesting, the more you ask for the longer you wait
 #SBATCH --nodes=1
@@ -46,3 +46,4 @@ ml load hdf5
 # You can use srun if your job is parallel
 # otherwise:
 julia run_one_phase.jl
+julia infeas.jl

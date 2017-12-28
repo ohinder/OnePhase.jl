@@ -99,8 +99,8 @@
 \newcommand{\parBacktrackingInterval}{(0,1)}
 
 \newcommand{\parFracBoundaryExp}{\beta_{8}}
-\newcommand{\parFracBoundaryExpValue}{1.5}
-\newcommand{\parFracBoundaryExpInterval}{(1,2)}
+\newcommand{\parFracBoundaryExpValue}{0.5}
+\newcommand{\parFracBoundaryExpInterval}{(0,1)}
 
 \newcommand{\parFracBoundary}{\Theta^{b}}
 \newcommand{\parFracBoundaryValue}{0.1}
@@ -160,7 +160,7 @@
 \newcommand{\TOLinfInterval}{(0,1)}
 
 \newcommand{\TOLinfOne}{\epsilon_{\textbf{far}}}
-\newcommand{\TOLinfOneValue}{10^{-4}}
+\newcommand{\TOLinfOneValue}{10^{-3}}
 \newcommand{\TOLinfOneInterval}{(0,1)}
 
 \newcommand{\TOLinfTwo}{\epsilon_{\textbf{inf}}}
@@ -791,6 +791,21 @@ y^T \cons(x^{*}) &\ge y^T \cons(x) + y^T \grad a (x) (x^{*} - x) \ge y^T \cons(x
 where the first inequality holds via convexity, the second by definition of $\infeasFuncOne(x,s,y) := \frac{\| \grad  a(x)^T y \|_{1}}{ a(x)^T y }$, the third and fourth by assumption. Since $y \ge 0$, we deduce that $a_i(x^{*}) > 0$ for some $i$.
 \end{proof}
 
+Finally, we remark that if wish to find a stationary point with respect to a different measure of constraint violation $v(z)$ we can apply our solver to the problem
+\begin{flalign*}
+\min f(z) \\
+a(x) \le z \\
+z \ge 0 \\
+v(z) \le 0,
+\end{flalign*}
+starting with $\conWeight_{k} = 0$ for $k = 1, \dots \ncon + \nvar$, $z^{0} = \max\{ a(x^0), e \}$, $\conWeight_{\ncon + \nvar+1} > 0$ and $\mu > 0$ then one can see from \eqref{infeasible-problem} that if we do not find a feasible solution then we automatically find a solution to:
+\begin{flalign*}
+\min v(z)\\
+a(x) \le z \\
+z \ge 0.
+\end{flalign*}
+For example, if $v(z) = e^T z$ then we minimize the L1-norm of the constraint violation. 
+
 \hinder{
 \subsection{When are the primal iterates bounded?}
 \begin{enumerate}
@@ -967,20 +982,21 @@ This is identical to the direction computation described in Section~\ref{sub:dir
 \subsection{Step size choices and acceptance}\label{step-acceptance}
 First we specify a criterion to prevent the slack variables from getting too close to the boundary. In particular, given any candidate primal iterate $(x^{+}$, $s^{+})$ we require that the following \fracBound{} rule be satisfied:
 \begin{flalign}\label{fracBoundary-primal}
-s^{+} \ge  \parFracBoundary \min\{ s,  \| \dir{x} \|_{\infty}^2  \ones \},
+s^{+} \ge  \parFracBoundary \min\{ s, \| d_{x} \|_{\infty} \left( \delta + \| d_{y} \|_{\infty} + \| d_{x} \|_{\infty}^{\parFracBoundaryExp} \right) \ones \},
 \end{flalign}
-where $\parFracBoundary$ is a diagonal matrix with entries $\parFracBoundary_{i,i} \in \parFracBoundaryInterval$ with default entry values of $\parFracBoundaryValue$. Note that the $\| \dir{x} \|^2_{\infty}$ term plays a similar role to $\mu$ in the more typical $s^{+} \ge  \parFracBoundary s \min\{ 1 , \mu \}$ \fracBound{} rule (say of IPOPT \cite{wachter2006implementation}) in that it allows (almost) unit steps in the superlinear convergence regime. 
+where $\parFracBoundary$ is a diagonal matrix with entries $\parFracBoundary_{i,i} \in \parFracBoundaryInterval$ with default entry values of $\parFracBoundaryValue$  and $\parFracBoundaryExp \in \parFracBoundaryExpInterval$ with default value of $\parFracBoundaryExpValue$. Note that the $\| d_{x} \|_{\infty} \left( \delta + \| d_{y} \|_{\infty} + \| d_{x} \|_{\infty}^{\parFracBoundaryExp} \right)$ term plays a similar role to $\mu$ in the more typical $s^{+} \ge  \parFracBoundary s \min\{ 1 , \mu \}$ \fracBound{} rule (say of IPOPT \cite{wachter2006implementation}) in that it allows (almost) unit steps in the superlinear convergence regime. 
 
 In both the aggressive steps and stabilization steps we use a backtracking line search. 
 We choose the initial trial primal step size $\alpha_{P}^{\max}$ to be the maximum $\alpha_{P} \in [0,1]$ that satisfies the \fracBound{} rule:
 \begin{flalign}\label{fracBoundaryPrimalMax}
-s + \alpha_{P} \dir{s} &\ge  \parFracBoundaryMax  \min\{ s, 2 \max\{ \| \dir{x} \|_{\infty}^2 \ones, \| \dir{x} \|_{\infty}^{\parFracBoundaryExp}  \ones \} \},
+s + \alpha_{P} \dir{s} &\ge  \parFracBoundaryMax  \min\{ s, \| d_{x} \|_{\infty} \left( \delta + \| d_{y} \|_{\infty} + \| d_{x} \|_{\infty}^{\parFracBoundaryExp} \right)  \ones \},
 \end{flalign}
-where the parameter $\parFracBoundaryMax$ is a diagonal matrix with entries $\parFracBoundaryMax_{i,i} \in \parFracBoundaryMaxInterval$ and $\parFracBoundaryExp \in (1,2)$. The default value of $\parFracBoundaryMax_{i,i}$ is $\parFracBoundaryMaxValueNL$ for nonlinear constraints and $\parFracBoundaryMaxValueLinear$ for linear constraints; the default value of $\parFracBoundaryExp$ is $\parFracBoundaryExpValue$. The idea of this choice for $\alpha_{P}^{\max}$ is that the \fracBound{} rule \eqref{fracBoundary-primal} is likely to be satisfied for the first trial point, i.e., $\alpha_{P} = \alpha_{P}^{\max}$. To see this, note that $\| s + d_{s} - s^{+} \| \le \| a(x) + \grad a(x) \dir{x} - a(x + \dir{x}) \| = O(\| d_{x} \|^2)$. Hence if the algorithm is tending towards some point $x^{*}$ it will satisfy $s^{+} \ge 0$ for $\alpha_{P} = \alpha_{P}^{\max}$ in the limit, because
-$$
-\parFracBoundary \min\{ s, \| \dir{x} \|_{\infty}^2 \} \le \parFracBoundaryMax  \min\{ s, \max\{ 2 \| \dir{x} \|_{\infty}^2 , \| \dir{x} \|_{\infty}^{\parFracBoundaryExp} \} \},
-$$
-i.e, the right-hand side of  \eqref{fracBoundary-primal} is larger than \eqref{fracBoundaryPrimalMax}. \hinder{argue since second derivatives are continous}
+where the parameter $\parFracBoundaryMax$ is a diagonal matrix with entries $\parFracBoundaryMax_{i,i} \in \parFracBoundaryMaxInterval$. The default value of $\parFracBoundaryMax_{i,i}$ is $\parFracBoundaryMaxValueNL$ for nonlinear constraints and $\parFracBoundaryMaxValueLinear$ for linear constraints. The idea of this choice for $\alpha_{P}^{\max}$ is that the \fracBound{} rule \eqref{fracBoundary-primal} is likely to be satisfied for the first trial point, i.e., $\alpha_{P} = \alpha_{P}^{\max}$ when $\| d_{x} \|$ is small. To see this, note that by differentiability of $a$ we have $\| s + d_{s} - s^{+} \| \le \| a(x) + \grad a(x) \dir{x} - a(x + \dir{x}) \| = O(\| \dir{x} \|^2)$. Furthermore, the right hand side of \eqref{fracBoundary-primal} and \eqref{fracBoundaryPrimalMax} are identical except for $\parFracBoundary$ and $\parFracBoundaryMax$. Hence if $\dir{x} \rightarrow 0$, \eqref{fracBoundaryPrimalMax} holds and $\parFracBoundaryMax_{i,i} >  \parFracBoundary_{i,i}$ for $i$ corresponding to nonlinear constraints then \eqref{fracBoundary-primal} is satisfied in the limit for $\alpha_{P} = \alpha_{P}^{\max}$.
+ %, because
+%$$
+%\parFracBoundary \min\{ s, \| \dir{x} \|_{\infty}^2 \} \le \parFracBoundaryMax  \min\{ s, \max\{ 2 \| \dir{x} \|_{\infty}^2 , \| \dir{x} \|_{\infty}^{\parFracBoundaryExp} \} \},
+%$$
+%i.e, the right-hand side of  \eqref{fracBoundary-primal} is larger than \eqref{fracBoundaryPrimalMax}. \hinder{argue since second derivatives are continous}
 
 It remains to describe how to update the dual variables. Given some candidate primal iterate $(x^{+}$, $s^{+})$,  let $B( s^{+}, \dir{y} )$ be the set of feasible dual step sizes. More precisely,  we define $B( s^{+}, \dir{y} ) \subseteq [0,1]$ to be the largest interval such that if $\alpha_{D} \in B( s^{+}, \dir{y} )$ then
 \begin{subequations}\label{subeq:set-B}
@@ -1226,9 +1242,9 @@ $\parDeltaMax$ & See Algorithm~\ref{one-phase-IPM}. &The interval $\parDeltaMaxI
 \hline
 $\TOLopt$ & Tolerance for the optimality criterion \eqref{terminate-kkt} & The interval $\TOLoptInterval$. & $\TOLoptValue$  \\
 \hline
-$\TOLinfOne$ & Tolerance for the infeasibility criterion \eqref{terminate-primal-infeasible} & The interval $\TOLinfOneInterval$. & $\TOLinfOneValue$ \\
+$\TOLinfOne$ & Tolerance for the infeasibility criterion \eqref{terminate-primal-infeasible} corresponding to $\infeasFuncOne$. & The interval $\TOLinfOneInterval$. & $\TOLinfOneValue$ \\
 \hline
-$\TOLinfTwo$ & Tolerance for the infeasibility criterion \eqref{terminate-primal-infeasible} & The interval $\TOLinfTwoInterval$. & $\TOLinfTwoValue$ \\
+$\TOLinfTwo$ & Tolerance for the infeasibility criterion \eqref{terminate-primal-infeasible} corresponding to $\infeasFuncTwo$. & The interval $\TOLinfTwoInterval$. & $\TOLinfTwoValue$ \\
 \hline
 $\TOLunbounded$ & Tolerance for the unboundedness criterion \eqref{terminate-dual-infeasible} & The interval $\TOLunboundedInterval$. & $\TOLunboundedValue$ \\
 \hline
@@ -1389,8 +1405,16 @@ x^2 - s_{1} &= -1 \\
 x - s_{2} &= 1 \\
 s_1, s_2 &\ge 0
 \end{flalign*}
-infeasible-start IPMs based on the ideas of Lustig \cite{lustig1990feasibility} fail to either return a certificate of infeasibility or optimality. For this problem, starting at $x = -3$, $s_1, s_{2} > 0$ (the slacks are automatically selected by the algorithms) our one-phase algorithm finds the optimal solution in 9 iterations compared with 17 for IPOPT.
+infeasible-start IPMs based on the ideas of Lustig \cite{lustig1990feasibility} fail to either to converge to a stationary measure of infeasibility or optimality. For this problem, starting at $x = -3$, $s_1, s_{2} > 0$ (the slacks are automatically selected by the algorithms) our one-phase algorithm finds the optimal solution in 8 iterations compared with 17 for IPOPT.
 
+As we showed in [section] our one-phase IPM minimizes the (weighted) maximum constraint violation. On infeasible linear programs one would expect the main phase of IPOPT to converge to a point that minimizes the (weighted) maximum constraint violation. 
+
+%an infeasible start interior point algorithm like IPOPT minimizes the (weighted) maximum constraint violation. 
+
+\begin{enumerate}
+\item Talk about how IPOPT switches target
+\item say I want to minimize L1 norm
+\end{enumerate}
 
 \if\inProgress1
 \section{Remaining question: how to choose $\conWeight$?}
@@ -1424,11 +1448,6 @@ Picking $\conWeight$ small and selecting $\mu$ s.t. $s > 0$ gives an algorithm t
 \hinder{Given a strictly feasible starting point, by setting $\conWeight = 0$ one can remain strictly feasible for the remainder of the algorithm. Maybe give an example problem.}
 
 \hinder{If we set $\mu$ large and $\conWeight$ small then the algorithm is essentially a two-phase algorithm -- makes a lot of sense for problems with large interior. But works terribly for problems with a small interior.}
-
-\section{Conclusion}
-
-In this paper we develop a practical one-phase IPM. While 
-
 
 
 \section*{Acknowledgements}

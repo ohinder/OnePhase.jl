@@ -8,7 +8,7 @@
 #nlp_raw2 = CUTEstModel("MSS2")
 
 # INFEASIBLE PROBLEMS
-#nlp_raw2 = CUTEstModel("10FOLDTR")
+nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("NCVXQP8","-param","N=1000")
 #nlp_raw2 = CUTEstModel("JUNKTURN")
 #nlp_raw2 = CUTEstModel("CATENARY")
@@ -148,7 +148,6 @@
 #nlp_raw2 = CUTEstModel("AIRPORT")
 #nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("LEUVEN1")
-#nlp_raw2 = CUTEstModel("CHARDIS1")
 #nlp_raw2 = CUTEstModel("MSQRTA")
 #nlp_raw2 = CUTEstModel("MSQRTA")
 #nlp_raw2 = CUTEstModel("CHEMRCTB")
@@ -165,27 +164,42 @@
 #nlp_raw2 = CUTEstModel("TWIRIBG1")
 #nlp_raw2 = CUTEstModel("TWIRIBG1")
 #nlp_raw2 = CUTEstModel("ROTDISC")
-include("../../src/OnePhase.jl")
+include("../benchmark.jl")
 using CUTEst, OnePhase
 #nlp_raw2 = CUTEstModel("RK23")
 
-my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-6
-nlp_raw2 = CUTEstModel("WACHBIEG")
+my_pars = OnePhase.Class_parameters()
+#my_pars.term.tol_opt = 1e-15
+#nlp_raw2 = CUTEstModel("AGG")
+#nlp_raw2 = CUTEstModel("QR3DBD")
+#nlp_raw2 = CUTEstModel("SINROSNB")
+#nlp_raw2 = CUTEstModel("COSHFUN")
 
+#my_pars.term.tol_opt = 1e-20
+##### EXAMPLES FOR TALK #####
+#nlp_raw2 = CUTEstModel("READING9")
+#nlp_raw2 = CUTEstModel("SVANBERG")
+#nlp_raw2 = CUTEstModel("CHEMRCTA")
 #my_pars.init.mu_scale = 1e-2
+#nlp_raw2 = CUTEstModel("CHEMRCTA")
+#nlp_raw2 = CUTEstModel("STEERING")
+#nlp_raw2 = CUTEstModel("DRCAVTY2")
+#nlp_raw2 = CUTEstModel("LUKVLE17")
+
+#nlp_raw2 = CUTEstModel("ZIGZAG")
+#nlp_raw2 = CUTEstModel("COSHFUN")
 if false
   my_pars.term.max_it = 100
-  autotune(nlp_raw2, my_pars)
+  new_pars = OnePhase.autotune(nlp_raw2, my_pars)
 end
 
-iter, status, hist, t, err = one_phase_solve(nlp_raw2,my_pars);
+iter, status, hist, t, err = OnePhase.one_phase_solve(nlp_raw2,my_pars);
 #get_fval(iter)
 #eval_f(nlp,iter.point.x)
 #obj(nlp_raw2,iter.point.x) - get_fval(iter)
 if false
 using Ipopt
-IpoptSolve(nlp_raw2);
+sol = IpoptSolve(nlp_raw2);
 end
 
 finalize(nlp_raw2)

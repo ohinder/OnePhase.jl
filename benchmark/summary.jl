@@ -66,24 +66,6 @@ type problem_summary2
 end
 =#
 
-#::IOStream
-function write_pars(stream, par::Class_parameters)
-    write(stream, "PAR \t\t\t\t\t\t VALUE \n")
-
-    for fieldname in fieldnames(par)
-        fieldval = getfield(par, fieldname)
-        if isa(fieldval,abstract_pars)
-          write(stream, "$(pd(fieldname,40)) \n")
-          for subfieldname in fieldnames(fieldval)
-            subfieldval = getfield(fieldval, subfieldname)
-            write(stream, "\t $(pd(subfieldname,40)) \t $(subfieldval) \n")
-          end
-        else
-          write(stream, "$(pd(fieldname,40)) \t $(fieldval) \n")
-        end
-    end
-end
-
 function write_summary(stream::IOStream, summary::Dict{String, problem_summary2})
     write(stream, "problem_name \t status \t it count \t total_time \n");
     for (problem_name, info) in summary

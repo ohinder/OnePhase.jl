@@ -1,4 +1,4 @@
-function ipopt_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::Class_parameters)
+function ipopt_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
     solver = IpoptSolver(print_level=3, tol=my_par.term.tol_opt, max_iter=3000, max_cpu_time=60.0^2, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
 
     println("RUNNING $problem_name")
@@ -48,7 +48,7 @@ function ipopt_solve(snlp::AbstractNLPModel, problem_name::String, test_name::St
     return summary
 end
 
-function one_phase_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::Class_parameters)
+function one_phase_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
     println("RUNNING $problem_name")
     ORG_STDOUT = STDOUT
     file = open("../results/$(test_name)/log/$(problem_name).txt", "w")

@@ -35,7 +35,7 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
 
     print_timer_stats(timer)
 
-    return iter, status, hist, t, err
+    return iter, status, hist, t, err, timer
 end
 
 function switching_condition(iter::Class_iterate, last_step_was_superlinear::Bool, pars::Class_parameters)

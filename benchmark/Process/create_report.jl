@@ -1,6 +1,6 @@
 #folder = "CUTEst_infeasible"
-folder = "CUTEst"
-#folder = "CUTEst_low_tol"
+#folder = "CUTEst"
+folder = "CUTEst_low_tol"
 #folder = "netlib_infeasible"
 
 if folder == "CUTEst"
@@ -25,7 +25,9 @@ function get_CUTEst_results()
   if mode == :optimal
     if data == :CUTEst
     #results["ipopt"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
-      results["one phase"] = cps(load("../results/one_phase/Dec20/summary.jld", "summary"))
+      results["one phase"] = cps(load("../results/one_phase/Dec24/summary.jld", "summary"))
+      #results["ipopt"] = cps(load("../results/one_phase/Dec24/summary.jld", "summary"))
+
       results["ipopt"] = convert_JuMP(cps(load("../results/ipopt/plain/summary.jld", "summary")))
     elseif data == :CUTEst_low_tol
       results["one phase"] = cps(load("../results/one_phase/LowTol_Dec19/summary.jld", "summary"))

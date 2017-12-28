@@ -6,26 +6,36 @@ problem_list = default_list()
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["Dec19"]#"LowTol_Dec19",
+RUN_LIST = ["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
 
-if "HighTol_Dec19" in RUN_LIST
+if "Dec26" in RUN_LIST
 my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
-folder_name = "one_phase/Dec19"
+folder_name = "one_phase/Dec26"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+if "test_Dec26_ftb" in RUN_LIST
+my_par = Class_parameters()
+my_par.term.max_time = 60.0 * 60
+my_par.term.max_it = 3000
+my_par.ls.fraction_to_boundary_predict = 0.3
+folder_name = "one_phase/test_Dec26_ftb"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 
-if "LowTol_Dec19" in RUN_LIST
+if "LowTol_Dec26" in RUN_LIST
 my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
 my_par.term.tol_opt = 1e-2
 my_par.term.tol_inf_1 = 1e-2
 my_par.term.tol_inf_2 = 1e-2
-folder_name = "one_phase/LowTol_Dec19"
+folder_name = "one_phase/LowTol_Dec26"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
@@ -113,13 +123,6 @@ my_par.use_prox = false
 my_par.use_reg = true
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
-end
-
-if "test" in RUN_LIST
-    problem_list = ["PT","AGG","ROBOT"]
-    folder_name = "one_phase/test_run"
-    if_mkdir("../results/$folder_name")
-    run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end
 
 if "plain" in RUN_LIST

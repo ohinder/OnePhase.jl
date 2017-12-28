@@ -31,7 +31,7 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         @assert(s > 0.0)
 
         #safety_factor = 1.0 #01
-        safety_factor = 1.0
+        safety_factor = 1.001
         safety_add = 0.0
 
         #ub_dyi = (mu / (comp_feas * s) - y[i]) / dy[i]
