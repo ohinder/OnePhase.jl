@@ -48,23 +48,22 @@ function accept_func_stable!(accept::abstract_ls_info, iter::Class_iterate, cand
     predict_red = accept.predict_red * step_size
 
     if accept.actual_red > 0.0
-      return :negative_progress
+      return :negative_progress, step_size * pars.ls.backtracking_factor
     else
       accept.frac_progress = accept.actual_red / predict_red
       if accept.frac_progress > pars.ls.predict_reduction_factor
           #@show accept.frac_progress, accept.actual_red
-          return :success
+          return :success, step_size
       else
-          return :not_enough_progress
+          return :not_enough_progress, step_size * pars.ls.backtracking_factor
       end
     end
   else
-      return :not_enough_progress
+      return :not_enough_progress, step_size * pars.ls.backtracking_factor
   end
 end
 
 
 function accept_func!(accept::Class_stable_ls, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
-    status = accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
-    return status
+    return accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
 end

@@ -2,20 +2,32 @@
 include("run_cutest.jl")
 
 problem_list = default_list()
+#problem_list = get_problem_list(20,100)
 
+@show length(problem_list)
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
+RUN_LIST = ["test_knitro_init"] #["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
 
-if "Dec26" in RUN_LIST
+if "test_knitro_init" in RUN_LIST
+my_par = Class_parameters()
+my_par.term.max_time = 60.0 * 60
+my_par.term.max_it = 3000
+#folder_name = "one_phase/test_meh_init2_Dec30"
+folder_name = "one_phase/test_knitro_init6_Jan1"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+end
+
+#=if "Dec26" in RUN_LIST
 my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
 folder_name = "one_phase/Dec26"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
-end
+end=#
 
 if "test_Dec26_ftb" in RUN_LIST
 my_par = Class_parameters()

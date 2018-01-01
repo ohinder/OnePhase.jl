@@ -159,6 +159,8 @@ type Class_init_parameters <: abstract_pars
     linear_scale::Float64
     nl_ineq_scale::Float64
     nl_eq_scale::Float64
+    dual_max::Float64
+    dual_min::Float64
 
     function Class_init_parameters()
         this = new()
@@ -167,12 +169,14 @@ type Class_init_parameters <: abstract_pars
         if mode == :standard
           this.mu_scale = 1.0
           this.mehotra_scaling = true
-          this.init_style = :mehotra
+          this.init_style = :Gertz # #
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1.0
           this.nl_ineq_scale = 1.0
           this.nl_eq_scale = 1.0
+          this.dual_max = 1e3
+          this.dual_min = 1e-2
         else
           this.mu_scale = 1.0
           this.mehotra_scaling = false

@@ -116,8 +116,17 @@
 \newcommand{\parInitializeValue}{10^{-4}}
 \newcommand{\parInitializeInterval}{(0,1)}
 
+\newcommand{\parInitializeMin}{\beta_{10}}
+\newcommand{\parInitializeMinValue}{10^{-1}}
+\newcommand{\parInitializeMinInterval}{(0,\infty)}
+
+\newcommand{\parInitializeMax}{\beta_{11}}
+\newcommand{\parInitializeMaxValue}{10^{3}}
+\newcommand{\parInitializeMaxInterval}{[\parInitializeMin,\infty)}
+
 \newcommand{\parMuScale}{\mu_{\text{scale}}}
 \newcommand{\parMuScaleValue}{1.0}
+\newcommand{\parMuScaleInterval}{(0,\infty)}
 
 
 \newcommand{\minStepFunc}{\theta}
@@ -244,7 +253,7 @@
 \begin{abstract}
 The work of \citet*{wachter2000failure} suggests that infeasible-start interior point methods (IPMs) developed for linear programming cannot be adapted to nonlinear optimization without significant modification, i.e., using a two-phase or penalty method. We propose an IPM that, by careful initialization and updates of the slack variables, is guaranteed to find a first-order certificate of local infeasibility, local optimality or unboundedness of the (shifted) feasible region. Our proposed algorithm differs from other IPM methods for nonconvex programming because we reduce primal feasibility at the same rate as the barrier parameter. This gives an algorithm with more robust convergence properties and closely resembles successful algorithms from linear programming. We implement the algorithm and compare with IPOPT on a subset of CUTEst problems. Our algorithm requires a similar median number of iterations, but fails on only 9\%  of the problems compared with 16\% for IPOPT. Experiments on infeasible variants of the CUTEst problems indicate superior performance for detecting infeasibility. 
 
-The code for our implementation can be found \url{https://github.com/ohinder/OnePhase}.
+The code for our implementation can be found at \url{https://github.com/ohinder/OnePhase}.
 \end{abstract}
 
 \section{Introduction}
@@ -1114,12 +1123,13 @@ The backtracking line search of the aggressive step has a minimum step size. If 
 \end{flalign}
 then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Note that the function $\bar{\minStepFunc}(\mu, s)$ is a more sophisticated version of $\minStepFunc$ used for the simple algorithm and defined in \eqref{simple-min-step-size-aggresssive}. Following this, $\delta$ is increased in Line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} and a new aggressive step is attempted. It is possible that $\delta$ will be increased many times; however, for sufficiently large $\delta$ an acceptable step will be found (see Lemma~\ref{lemma:agg-succeeds}). 
 
+To choose $\gamma$ in Algorithm~\ref{alg:aggressive} we use a heuristic inspired by Mehrotra's predictor-corrector method. This heuristic only requires a direction computation --- we do not evaluate any functions of the nonlinear program.
 
 \begin{algorithm}[H]
 \textbf{Input:} The matrix $\Schur + \delta \eye$, its factorization, the current point $(\mu, x, s, y)$ and the point $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the outer iteration.  \\
 \textbf{Output:} A new point $(\mu^{+}, x^{+}, s^{+}, y^{+})$ and a $\status$ of either $\success$ or $\failure$.
 \begin{enumerate}[label*=A.{\arabic*}]
-\item \emph{Use Mehrotra's predictor-corrector heuristic to choose $\gamma$.} 
+\item \label{mehrotra-heuristic} \emph{Use Mehrotra's predictor-corrector heuristic to choose $\gamma$.} 
 \begin{enumerate}[label*=.{\arabic*}]
 \item Compute the vector $b$ at the point $(\mu, x, s, y)$ via \eqref{def:b} with $\gamma = 0$.
 \item Compute the search direction $(\dir{x}, \dir{s}, \dir{y})$ using \eqref{practical-direction}
@@ -1132,15 +1142,17 @@ then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Not
 \item Estimate the largest primal step size $\alpha^{\max}_{P}$ from equation~\eqref{fracBoundaryPrimalMax}.
 \item \label{agg:line:back-track} \emph{Perform a backtracking linesearch}. Starting from $\alpha_{P} \gets \alpha^{\max}_{P}$ repeat the following steps.
 \begin{enumerate}[label*=.{\arabic*}]
-\item \label{line:agg-back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P} \le \bar{\minStepFunc}(\mu, s)$ then goto line~\ref{line:agg-terminate}.
+\item \label{prac-agg:line:back-too-small} \emph{Check the step size is not too small.} If $\alpha_{P} \le \bar{\minStepFunc}(\mu, s)$ then goto line~\ref{agg-prac:line:terminate}.
 \item Compute the trial primal variables $(\mu^{+}, x^{+}, s^{+})$ via~\eqref{eq:iterate-update}.
-\item If the \fracBound{} rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
+\item If the \fracBound{} rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{prac-agg:line:back-too-small}.
 \item Compute feasible dual step sizes $B( s^{+}, \dir{y} )$.
-\item If $B( s^{+}, \dir{y} ) = \emptyset$ then trial step has failed, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}.
+\item If $B( s^{+}, \dir{y} ) = \emptyset$ then trial step has failed, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{prac-agg:line:back-too-small}.
 \item Compute dual variable step size $\alpha_{D}$ using \eqref{eq:compute-alpha-D} and compute the trial dual variables $y^{+}$ using \eqref{eq:update-y}.
-\item Terminate with $\status = \success$ and return the point $(\mu^{+}, x^{+}, s^{+}, y^{+})$.
+\item If $\mu^{+} / \mu \ge \parBacktracking$ goto line~\ref{prac-agg:line:success}.
+\item Let $\tau \gets \frac{\mu^{+}}{\sigma(y^{+}) \| \grad \Lag_{\mu^{+}}(x^{+},y^{+}) \|_{\infty}}$. If $\tau < 1$ then set $\alpha_{P} \gets \alpha_{P} \max\{ \parBacktracking , \tau^2 \}$ and go to line~\ref{prac-agg:line:back-too-small}.
+\item\label{prac-agg:line:success} Terminate with $\status = \success$ and return the point $(\mu^{+}, x^{+}, s^{+}, y^{+})$.
 \end{enumerate}
-\item \label{line:agg-terminate} Terminate with $\status = \failure$.
+\item \label{agg-prac:line:terminate} Terminate with $\status = \failure$.
 \end{enumerate}
 \caption{Practical aggressive step}\label{alg:aggressive}
 \end{algorithm}
@@ -1396,26 +1408,6 @@ ECON250 & 500 & 62,251 & 249,500 & 249,500 & 500 \\
 \caption{Runtime comparison on selected large-scale test problems}\label{compare-runtime}
 \end{table}
 
-\subsection{Performance on the example of \citeauthor{wachter2000failure}}
-
-As we discussed in the introduction, the two-phase algorithm of IPOPT was specifically designed to address that on the problem 
-\begin{flalign*}
-\min { x } & \\
-x^2 - s_{1} &= -1 \\
-x - s_{2} &= 1 \\
-s_1, s_2 &\ge 0
-\end{flalign*}
-infeasible-start IPMs based on the ideas of Lustig \cite{lustig1990feasibility} fail to either to converge to a stationary measure of infeasibility or optimality. For this problem, starting at $x = -3$, $s_1, s_{2} > 0$ (the slacks are automatically selected by the algorithms) our one-phase algorithm finds the optimal solution in 8 iterations compared with 17 for IPOPT.
-
-As we showed in [section] our one-phase IPM minimizes the (weighted) maximum constraint violation. On infeasible linear programs one would expect the main phase of IPOPT to converge to a point that minimizes the (weighted) maximum constraint violation. 
-
-%an infeasible start interior point algorithm like IPOPT minimizes the (weighted) maximum constraint violation. 
-
-\begin{enumerate}
-\item Talk about how IPOPT switches target
-\item say I want to minimize L1 norm
-\end{enumerate}
-
 \if\inProgress1
 \section{Remaining question: how to choose $\conWeight$?}
 
@@ -1448,6 +1440,9 @@ Picking $\conWeight$ small and selecting $\mu$ s.t. $s > 0$ gives an algorithm t
 \hinder{Given a strictly feasible starting point, by setting $\conWeight = 0$ one can remain strictly feasible for the remainder of the algorithm. Maybe give an example problem.}
 
 \hinder{If we set $\mu$ large and $\conWeight$ small then the algorithm is essentially a two-phase algorithm -- makes a lot of sense for problems with large interior. But works terribly for problems with a small interior.}
+
+
+%Currently, our iteration counts are competitive. In the future, we intend to improve the speed of the code and ...
 
 
 \section*{Acknowledgements}
@@ -1866,6 +1861,8 @@ This strategy is based on the ideas of IPOPT \cite[Algorithm IC]{wachter2006impl
 \end{algorithm}
 where $\parDeltaDecrease, \parDeltaIncreaseFailure, \parDeltaMin$ have default values of $\parDeltaDecreaseValue, \parDeltaIncreaseFailureValue, \parDeltaMinValue$ respectively.
 
+%\subsection{Warm starting}
+
 
 \subsection{Initialization}\label{sec:initialization}
 
@@ -1877,6 +1874,7 @@ This section explains how given a starting point $x_{\text{start}}$, how to sele
 \ron{How does IPOPT do this?}
 The first goal is to modify $x_{\text{start}}$ to satisfy any bounds e.g., $l \le x \le u$. Let $\mathcal{B} \subseteq \{ 1, \dots, \ncon \}$ be the set of indices corresponding to variable bounds. More precisely, $i \in \mathcal{B}$ if and only if there exists $c \in \R$ such that $a_i(x) = e_j^T x + c$ or $a_i(x) = -e_j^T x + c$. We project $x_{\text{start}}$ onto the variable bounds in the same way as IPOPT \cite[Section 3.7]{wachter2006implementation}. Furthermore, we set $w_i = 0$ and $s_i^{0} = -a_i(x^0)$ for each $i \in \mathcal{B}$. This ensures that the variable bounds are satisfied throughout, and is useful because the constraints or objective may not be defined outside the bound constraints. To guarantee that any constraint $a_i(x)$ that was strictly feasible at the initial point $x^{0}$ remains feasible throughout the algorithm we could simply set $\conWeight_i = 0$ and $s_i^{0} = -a_i(x^0)$.
  
+
 
 %This is done because often the nonlinear constraints or objective may not be defined outside the bound constraints. 
 
@@ -1895,29 +1893,53 @@ The first goal is to modify $x_{\text{start}}$ to satisfy any bounds e.g., $l \l
 %$$
 %How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
 %we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
-The remainder of the initialization scheme is inspired by Mehrotra's work for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual variable and slack variables from
+The remainder of the initialization scheme is inspired by Mehrotra's work for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual and slack variables from
 \begin{flalign*}
 \tilde{y} &\gets \grad \cons(x^0) (\grad \cons(x^0)^T \grad \cons(x^0) + I \parInitialize)^{-1}  \grad \obj(x^0) \\
 \tilde{s} &\gets -\cons(x^{0})
 \end{flalign*}
 \hinder{check this matches!!!}
-for some parameter $\parInitialize \in (0,\infty)$ with default value $\parInitializeValue$.
+for some parameter $\parInitialize \in (0,\infty)$ with default value $\parInitializeValue$. If this computation fails we set $y^0 \gets e$.
 
-\hinder{this should be a loop}
-Consider the following scalar variables:
-\begin{flalign}
-& \varepsilon_{y} \gets \max\{ -2 \min_i{ \tilde{y}_i}, 0 \}  \\
-& \varepsilon_{s} \gets \max\left\{ - 2 \min_i{ \tilde{s}_i}, \frac{\| \grad \Lag_{\mu^0}(x^{0}, \tilde{y}) \|_{\infty}}{\| \tilde{y} \|_{\infty} + 1} \right\} %\frac{\tilde{s}^T y }{\| y \|_{1}} +
-\end{flalign}
-then set
-\begin{flalign}
-y^{0} &\gets \tilde{y} + \varepsilon_{y} \\
-s^{0} &\gets \tilde{s} + \varepsilon_{s} \\
-\mu^{0} &\gets \parMuScale \frac{(s^0)^T y^{0}}{\ncon}
-\end{flalign}
-where $\parMuScale$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm.
+Next, we set:
+\begin{flalign*}
+ \varepsilon_{y} &\gets \max\{  -2 \min_i{ \tilde{y}_i}, 0 \}  \\
+\tilde{y} &\gets \tilde{y} + \varepsilon_{y} \\
+ \varepsilon_{s} &\gets \max\left\{  - 2 \min_i{ \tilde{s}_i}, 0 \right\} \\
+\tilde{s}_i &\gets \tilde{s}_i + \varepsilon_{s} \quad \forall i \not\in \mathcal{B},  
+\end{flalign*}
+and then
+\begin{flalign*}
+\tilde{y} &\gets \tilde{y} +  \frac{\tilde{s}^T \tilde{y}}{2 e^T \tilde{s}} \\
+\tilde{y} &\gets \max\{  \parInitializeMin, \min\{ \tilde{y},  \parInitializeMax \} \}  \\
+\tilde{s} &\gets \tilde{s} + \frac{\tilde{s}^T \tilde{y}}{2 e^T \tilde{y}} \quad \forall i \not\in \mathcal{B} \\
+\tilde{\mu} &\gets  \frac{\tilde{s}^T \tilde{y}}{\ncon}.
+\end{flalign*}
+where $\parInitializeMin \in \parInitializeMinInterval$ has a default value of $\parInitializeMinValue$ and $\parInitializeMax \in \parInitializeMaxInterval$ has a default value of $\parInitializeMaxValue$.
 
-We project $\mu^{0}$ onto the interval  $\| s^{0} \|_{\infty} [10^{-2},10^{5}]$ and project the dual variables $y^{0}$ onto the interval $\mu S^{-1} \ones [\parComp, 1/\parComp]$. Finally, we set $\conWeight = \frac{a(x^0) - s^0}{\mu^0}$.
+If $\norm{\grad \Lag_{\tilde{\mu}}(x^0, \tilde{y}) }_{1} \ge \norm{ \grad f(x^0) }_{1}$ then
+$$
+\tilde{y} \gets 0.
+$$
+Let $\tau \gets \frac{\| \grad \Lag_{\tilde{\mu}}(x^0, \tilde{y}) \|_{1}}{\ncon \tilde{\mu}}$, if $\tau \ge 1$ then
+\begin{flalign*}
+\tilde{s} &\gets \tau (a(x^0) + \tilde{s}) - a(x^0)  \\
+\tilde{\mu} &\gets \tau \tilde{\mu}.
+\end{flalign*}
+Next, set
+\begin{flalign*}
+\mu^0 &\gets \parMuScale \tilde{\mu} \\
+s^0_i &\gets \tilde{s}_i \quad \forall i \not\in \mathcal{B}  \\
+s^0_i &\gets -\cons_i(x^0) \quad \forall i \in \mathcal{B}  \\
+\conWeight &\gets \frac{a(x^0) + s^0}{\mu^{0}}
+\end{flalign*}
+where $\parMuScale \in \parMuScaleInterval$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm. Finally, we need to ensure the dual variables satisfy \eqref{} so we set
+\begin{flalign*}
+y^0 &\gets \min \{ \max \{  \parCompAgg \mu^0 (S^0)^{-1} e, \tilde{y} \},  \mu / \parCompAgg (S^0)^{-1} e \}.
+\end{flalign*}
+
+
+
 
 \inProgressHide{
 

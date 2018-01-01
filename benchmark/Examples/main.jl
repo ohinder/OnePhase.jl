@@ -8,7 +8,7 @@
 #nlp_raw2 = CUTEstModel("MSS2")
 
 # INFEASIBLE PROBLEMS
-nlp_raw2 = CUTEstModel("10FOLDTR")
+#nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("NCVXQP8","-param","N=1000")
 #nlp_raw2 = CUTEstModel("JUNKTURN")
 #nlp_raw2 = CUTEstModel("CATENARY")
@@ -40,7 +40,7 @@ nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("PT") # 13 ITS
 #nlp_raw2 = CUTEstModel("COSHFUN") # 153 ITS
 #nlp_raw2 = CUTEstModel("KISSING") # 180 ITS
-#nlp_raw2 = CUTEstModel("KISSING2") # 151 ITS
+#nlp_raw2 = CUTEstModel("KISSING") # 151 ITS
 #nlp_raw2 = CUTEstModel("FLETCHCR")
 #nlp_raw2 = CUTEstModel("GENHUMPS")
 #nlp_raw2 = CUTEstModel("ZIGZAG") # 22 ITS
@@ -51,7 +51,7 @@ nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("STEENBRC")
 #nlp_raw2 = CUTEstModel("QPCSTAIR")
 #nlp_raw2 = CUTEstModel("QPNBOEI2")
-#nlp_raw2 = CUTEstModel("READING1")
+#nlp_raw2 = CUTEstModel("CAMSHAPE")
 #nlp_raw2 = CUTEstModel("READING4")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("CHAIN")
@@ -123,14 +123,14 @@ nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("ACOPP300")
 #nlp_raw2 = CUTEstModel("LEAKNET")
 #nlp_raw2 = CUTEstModel("TFI1")
-#nlp_raw2 = CUTEstModel("TRAINH") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
+#nlp_raw2 = CUTEstModel("OPTCDEG2") # >> 1000, STRUGGLING, LINEAR SOLVER IS NOT V. GOOD # IPOPT 58
 #nlp_raw2 = CUTEstModel("AVION2") # HARD and poorly conditioned
 #nlp_raw2 = CUTEstModel("A4X12") # HARD and poorly conditioned
 #nlp_raw2 = CUTEstModel("CRESC100") # >> 100. Infinities!
 #nlp_raw2 = CUTEstModel("CRESC50")
 #nlp_raw2 = CUTEstModel("AVION2")
 #nlp_raw2 = CUTEstModel("QPNSTAIR")
-#nlp_raw2 = CUTEstModel("YORKNET")
+#nlp_raw2 = CUTEstModel("COSHFUN")
 #nlp_raw2 = CUTEstModel("TOYSARAH")
 #problem_list = get_problem_list(100000,9999999999)
 # BIG PROBLEMS
@@ -163,17 +163,17 @@ nlp_raw2 = CUTEstModel("10FOLDTR")
 #nlp_raw2 = CUTEstModel("bridgend")
 #nlp_raw2 = CUTEstModel("TWIRIBG1")
 #nlp_raw2 = CUTEstModel("TWIRIBG1")
-#nlp_raw2 = CUTEstModel("ROTDISC")
 include("../benchmark.jl")
 using CUTEst, OnePhase
 #nlp_raw2 = CUTEstModel("RK23")
+nlp_raw2 = CUTEstModel("MANNE")
 
 my_pars = OnePhase.Class_parameters()
 #my_pars.term.tol_opt = 1e-15
-#nlp_raw2 = CUTEstModel("AGG")
+#nlp_raw2 = CUTEstModel("MANNE")
 #nlp_raw2 = CUTEstModel("QR3DBD")
 #nlp_raw2 = CUTEstModel("SINROSNB")
-#nlp_raw2 = CUTEstModel("COSHFUN")
+#nlp_raw2 = CUTEstModel("KISSING")
 
 #my_pars.term.tol_opt = 1e-20
 ##### EXAMPLES FOR TALK #####
@@ -186,12 +186,17 @@ my_pars = OnePhase.Class_parameters()
 #nlp_raw2 = CUTEstModel("DRCAVTY2")
 #nlp_raw2 = CUTEstModel("LUKVLE17")
 
-#nlp_raw2 = CUTEstModel("ZIGZAG")
-#nlp_raw2 = CUTEstModel("COSHFUN")
+#nlp_raw2 = CUTEstModel("MPC1")
+#nlp_raw2 = CUTEstModel("SINROSNB")
+
+#nlp_raw2 = CUTEstModel("LIPPERT1")
+#nlp_raw2 = CUTEstModel("CATMIX")
+#nlp_raw2 = CUTEstModel("KISSING2")
 if false
   my_pars.term.max_it = 100
   new_pars = OnePhase.autotune(nlp_raw2, my_pars)
 end
+#my_pars.term.tol_opt = 1e-6
 
 iter, status, hist, t, err = OnePhase.one_phase_solve(nlp_raw2,my_pars);
 #get_fval(iter)

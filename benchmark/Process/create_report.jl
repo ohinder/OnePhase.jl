@@ -1,6 +1,6 @@
 #folder = "CUTEst_infeasible"
 #folder = "CUTEst"
-folder = "CUTEst_low_tol"
+folder = "CUTEst"
 #folder = "netlib_infeasible"
 
 if folder == "CUTEst"
@@ -17,6 +17,8 @@ elseif folder == "netlib_infeasible"
   data = :netlib
 end
 
+line_styles = Dict("ipopt" => "-", "one phase" => "--")
+line_colors = Dict("ipopt" => "black", "one phase" => "black")
 
 function get_CUTEst_results()
   results = Dict{String, Dict{String,problem_summary2}}()
@@ -26,9 +28,10 @@ function get_CUTEst_results()
     if data == :CUTEst
     #results["ipopt"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
       results["one phase"] = cps(load("../results/one_phase/Dec24/summary.jld", "summary"))
-      #results["ipopt"] = cps(load("../results/one_phase/Dec24/summary.jld", "summary"))
+      results["ipopt"] = cps(load("../results/one_phase/test_knitro_init5_Jan1/summary.jld", "summary"))
+      #results["ipopt"] = cps(load("../results/one_phase/test_meh_init_Dec30/summary.jld", "summary"))
 
-      results["ipopt"] = convert_JuMP(cps(load("../results/ipopt/plain/summary.jld", "summary")))
+      #results["ipopt"] = convert_JuMP(cps(load("../results/ipopt/plain/summary.jld", "summary")))
     elseif data == :CUTEst_low_tol
       results["one phase"] = cps(load("../results/one_phase/LowTol_Dec19/summary.jld", "summary"))
       results["ipopt"] = convert_JuMP(cps(load("../results/ipopt/very_low_tol/summary.jld", "summary")))

@@ -6,6 +6,15 @@ overlapping_results = get_CUTEst_results()
 ############# SUMMARY TABLE
 #############
 
+#=
+nlp_raw2 = CUTEstModel("AIRPORT")
+nlp = nlp_raw2
+x0 = nlp.meta.x0
+#
+nlp.meta.ncon * (norm(grad(nlp,x0),1) + norm(hess(nlp,x0),1))/norm(jac(nlp,x0),1)
+finalize(nlp_raw2)
+=#
+
 problem_list = collect(keys(first(overlapping_results)[2]))
 method_list = collect(keys(overlapping_results))
 
