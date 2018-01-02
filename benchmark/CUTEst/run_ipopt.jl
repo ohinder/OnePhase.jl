@@ -1,7 +1,7 @@
 include("run_cutest.jl")
 using Ipopt
 
-problem_list = get_problem_list(50,200)
+problem_list = default_list()
 TIME_LIMIT = 60.0^2
 
 if false
@@ -12,9 +12,9 @@ if false
 end
 
 if true
-  folder_name = "ipopt/medium_Dec23"
+  folder_name = "ipopt/Jan2"
   if_mkdir("../results/$folder_name")
-  my_solver = IpoptSolver(print_level=3, tol=1e-6, max_iter=3000, max_cpu_time=TIME_LIMIT, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
+  my_solver = IpoptSolver(print_level=4, tol=1e-6, max_iter=3000, max_cpu_time=TIME_LIMIT, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
   run_cutest_problems_on_solver(problem_list, folder_name, my_solver)
 end
 

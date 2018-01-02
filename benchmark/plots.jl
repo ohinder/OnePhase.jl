@@ -7,7 +7,7 @@ function plot_iteration_ratios(its, best, ratios, line_styles, line_colors)
       min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best))
     end
     ax = gca()
-    ax[:set_xlim]([1.0,2^6.0])
+    ax[:set_xlim]([1.0,2^7.0])
     ax[:set_ylim]([min_y,1.0])
 
     #ax[:xaxis][:ticker] = 0.5

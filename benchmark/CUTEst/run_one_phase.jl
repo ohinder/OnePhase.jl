@@ -15,7 +15,7 @@ my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
 #folder_name = "one_phase/test_meh_init2_Dec30"
-folder_name = "one_phase/test_knitro_init6_Jan1"
+folder_name = "one_phase/test_knitro_init8_Jan2"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

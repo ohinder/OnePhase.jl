@@ -15,6 +15,8 @@ function terminate(iter::Class_iterate, par::Class_parameters)
         return :primal_infeasible
     elseif norm(iter.point.x,Inf) > 1.0 / par.term.tol_unbounded # TMP!!!
         return :dual_infeasible
+    elseif norm(iter.cache.grad,Inf) > par.term.grad_max
+        return :max_gradient
     else
         return false
     end

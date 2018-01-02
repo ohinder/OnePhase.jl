@@ -86,7 +86,7 @@
 \newcommand{\parObjReductFactorValue}{0.2}
 \newcommand{\parObjReductFactorInterval}{(0,1)}
 
-\newcommand{\parMinStableStepSize}{\beta_{5}}
+\newcommand{\parMinStableStepSize}{\beta_{\text{stb}}^{\min}}
 \newcommand{\parMinStableStepSizeValue}{2^{-5}}
 \newcommand{\parMinStableStepSizeInterval}{(0,1)}
 
@@ -123,6 +123,11 @@
 \newcommand{\parInitializeMax}{\beta_{11}}
 \newcommand{\parInitializeMaxValue}{10^{3}}
 \newcommand{\parInitializeMaxInterval}{[\parInitializeMin,\infty)}
+
+\newcommand{\parAggProtect}{\beta_{12}}
+\newcommand{\parAggProtectValue}{0.9}
+\newcommand{\parAggProtectInterval}{(0,1)}
+
 
 \newcommand{\parMuScale}{\mu_{\text{scale}}}
 \newcommand{\parMuScaleValue}{1.0}
@@ -1123,7 +1128,10 @@ The backtracking line search of the aggressive step has a minimum step size. If 
 \end{flalign}
 then we immediately reject the step and exit Algorithm~\ref{alg:aggressive}. Note that the function $\bar{\minStepFunc}(\mu, s)$ is a more sophisticated version of $\minStepFunc$ used for the simple algorithm and defined in \eqref{simple-min-step-size-aggresssive}. Following this, $\delta$ is increased in Line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM} and a new aggressive step is attempted. It is possible that $\delta$ will be increased many times; however, for sufficiently large $\delta$ an acceptable step will be found (see Lemma~\ref{lemma:agg-succeeds}). 
 
-To choose $\gamma$ in Algorithm~\ref{alg:aggressive} we use a heuristic inspired by Mehrotra's predictor-corrector method. This heuristic only requires a direction computation --- we do not evaluate any functions of the nonlinear program.
+To choose $\gamma$ in line~\ref{mehrotra-heuristic} of Algorithm~\ref{alg:aggressive} we use a heuristic inspired by Mehrotra's predictor-corrector method. This heuristic only requires a direction computation --- we do not evaluate any functions of the nonlinear program.
+
+It is possible that when we take a step that we reduce $\mu$ significantly but $\| \grad \Lag(x,y) \|_{\infty}$ remains large. Line~\ref{agg-protect-1} and \ref{agg-protect-1} of Algorithm~\ref{alg:aggressive} guard against this possibility. This scheme is controlled by the parameter $\parAggProtect \in \parAggProtectInterval$ with a default value of $\parAggProtectValue$. Values of $\parAggProtect$ close to $1$ give no guarding and close to $0$ are conservative.
+
 
 \begin{algorithm}[H]
 \textbf{Input:} The matrix $\Schur + \delta \eye$, its factorization, the current point $(\mu, x, s, y)$ and the point $(\hat{x}, \hat{s},  \hat{y}, \hat{\mu})$ from the beginning of the outer iteration.  \\
@@ -1148,8 +1156,8 @@ To choose $\gamma$ in Algorithm~\ref{alg:aggressive} we use a heuristic inspired
 \item Compute feasible dual step sizes $B( s^{+}, \dir{y} )$.
 \item If $B( s^{+}, \dir{y} ) = \emptyset$ then trial step has failed, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{prac-agg:line:back-too-small}.
 \item Compute dual variable step size $\alpha_{D}$ using \eqref{eq:compute-alpha-D} and compute the trial dual variables $y^{+}$ using \eqref{eq:update-y}.
-\item If $\mu^{+} / \mu \ge \parBacktracking$ goto line~\ref{prac-agg:line:success}.
-\item Let $\tau \gets \frac{\mu^{+}}{\sigma(y^{+}) \| \grad \Lag_{\mu^{+}}(x^{+},y^{+}) \|_{\infty}}$. If $\tau < 1$ then set $\alpha_{P} \gets \alpha_{P} \max\{ \parBacktracking , \tau^2 \}$ and go to line~\ref{prac-agg:line:back-too-small}.
+\item \label{agg-protect-1} If $\mu^{+} / \mu \ge 1 - \parAggProtect$ goto line~\ref{prac-agg:line:success}.
+\item \label{agg-protect-2} Let $\tau \gets \frac{\mu^{+}}{(1 - \parAggProtect) \sigma(y^{+}) \| \grad \Lag_{\mu^{+}}(x^{+},y^{+}) \|_{\infty}}$. If $\tau < 1$ then set $\alpha_{P} \gets \max\{ \parAggProtect^2 , \alpha_{P} \tau^2 \}$ and go to line~\ref{prac-agg:line:back-too-small}.
 \item\label{prac-agg:line:success} Terminate with $\status = \success$ and return the point $(\mu^{+}, x^{+}, s^{+}, y^{+})$.
 \end{enumerate}
 \item \label{agg-prac:line:terminate} Terminate with $\status = \failure$.
@@ -1158,13 +1166,14 @@ To choose $\gamma$ in Algorithm~\ref{alg:aggressive} we use a heuristic inspired
 \end{algorithm}
 
 
-
 \subsubsection{Stabilization steps}
 
 During the backtracking line search we terminate with $\status = \failure$ if
 \begin{flalign}\label{eq:min-step-size-stable}
-\alpha_{P} \le \parMinStableStepSize.
+\alpha_{P} \le \parMinStableStepSize
 \end{flalign}
+where $\parMinStableStepSize \in \parMinStableStepSizeInterval$ with default value $\parMinStableStepSizeValue$.
+
 We then exit Algorithm~\ref{alg:stable} and go to line~\ref{increase-delta-for-failure} of Algorithm~\ref{one-phase-IPM}, where we increase $\delta$ and attempt a new stabilization step. From Lemma~\ref{lemConsecutiveStable} we know for sufficiently large $\delta$ the stabilization step will succeed.
 
 To prevent unnecessary line searches, we only attempt a stabilization line search if
@@ -1269,7 +1278,7 @@ $\TOLunbounded$ & Tolerance for the unboundedness criterion \eqref{terminate-dua
 \section{Numerical results}\label{sec:numerical-results}
 
 % and (ii) the NETLIB linear programming
- The numerical results are structured as follows. Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems. Section~\ref{sec:large-scale} compares the algorithms on selected large-scale problems. For a comparison of the practical behavior of the dual multipliers we refer the reader to \cite{haeser2017behavior}. The code for our implementation can be found \url{https://github.com/ohinder/OnePhase}.
+ The numerical results are structured as follows. Section~\ref{alg:comparison-IPOPT} compares our algorithm against IPOPT on CUTEst. Section~\ref{sec:infeas} compares our algorithm and IPOPT on a set of infeasible problems. Section~\ref{sec:large-scale} compares the algorithms on selected large-scale problems. For a comparison of the practical behavior of the dual multipliers we refer the reader to \cite{haeser2017behavior}. The code for our implementation can be found at \url{https://github.com/ohinder/OnePhase}.
  
  %, the code for producing the numerical results inside the folder /benchmark/ and the table of results [The code can be found here and table of results].
  
@@ -1279,7 +1288,8 @@ Overall, on the problems we tested, we found that our algorithm required signifi
 
 \subsection{Comparison with IPOPT on CUTEst}\label{alg:comparison-IPOPT}
 
-To obtain numerical results we use the CUTEst nonlinear programming test set [REF]. We selected a subset from CUTEst with more than $100$ variables and $100$ constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems.
+To obtain numerical results we use the CUTEst nonlinear programming test set \cite{gould2015cutest}. We selected a subset from CUTEst with more than $100$ variables and $100$ constraints, but the total number of variables and constraints less than $10,000$. We further restricted the CUTEst problems to ones that are classified as having first and second derivatives defined everywhere (and available analytically). This gave us a test set with $238$ problems. For solving our linear systems we use Julia's default Cholesky factorization (SuiteSparse) and IPOPT's default---the MUMPs linear solver.
+
 
 Table~\ref{avg:evaluations} compares the number of calls and runtime of different elements of our algorithm. We do not currently compare the number of function evaluations with IPOPT, but in general we would anticipate that IPOPT needs slightly fewer evaluations per outer iteration. In particular, our algorithm may make multiple objective, constraint and Jacobian evaluations per inner iteration. We evaluate the Lagrangian of the Hessian once per outer iteration. For problems where function evaluations are expensive relative to factorization, one is often better off using SQP methods rather than interior point methods. For example, it is known that SNOPT generally requires fewer function evaluations than IPOPT \cite[Figure 2, Figure 3]{gill2015performance}. 
 %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
@@ -1315,7 +1325,7 @@ KKT & 20 & 28
 \end{table}
 
 To run this test set it takes a total of 16 hours for IPOPT and 11 hours for our one-phase algorithm. However, IPOPT is generally significantly faster than our algorithm. It has a median runtime of $0.6$ seconds per problem versus $2.5$ seconds for our algorithm (including problems where the algorithm fails). This is not surprising since our code is written in Julia and is not optimized for speed; IPOPT is written in Fortran and has been in development for over 15 years. This speed difference is particularly acute on small problems where the overheads of Julia are large. Assuming factorization or computation of the hessian is the dominant computational cost we would expect the time per iteration to be similar if our algorithm was efficiently implemented in a compiled programming language. For this reason, we compare the algorithms based on iteration counts.
-
+ 
 To compare iteration counts our graphs use the performance profiling of \citet*{dolan2002benchmarking}. In particular, on the $x$-axis we plot:
 $$
 \frac{\text{iteration count of solver}}{\text{iteration count of fastest solver}}
@@ -1407,6 +1417,18 @@ ECON250 & 500 & 62,251 & 249,500 & 249,500 & 500 \\
 \end{tabular}
 \caption{Runtime comparison on selected large-scale test problems}\label{compare-runtime}
 \end{table}
+
+\section{Conclusion and avenues for improvement}
+
+In this paper we proposed a one-phase algorithm: it neither requires two phases or a penalty method; nonetheless under mild assumptions it is guaranteed to converge to a first-order certificate of infeasibility, unboundedness or optimality. As we have demonstrated on large-scale test problems the algorithm has similar iteration counts to IPOPT, but significantly better performance on infeasible problems. 
+
+An additional benefit of our approach is the ability to choose $\conWeight$. For example, if one has a starting point $x^0$ that strictly satisfies a subset of the constraints one can initialize the algorithm with $\conWeight_i = 0$ on this subset (we do this automatically for the bound constraints). The algorithm will then satisfy these constraints for all subsequent iterations. Aside from potentially speeding up convergence, this is particularly beneficial if some of the constraints or objective are undefined outside a feasible region defined by this subset.
+
+One can interpret the relative value of $\mu^0$ and $\conWeight$ as the extent to which feasibility is prioritized over optimality: a larger $\mu^0$ gives more priority to feasibility. For a fixed $\conWeight$ picking a huge $\mu$ makes the IPM method behave like a phase-one, phase-two method: initially the algorithm attempts to find a feasible solution then it minimizes the objective on the feasible region. We have attempted such an initialization strategy and note that while it performs well on many problems, in others it causes the dual multipliers to become unduly large (as the theory of \cite{haeser2017behavior} predicts when, for example, the feasible region lacks an interior). We find that manually tuning the value of $\mu^0$ for a specific problem often significantly reduces the number of iterations. Therefore, we believe that improving our initialization scheme (see Section~\ref{sec:initialization}) could result in significant improvements.
+
+%The behavior and performance of our algorithm is sensitive to large changes in the choice of $\conWeight$ and $\mu^0$. 
+
+Finally, we note that we improving the accuracy of the linear system solves would also improve our robustness. A disadvantage of using the Cholesky factorization is that we often had difficulty obtaining a sufficiently accurate solution as we approached optimality. Potentially switching to an \LBL{} factorization \cite{amestoy1998mumps} or other techniques [REF] might help resolve this issue.
 
 \if\inProgress1
 \section{Remaining question: how to choose $\conWeight$?}
@@ -1893,7 +1915,7 @@ The first goal is to modify $x_{\text{start}}$ to satisfy any bounds e.g., $l \l
 %$$
 %How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
 %we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
-The remainder of the initialization scheme is inspired by Mehrotra's work for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual and slack variables from
+The remainder of the initialization scheme is inspired by Mehrotra's start scheme for linear programming \cite{mehrotra1992implementation}, adapted to the nonlinear programming context. We select a candidate dual and slack variables from
 \begin{flalign*}
 \tilde{y} &\gets \grad \cons(x^0) (\grad \cons(x^0)^T \grad \cons(x^0) + I \parInitialize)^{-1}  \grad \obj(x^0) \\
 \tilde{s} &\gets -\cons(x^{0})
@@ -1912,7 +1934,7 @@ and then
 \begin{flalign*}
 \tilde{y} &\gets \tilde{y} +  \frac{\tilde{s}^T \tilde{y}}{2 e^T \tilde{s}} \\
 \tilde{y} &\gets \max\{  \parInitializeMin, \min\{ \tilde{y},  \parInitializeMax \} \}  \\
-\tilde{s} &\gets \tilde{s} + \frac{\tilde{s}^T \tilde{y}}{2 e^T \tilde{y}} \quad \forall i \not\in \mathcal{B} \\
+\tilde{s}_i &\gets \tilde{s}_i + \frac{\tilde{s}^T \tilde{y}}{2 e^T \tilde{y}} \quad \forall i \not\in \mathcal{B} \\
 \tilde{\mu} &\gets  \frac{\tilde{s}^T \tilde{y}}{\ncon}.
 \end{flalign*}
 where $\parInitializeMin \in \parInitializeMinInterval$ has a default value of $\parInitializeMinValue$ and $\parInitializeMax \in \parInitializeMaxInterval$ has a default value of $\parInitializeMaxValue$.
@@ -1933,7 +1955,7 @@ s^0_i &\gets \tilde{s}_i \quad \forall i \not\in \mathcal{B}  \\
 s^0_i &\gets -\cons_i(x^0) \quad \forall i \in \mathcal{B}  \\
 \conWeight &\gets \frac{a(x^0) + s^0}{\mu^{0}}
 \end{flalign*}
-where $\parMuScale \in \parMuScaleInterval$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm. Finally, we need to ensure the dual variables satisfy \eqref{} so we set
+where $\parMuScale \in \parMuScaleInterval$ is a parameter with a default value of 1.0. We leave $\parMuScale$ as a parameter for the user because we notice that for some problems changing this value can reduce the iteration count by an order of magnitude. Devising a better way to select $\mu^0$ we believe could significantly improve our algorithm. Finally, we need to ensure the dual variables satisfy \eqref{eq:comp-slack} so we set
 \begin{flalign*}
 y^0 &\gets \min \{ \max \{  \parCompAgg \mu^0 (S^0)^{-1} e, \tilde{y} \},  \mu / \parCompAgg (S^0)^{-1} e \}.
 \end{flalign*}

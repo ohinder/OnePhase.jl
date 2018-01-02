@@ -58,7 +58,7 @@ type ipopt_alg_history <: abstract_alg_history
 end
 
 function head_progress()
-  println( pd("it",3), pd("step", 6), pd("eta",8), pd("α_P"), pd("α_D"), pd("ls",3), pd("|dx|"), pd("|dy|"), pd("N err"), "|", pd("mu"), pd("dual"), pd("primal"), pd("cmp scaled"), pd("inf"), "|", pd("delta"), pd("#fac",6), pd("|x|"), pd("|y|"), pd("∇phi"), pd("phi") )
+  println( pd("it",3), pd("step", 6), pd("eta",8), pd("α_P"), pd("α_D"), pd("ls",3), pd("|dx|"), pd("|dy|"), pd("N err"), "|", pd("mu"), pd("dual"), pd("primal"), pd("cmp scaled"), pd("infeas?"), "|", pd("delta"), pd("#fac",6), pd("|x|"), pd("|y|"), pd("∇phi"), pd("phi") )
 end
 
 function record_progress_first_it!(iter::Class_iterate, kss::abstract_KKT_system_solver, progress::Array{alg_history,1}, pars::Class_parameters)

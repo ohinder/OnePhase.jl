@@ -34,14 +34,16 @@ end
 
 
 function accept_func!(accept::Class_agg_ls, intial_it::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1},  pars::Class_parameters, timer::class_advanced_timer)
-    tau = get_mu(candidate) / scaled_dual_feas(candidate, pars)
-    max_thres = pars.ls.backtracking_factor
+    tau = get_mu(candidate) / (scaled_dual_feas(candidate, pars) * (1.0 - pars.agg_protection_factor))
+    max_thres = pars.agg_protection_factor
     #@show get_mu(candidate), get_mu(intial_it)
-    if get_mu(candidate) / get_mu(intial_it) >= max_thres || tau >= 1.0
+    #@show get_mu(candidate), get_mu(intial_it)
+    if get_mu(candidate) / get_mu(intial_it) >= 1.0 - max_thres || tau >= 1.0
       #@show get_mu(candidate) / get_mu(intial_it), tau
       return :success, step_size
     else
-      suggested_step_size = accept.step_size_P * max(max_thres, tau^2)
+      #println("failure")
+      suggested_step_size = max(max_thres^2, accept.step_size_P * tau^2)
       return :not_enough_progress, suggested_step_size
     end
 end

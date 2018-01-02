@@ -51,7 +51,7 @@
 #nlp_raw2 = CUTEstModel("STEENBRC")
 #nlp_raw2 = CUTEstModel("QPCSTAIR")
 #nlp_raw2 = CUTEstModel("QPNBOEI2")
-#nlp_raw2 = CUTEstModel("CAMSHAPE")
+#nlp_raw2 = CUTEstModel("KISSING2")
 #nlp_raw2 = CUTEstModel("READING4")
 #nlp_raw2 = CUTEstModel("YORKNET")
 #nlp_raw2 = CUTEstModel("CHAIN")
@@ -74,7 +74,7 @@
 #nlp_raw2 = CUTEstModel("CAMSHAPE")
 #nlp_raw2 = CUTEstModel("HAIFAM")
 #nlp_raw2 = CUTEstModel("ACOPR118")
-#nlp_raw2 = CUTEstModel("LAKES")
+#nlp_raw2 = CUTEstModel("SINROSNB")
 #nlp_raw2 = CUTEstModel("ELATTAR")
 #nlp_raw2 = CUTEstModel("A4X12")
 
@@ -166,7 +166,7 @@
 include("../benchmark.jl")
 using CUTEst, OnePhase
 #nlp_raw2 = CUTEstModel("RK23")
-nlp_raw2 = CUTEstModel("MANNE")
+#nlp_raw2 = CUTEstModel("FLOSP2TH")
 
 my_pars = OnePhase.Class_parameters()
 #my_pars.term.tol_opt = 1e-15
@@ -191,7 +191,9 @@ my_pars = OnePhase.Class_parameters()
 
 #nlp_raw2 = CUTEstModel("LIPPERT1")
 #nlp_raw2 = CUTEstModel("CATMIX")
-#nlp_raw2 = CUTEstModel("KISSING2")
+#nlp_raw2 = CUTEstModel("FLOSP2TH")
+
+#nlp_raw2 = CUTEstModel("SINROSNB")
 if false
   my_pars.term.max_it = 100
   new_pars = OnePhase.autotune(nlp_raw2, my_pars)

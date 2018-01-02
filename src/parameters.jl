@@ -105,6 +105,7 @@ type Class_termination_parameters <: abstract_pars
     max_time::Float64
     tol_opt::Float64
     tol_unbounded::Float64
+    grad_max::Float64
     tol_inf_1::Float64
     tol_inf_2::Float64
     dual_scale_threshold::Float64
@@ -117,6 +118,7 @@ type Class_termination_parameters <: abstract_pars
         this.max_time = 60.0^2
         this.tol_opt = 1e-6
         this.tol_unbounded = 1e-12
+        this.grad_max = 1e10
         this.tol_inf_1 = 1e-3
         this.tol_inf_2 = 1e-6
         this.dual_scale_threshold = 100.0;
@@ -222,6 +224,7 @@ type Class_parameters <: abstract_pars
     max_it_corrections::Int64
 
     superlinear_theory_mode::Bool
+    agg_protection_factor::Float64
 
     kkt_include_comp::Bool
     primal_bounds_dual_feas::Bool
@@ -251,6 +254,7 @@ type Class_parameters <: abstract_pars
         # algorithm parameters
         this.max_it_corrections = 2
         this.superlinear_theory_mode = false
+        this.agg_protection_factor = 0.9
 
         # penalty parameter size
         this.a_norm_penalty = 1e-4
