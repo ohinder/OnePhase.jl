@@ -74,14 +74,15 @@ type Class_line_search_parameters <: abstract_pars
     this.predict_reduction_factor = 0.1
 
     this.fraction_to_boundary = 0.1 #0.1
-    this.fraction_to_boundary_predict = 0.25 #0.2
+    this.fraction_to_boundary_predict = 0.2 #0.25
     this.fraction_to_boundary_linear = 0.1
-    this.fraction_to_boundary_predict_exp = 1.5
+    this.fraction_to_boundary_predict_exp = 0.5
 
     this.backtracking_factor = 0.5
     this.num_backtracks = 60;
 
     this.agg_gamma = :mehrotra_stb
+    #this.agg_gamma = :affine
 
     this.move_primal_seperate_to_dual = true
     this.dual_ls = 1
@@ -104,6 +105,7 @@ type Class_termination_parameters <: abstract_pars
     max_time::Float64
     tol_opt::Float64
     tol_unbounded::Float64
+    grad_max::Float64
     tol_inf_1::Float64
     tol_inf_2::Float64
     dual_scale_threshold::Float64
@@ -116,6 +118,7 @@ type Class_termination_parameters <: abstract_pars
         this.max_time = 60.0^2
         this.tol_opt = 1e-6
         this.tol_unbounded = 1e-12
+        this.grad_max = 1e12
         this.tol_inf_1 = 1e-3
         this.tol_inf_2 = 1e-6
         this.dual_scale_threshold = 100.0;
@@ -158,6 +161,8 @@ type Class_init_parameters <: abstract_pars
     linear_scale::Float64
     nl_ineq_scale::Float64
     nl_eq_scale::Float64
+    dual_max::Float64
+    dual_min::Float64
 
     function Class_init_parameters()
         this = new()
@@ -166,12 +171,14 @@ type Class_init_parameters <: abstract_pars
         if mode == :standard
           this.mu_scale = 1.0
           this.mehotra_scaling = true
-          this.init_style = :mehotra
+          this.init_style = :Gertz # #
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1.0
           this.nl_ineq_scale = 1.0
           this.nl_eq_scale = 1.0
+          this.dual_max = 1e3
+          this.dual_min = 1e-2
         else
           this.mu_scale = 1.0
           this.mehotra_scaling = false
@@ -217,6 +224,7 @@ type Class_parameters <: abstract_pars
     max_it_corrections::Int64
 
     superlinear_theory_mode::Bool
+    agg_protection_factor::Float64
 
     kkt_include_comp::Bool
     primal_bounds_dual_feas::Bool
@@ -240,12 +248,13 @@ type Class_parameters <: abstract_pars
         ########################
 
         # switching condition
-        this.aggressive_dual_threshold = 1.0
+        this.aggressive_dual_threshold = 1.0 # kappa_{1}
         this.primal_bounds_dual_feas = false
 
         # algorithm parameters
         this.max_it_corrections = 2
         this.superlinear_theory_mode = false
+        this.agg_protection_factor = 0.9
 
         # penalty parameter size
         this.a_norm_penalty = 1e-4
@@ -257,5 +266,23 @@ type Class_parameters <: abstract_pars
 
 
         return this
+    end
+end
+
+#::IOStream
+function write_pars(stream, par::Class_parameters)
+    write(stream, "PAR \t\t\t\t\t\t VALUE \n")
+
+    for fieldname in fieldnames(par)
+        fieldval = getfield(par, fieldname)
+        if isa(fieldval,abstract_pars)
+          write(stream, "$(pd(fieldname,40)) \n")
+          for subfieldname in fieldnames(fieldval)
+            subfieldval = getfield(fieldval, subfieldname)
+            write(stream, "\t $(pd(subfieldname,40)) \t $(subfieldval) \n")
+          end
+        else
+          write(stream, "$(pd(fieldname,40)) \t $(fieldval) \n")
+        end
     end
 end

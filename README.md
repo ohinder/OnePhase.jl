@@ -11,10 +11,14 @@ $$
 
 where the functions ![f : R^n -> R](misc/f.gif) and ![a : R^n -> R^m](misc/a.gif) are twice differentiable. The one-phase algorithm also handles bound constraints and nonlinear equalities.
 
-*Currently, the package is in development.* Although you are welcome to try it out. Please let me know if there are any bugs etc. Note that the code is generally significantly slower than Ipopt in terms of raw runtime, particularly on small problems (the iteration count is competitive). However, we recommend trying our one-phase IPM if: Ipopt is failing to solve, the problem is very large or might be infeasible. By June 2018, I intend to fully document the code in a way that makes it easy to read, make runtime improvements and release it as a package in JuMP.
+*Currently, the package is in development.* Although you are welcome to try it out. Please let me know if there are any bugs etc. Note that the code is generally significantly slower than Ipopt in terms of raw runtime, particularly on small problems (the iteration count is competitive). However, we recommend trying our one-phase IPM if: Ipopt is failing to solve, the problem is very large or might be infeasible.
 
 ## How to install
 
+```julia
+Pkg.clone("https://github.com/ohinder/advanced_timer.jl")
+Pkg.clone("https://github.com/ohinder/OnePhase.git")
+```
 
 
 ## How to use with JuMP
@@ -25,12 +29,13 @@ Here is a simple example where a [JuMP](http://www.juliaopt.org/JuMP.jl/0.18/JuM
 using OnePhase, JuMP
 
 m = Model()
-@variable(m, x >= 0)
-@variable(m, y >= 0)
-@objective(m, Min, x-y)
-@NLconstraint(m, x^2 + y^2 == 1)
+@variable(m, x, start=-3)
+@objective(m, Min, x)
+@NLconstraint(m, x^2 >= 1.0)
+@NLconstraint(m, x >= -1.0)
 
-it = one_phase_solve(m);
+iter, status, hist, t, err = one_phase_solve(m);
+@show iter.point.x
 ```
 
 If you wish to change the parameters:
@@ -38,7 +43,7 @@ If you wish to change the parameters:
 ```julia
 my_pars = Class_parameters()
 my_pars.term.tol_opt = 1e-8
-it = one_phase_solve(m, my_pars);
+one_phase_solve(m, my_pars);
 ```
 
 Note that the typical way solvers are called with JuMP
@@ -58,4 +63,4 @@ iter = one_phase_solve(nlp);
 
 ## Feedback?
 
-If you have found some bug or think there is someway I can improve the code please tell me! You can contact me at ohinder at stanford dot edu.
+If you have found some bug or think there is someway I can improve the code feel free to contact me! My webpage is https://stanford.edu/~ohinder/.
