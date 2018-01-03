@@ -118,7 +118,7 @@ type Class_termination_parameters <: abstract_pars
         this.max_time = 60.0^2
         this.tol_opt = 1e-6
         this.tol_unbounded = 1e-12
-        this.grad_max = 1e10
+        this.grad_max = 1e12
         this.tol_inf_1 = 1e-3
         this.tol_inf_2 = 1e-6
         this.dual_scale_threshold = 100.0;
@@ -248,7 +248,7 @@ type Class_parameters <: abstract_pars
         ########################
 
         # switching condition
-        this.aggressive_dual_threshold = 1.0
+        this.aggressive_dual_threshold = 1.0 # kappa_{1}
         this.primal_bounds_dual_feas = false
 
         # algorithm parameters

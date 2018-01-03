@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  2 JAN 2018 10:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  3 JAN 2018 11:49
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2401,12 +2401,7 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[22]
-
-Package natbib Warning: Citation `amestoy1998mumps' on page 23 undefined on inp
-ut line 1431.
-
-(./one-phase.bbl
+[22] (./one-phase.bbl
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
@@ -2472,20 +2467,17 @@ Package Fancyhdr Warning: \headheight is too small (12.0pt):
 
 [29]
 
-Package natbib Warning: There were undefined citations.
-
-
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
  Make it at least 14.0pt.
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
 [30]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 2057.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 2057.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 2058.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 2058.
  (./one-phase.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 2057.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 2057.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 2058.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 2058.
 
 Package rerunfilecheck Info: File `one-phase.out' has not changed.
 (rerunfilecheck)             Checksum: C684E7558F9592D37E7CEBEA14006E5F;2992.
@@ -2493,13 +2485,13 @@ Package rerunfilecheck Info: File `one-phase.out' has not changed.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2057.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2058.
  ) 
 Here is how much of TeX's memory you used:
- 27472 strings out of 493089
- 509465 string characters out of 6134842
- 577180 words of memory out of 5000000
- 30165 multiletter control sequences out of 15000+600000
+ 27481 strings out of 493089
+ 509683 string characters out of 6134842
+ 577398 words of memory out of 5000000
+ 30172 multiletter control sequences out of 15000+600000
  22012 words of font info for 81 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  64i,18n,75p,10434b,739s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -2536,10 +2528,10 @@ st/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dis
 t/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/texmf-dist/
 fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-d
 ist/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on one-phase.pdf (30 pages, 545672 bytes).
+Output written on one-phase.pdf (30 pages, 545389 bytes).
 PDF statistics:
- 1369 PDF objects out of 1440 (max. 8388607)
- 1182 compressed objects within 12 object streams
- 335 named destinations out of 1000 (max. 500000)
+ 1379 PDF objects out of 1440 (max. 8388607)
+ 1192 compressed objects within 12 object streams
+ 337 named destinations out of 1000 (max. 500000)
  345 words of extra memory for PDF output out of 10000 (max. 10000000)
 

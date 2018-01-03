@@ -1,9 +1,14 @@
-\begin{thebibliography}{39}
+\begin{thebibliography}{41}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Amestoy et~al.(1998)Amestoy, Duff, and L'Excellent]{amestoy1998mumps}
+P.~R. Amestoy, I.~S. Duff, and J.-Y. L'Excellent.
+\newblock Mumps multifrontal massively parallel solver version 2.0.
+\newblock 1998.
 
 \bibitem[Andersen and Ye(1998)]{andersen1998computational}
 E.~D. Andersen and Y.~Ye.
@@ -74,6 +79,12 @@ R.~Fletcher and S.~Leyffer.
 \newblock Nonlinear programming without a penalty function.
 \newblock \emph{Mathematical programming}, 91\penalty0 (2):\penalty0 239--269,
   2002.
+
+\bibitem[Gertz et~al.(2004)Gertz, Nocedal, and Sartenar]{gertz2004starting}
+M.~Gertz, J.~Nocedal, and A.~Sartenar.
+\newblock A starting point strategy for nonlinear interior methods.
+\newblock \emph{Applied mathematics letters}, 17\penalty0 (8):\penalty0
+  945--952, 2004.
 
 \bibitem[Gill et~al.(1996)Gill, Saunders, and Shinnerl]{gill1996stability}
 P.~E. Gill, M.~A. Saunders, and J.~R. Shinnerl.

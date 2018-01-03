@@ -14,8 +14,11 @@ if "test_knitro_init" in RUN_LIST
 my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
+my_par.term.tol_opt = 1e-2
+my_par.term.tol_inf_1 = 1e-2
+my_par.term.tol_inf_2 = 1e-2
 #folder_name = "one_phase/test_meh_init2_Dec30"
-folder_name = "one_phase/test_knitro_init8_Jan2"
+folder_name = "one_phase/Jan3_LowTol"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

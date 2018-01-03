@@ -2,7 +2,7 @@
 
 module OnePhase
 
-export Class_parameters, write_pars, one_phase_solve
+export Class_parameters, write_pars, one_phase_solve, autotune
 export pd, rd, Eval_NaN_error, Class_CUTEst, init # utils
 
 using advanced_timer, NLPModels, Compat, JuMP

@@ -64,7 +64,6 @@
 #nlp_raw2 = CUTEstModel("NET3")
 #nlp_raw2 = CUTEstModel("NET4") #,"-param","TIME=144")
 #nlp_raw2 = CUTEstModel("GPP","-param","N=2000")
-#nlp_raw2 = CUTEstModel("ANTWERP")
 #nlp_raw2 = CUTEstModel("HYDCAR20")
 #nlp_raw2 = CUTEstModel("STEENBRE")
 #nlp_raw2 = CUTEstModel("STEENBRC")
@@ -145,7 +144,6 @@
 #nlp_raw2 = CUTEstModel("DITTERT")
 
 #IpoptSolve(nlp_raw2);
-#nlp_raw2 = CUTEstModel("AIRPORT")
 #nlp_raw2 = CUTEstModel("CHAIN")
 #nlp_raw2 = CUTEstModel("LEUVEN1")
 #nlp_raw2 = CUTEstModel("MSQRTA")
@@ -171,9 +169,9 @@ using CUTEst, OnePhase
 my_pars = OnePhase.Class_parameters()
 #my_pars.term.tol_opt = 1e-15
 #nlp_raw2 = CUTEstModel("MANNE")
-#nlp_raw2 = CUTEstModel("QR3DBD")
+#nlp_raw2 = CUTEstModel("KISSING2")
 #nlp_raw2 = CUTEstModel("SINROSNB")
-#nlp_raw2 = CUTEstModel("KISSING")
+#nlp_raw2 = CUTEstModel("KISSING2")
 
 #my_pars.term.tol_opt = 1e-20
 ##### EXAMPLES FOR TALK #####
@@ -193,7 +191,10 @@ my_pars = OnePhase.Class_parameters()
 #nlp_raw2 = CUTEstModel("CATMIX")
 #nlp_raw2 = CUTEstModel("FLOSP2TH")
 
-#nlp_raw2 = CUTEstModel("SINROSNB")
+#nlp_raw2 = CUTEstModel("CAMSHAPE")
+
+nlp_raw2 = CUTEstModel("ANTWERP")
+
 if false
   my_pars.term.max_it = 100
   new_pars = OnePhase.autotune(nlp_raw2, my_pars)

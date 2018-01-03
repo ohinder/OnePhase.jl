@@ -9,12 +9,16 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     pause_advanced_timer(timer, "INIT/x")
 
     y = ones(ncon(nlp))
-    a = eval_a(nlp,x);
+    a, J, g = eval_init(nlp, pars, timer, x)
     #s = max(a, ones(ncon(nlp)))
     s_thres = 1e-4
+    #s_thres = norm(g - J' * y, Inf)
     #s = max(a,s_thres) #
-    s = a + max(s_thres,-2.0 * minimum(a))
-    mu = 1.0
+    d_s = max(s_thres,-2.0 * minimum(a))
+    s = a + d_s
+    mu = max(s_thres,-2.0 * minimum(a))
+    #y = ones(ncon(nlp)) / d_s
+    #y = mu ./ s
     init_point = Class_point(x, y, s, mu)
     iter = Class_iterate(init_point, nlp, Class_local_info(), timer, pars);
 
@@ -30,7 +34,6 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     y_temp = init_point.y + dir.y
     s_temp = -a
 
-    a, J, g = eval_init(nlp, pars, timer, x)
     s, y = mehortra_guarding( nlp, pars, timer, x, y_temp, s_temp, a, J, g )
     @assert(all(s .>= 0.0))
     @assert(all(s .> 0.0))

@@ -1,4 +1,4 @@
-function ipopt_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
+function ipopt_solve_run_and_store(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
     solver = IpoptSolver(print_level=3, tol=my_par.term.tol_opt, max_iter=3000, max_cpu_time=60.0^2, nlp_scaling_method="none", bound_relax_factor = 0.0, acceptable_iter=999999)
 
     println("RUNNING $problem_name")
@@ -48,7 +48,7 @@ function ipopt_solve(snlp::AbstractNLPModel, problem_name::String, test_name::St
     return summary
 end
 
-function one_phase_solve(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
+function one_phase_run_and_store(snlp::AbstractNLPModel, problem_name::String, test_name::String, my_par::OnePhase.Class_parameters)
     println("RUNNING $problem_name")
     ORG_STDOUT = STDOUT
     file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
@@ -57,22 +57,9 @@ function one_phase_solve(snlp::AbstractNLPModel, problem_name::String, test_name
     start_time = time()
 
     try
-        nlp = Class_CUTEst(snlp)
+        #nlp = Class_CUTEst(snlp)
 
-        timer = class_advanced_timer()
-        start_advanced_timer(timer)
-        #include("include.jl")
-        #intial_it = initial_point_satisfy_bounds(nlp, my_par)
-        start_advanced_timer(timer, "INIT")
-        intial_it = init(nlp, my_par, timer)
-        pause_advanced_timer(timer, "INIT")
-
-        @assert(is_feasible(intial_it, my_par.ls.comp_feas))
-        iter, status, history, t, err = one_phase_IPM(intial_it, my_par, timer);
-
-        pause_advanced_timer(timer)
-
-        print_timer_stats(timer)
+        iter, status, history, t, err, timer = OnePhase.one_phase_solve(snlp, my_par)
 
         #master_timer = merge_timers(timer, master_timer)
 

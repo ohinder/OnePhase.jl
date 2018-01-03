@@ -50,8 +50,9 @@ function run_infeas(test_name, problem_list, my_par, solve_func!)
     end
 end
 
-problem_list = get_problem_list(50,10000)
+problem_list = default_list()
 
-my_par = Class_parameters()
-run_infeas("one_phase/infeas-Dec26", problem_list, my_par, one_phase_solve)
+my_par = OnePhase.Class_parameters()
+#run_infeas("one_phase/infeas-Dec26", problem_list, my_par, one_phase_solve)
 #run_infeas("ipopt/infeas-Dec26", problem_list, my_par, ipopt_solve)
+run_infeas("one_phase/infeas-test-Jan4", problem_list, my_par, one_phase_run_and_store)
