@@ -88,3 +88,44 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
 
       return init_it
 end
+
+
+function correct_guess3( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector, y::Vector, mu::Float64, conWeight )
+      ais = cons_indicies(nlp)
+      bis = bound_indicies(nlp)
+
+      #if norm(g - J' * y,1) >= norm(g,1)
+      #  y = 1e-10 * ones(length(y))
+      #end
+
+      #n = length(x)
+      #tau = norm(g - J' * y,1) / ( n * mu)
+      #tau = norm(g - J' * y,1) / ( ncon(nlp) * mu)
+      #if tau > 1.0
+      #  mu = mu * tau
+      #end
+
+
+      s = a + mu * conWeight
+      #s[bis] = a[bis]
+      #@show bis, ais
+      @assert(all(s[bis] .>= 0.0))
+      @assert(all(s[ais] .>= 0.0))
+      mu *= pars.init.mu_scale
+
+
+
+      #@assert(mu >= 0.0)
+
+
+
+      start_advanced_timer(timer, "INIT/construct_class")
+      init_point = Class_point(x, y, s, mu)
+      check_for_nan(init_point)
+      init_it = Class_iterate(init_point, nlp, Class_local_info(), timer, pars);
+      pause_advanced_timer(timer, "INIT/construct_class")
+
+      center_dual!(init_it, pars)
+
+      return init_it
+end

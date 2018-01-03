@@ -32,9 +32,9 @@ function accept_func_kkt!(accept::abstract_ls_info, iter::Class_iterate, candida
 
     if satisfies_filter!(filter, candidate, accept.step_size_P, pars, timer)
     #if kkt_err_cand / kkt_err < (1.0 - pars.ls.kkt_reduction_factor * accept.step_size_P)
-      return :success
+      return :success, accept.step_size_P
     else
-      return :not_enough_progress
+      return :not_enough_progress, accept.step_size_P * pars.ls.backtracking_factor
     end
 end
 

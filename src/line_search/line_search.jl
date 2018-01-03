@@ -39,8 +39,9 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
     # compute fraction to boundary
     lb_s = lb_s_predict(iter, dir, pars)
     step_size_P = simple_max_step(iter.point.s, dir.s, lb_s)
+    step_size_D = NaN
 
-    step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
+    #step_size_P = min(step_size_P,simple_max_step(iter.point.y, dir.y, 0.2 * iter.point.y))
 
     if accept_type == :accept_stable
       accept_obj = Class_stable_ls(iter, dir, pars)
@@ -106,12 +107,15 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
             end
         end
 
+        if move_status != :success
+            suggested_step_size_P = step_size_P * pars.ls.backtracking_factor
+        end
 
         if move_status == :success
           start_advanced_timer(timer,"SIMPLE_LS/accept?")
           no_nan = update_obj!(candidate, timer, pars)
           if no_nan
-            status = accept_func!(accept_obj, iter, candidate, dir, step_size_P, filter, pars, timer)
+            status, suggested_step_size_P = accept_func!(accept_obj, iter, candidate, dir, step_size_P, filter, pars, timer)
           else
             status = :NaN_ERR
           end
@@ -157,8 +161,9 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
         #if status == :s_bound
         #  step_size_P *= pars.ls.backtracking_factor # min(pars.ls.backtracking_factor * step_size_P, 1.0 / maximum( (get_s(iter) - get_s(candidate)) ./ get_s(iter) ))
         #else
-        step_size_P *= pars.ls.backtracking_factor
+        #step_size_P *= pars.ls.backtracking_factor
         #end
+        step_size_P = suggested_step_size_P
       else
         if pars.output_level >= 5
           println(rd(step_size_P), pd("N/A"), pd("N/A"), pd(:min_α))

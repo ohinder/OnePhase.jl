@@ -62,7 +62,7 @@ function suggested_starting_point(m::Class_CUTEst)
 end
 
 function ncon(m::Class_CUTEst)
-    return nbounds_orginal(nlp) + ncons_orginal(nlp)
+    return nbounds_orginal(m) + ncons_orginal(m)
 end
 
 function lb(x::Array{Float64,1}, bd::Class_bounds)

@@ -1,3 +1,23 @@
+function mehortra_guess2( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
+    s = deepcopy(a);
+    m = length(s)
+
+    if true
+      println("estimating intial y")
+      start_advanced_timer(timer, "INIT/estimate_y_tilde")
+      y = estimate_y_tilde( J, g, pars )
+      if isbad(y)
+        warning("y is bad!!!!!")
+      end
+      pause_advanced_timer(timer, "INIT/estimate_y_tilde")
+    else
+      y = ones(m)
+    end
+
+    return s, y
+end
+
+
 function mehortra_guess( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
     s = deepcopy(a);
     m = length(s)
@@ -14,43 +34,59 @@ function mehortra_guess( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
       y = ones(m)
     end
 
+    return mehortra_guarding( nlp, pars, timer, x, y, s, a, J, g )
+end
 
+function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tilde::Vector, a::Vector, J, g::Vector )
+    start_advanced_timer(timer, "INIT/mehortra_guarding")
 
-    if true
-      start_advanced_timer(timer, "INIT/mehortra_guarding")
-
+    bounds = true
+    if bounds
       ais = cons_indicies(nlp)
       bis = bound_indicies(nlp)
+      s_tilde[bis] = a[bis]
       @show ais, bis
-
-      if isbad(s)
-        throw(Eval_NaN_error(getbad(s),x,"s"))
-      end
-
-      if isbad(y)
-        throw(Eval_NaN_error(getbad(y),x,"y"))
-      end
-
-      threshold = 1e-8
-      s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
-      if isbad(s_new)
-        throw(Eval_NaN_error(getbad(s_new),x,"s"))
-      end
-
-      if pars.init.start_satisfying_bounds
-        s[ais] = s_new[ais]
-      else
-        s = s_new
-      end
+    else
+      ais = 1:(length(cons_indicies(nlp)) + length(bound_indicies(nlp)))
+      bis = bound_indicies(nlp)
     end
 
-    y = min.(ones(m) * 1e3, max.(y, 0.1 * ones(m)))
+
+    if isbad(s_tilde)
+      throw(Eval_NaN_error(getbad(s_tilde),x,"s"))
+    end
+
+    if isbad(y_tilde)
+      throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
+    end
+    δ_s = max(-2.0 * minimum(s_tilde[ais]), 0.0) + norm(g - J' * y_tilde,Inf) / (1.0 + norm(y_tilde,Inf))
+    #@show norm(g - J' * y_tilde,Inf) / (1.0 + norm(y_tilde,Inf))
+    δ_y = max(-2.0 * minimum(y_tilde), 0.0)
+
+    s_tilde[ais] = s_tilde[ais] + δ_s
+    y_tilde = y_tilde + δ_y
+
+    δ_y_tilde = δ_y + 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
+    y_tilde = y_tilde + δ_y_tilde
+    y_tilde = min.(pars.init.dual_max, max.(y_tilde, pars.init.dual_min))
+
+    δ_s_tilde = δ_s + 0.5 * dot(s_tilde, y_tilde) / sum(y_tilde)
+    s_tilde[ais] = s_tilde[ais] + δ_s_tilde
+
+
+    @show δ_s, δ_y, norm(g)
+    #s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
+    if isbad(y_tilde)
+      throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
+    end
+    if isbad(s_tilde)
+      throw(Eval_NaN_error(getbad(s_tilde),x,"s"))
+    end
+
 
     #@show y, J
 
-    if isbad(s)
-      throw(Eval_NaN_error(getbad(s),x,"s"))
-    end
+
 
     ifree = _i_not_fixed(nlp.nlp)
     uvar = nlp.nlp.meta.uvar[ifree]
@@ -60,16 +96,16 @@ function mehortra_guess( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
     #lb()
 
     for i in bound_indicies(nlp)
-        if (s[i] <= 0.0)
-            @show i, s[i], a[i] #lvar[i], uvar[i]
+        if (s_tilde[i] <= 0.0)
+            @show i, s_tilde[i], a[i] #lvar[i], uvar[i]
         end
-        if pars.init.start_satisfying_bounds
-          @assert(s[i] == a[i])
+        if bounds
+          @assert(s_tilde[i] == a[i])
         end
     end
     pause_advanced_timer(timer, "INIT/mehortra_guarding")
 
-    return s, y
+    return s_tilde, y_tilde
 end
 
 

@@ -20,7 +20,12 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
     start_advanced_timer(timer)
 
     start_advanced_timer(timer, "INIT")
-    intial_it = init(nlp, pars, timer);
+    # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
+    if pars.init.init_style == :Gertz
+        intial_it = gertz_init(nlp, pars, timer);
+    else
+        intial_it = init(nlp, pars, timer);
+    end
     pause_advanced_timer(timer, "INIT")
 
     pause_advanced_timer(timer)
@@ -35,7 +40,7 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
 
     print_timer_stats(timer)
 
-    return iter, status, hist, t, err
+    return iter, status, hist, t, err, timer
 end
 
 function switching_condition(iter::Class_iterate, last_step_was_superlinear::Bool, pars::Class_parameters)
@@ -79,6 +84,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
       start_time = time()
       last_step_was_superlinear = false
+      scale_update = false
 
       for t = 1:pars.term.max_it
              @assert(is_feasible(iter, pars.ls.comp_feas))
@@ -103,6 +109,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                start_advanced_timer(timer, "misc/checks")
                be_aggressive = switching_condition(iter, last_step_was_superlinear, pars)
                last_step_was_superlinear = false
+
+               #=if be_aggressive && t > 100 && !scale_update
+                 mu = iter.point.mu
+                 mu_est = (mean(iter.point.s .* iter.point.y) + iter.point.primal_scale * -mean(iter.point.y .* iter.primal_residual_intial)) / 2.0
+                 iter.point.mu = mu_est #sqrt(mu * mu_est)
+                 center_dual!(iter,pars)
+                 scale_update = true
+               end=#
                pause_advanced_timer(timer, "misc/checks")
 
                if i == 1

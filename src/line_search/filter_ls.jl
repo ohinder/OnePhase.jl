@@ -105,10 +105,10 @@ end
 
 
 function accept_func!(accept::Class_filter_ls, iter::Class_iterate, candidate::Class_iterate, dir::Class_point, step_size::Float64, filter::Array{Class_filter,1}, pars::Class_parameters, timer::class_advanced_timer)
-    status = accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
+    status, suggested_step_size_P = accept_func_stable!(accept, iter, candidate, dir, step_size, pars, timer)
 
     if status == :success || status == :infeasible
-      return status
+      return status, suggested_step_size_P
     else
       return accept_func_kkt!(accept, iter, candidate, dir, step_size, filter, pars, timer)
     end
