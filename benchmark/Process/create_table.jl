@@ -5,7 +5,7 @@ results = get_CUTEst_results()
 #["one_phase"] = load("../results/one_phase/Dec10/summary.jld", "summary")
 
 
-using DataFrames
+using DataFrames,CSV
 
 df_results = Dict()
 for (method_name,method_results) in results
@@ -13,10 +13,9 @@ for (method_name,method_results) in results
   for (name,info) in method_results
     push!(df_results[method_name],[name,info.it_count,info.total_time,info.fval,info.con_vio,string(info.status)])
   end
-  CSV.write("$folder/table_$method_name.csv", df_results[method_name])
+  CSV.write("$folder/table_$(folder)_$(method_name).csv", df_results[method_name])
 end
 
-using CSV
 
 
 ###

@@ -191,9 +191,9 @@ my_pars = OnePhase.Class_parameters()
 #nlp_raw2 = CUTEstModel("CATMIX")
 #nlp_raw2 = CUTEstModel("FLOSP2TH")
 
-#nlp_raw2 = CUTEstModel("CAMSHAPE")
+nlp_raw2 = CUTEstModel("CAMSHAPE")
 
-nlp_raw2 = CUTEstModel("ANTWERP")
+#nlp_raw2 = CUTEstModel("NET4")
 
 if false
   my_pars.term.max_it = 100

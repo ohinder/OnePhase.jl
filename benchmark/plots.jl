@@ -3,7 +3,7 @@ function plot_iteration_ratios(its, best, ratios, line_styles, line_colors)
 
     y_vals = collect(1:length(best)) / length(best)
     for (method_name, val) in its
-      PyPlot.semilogx(sort(ratios[method_name]), y_vals, label=method_name, basex=2)
+      PyPlot.semilogx(sort(ratios[method_name]), y_vals, label=method_name, linestyle=line_styles[method_name], color=line_colors[method_name], basex=2)
       min_y = min(min_y,sum(ratios[method_name] .== 1.0) / length(best))
     end
     ax = gca()
@@ -13,7 +13,11 @@ function plot_iteration_ratios(its, best, ratios, line_styles, line_colors)
     #ax[:xaxis][:ticker] = 0.5
     #title("Comparsion on 119 CUTEst problems")
     #title("Comparsion on 45 CUTEst problems")
-    PyPlot.xlabel("iteration ratio to best solver")
+    #PyPlot.xlabel("iteration count of solver divided by iteration count of fastest solver")
+    #println("\\")
+    #PyPlot.xlabel(L"$\frac{\text{iteration count of solver}}{iteration count of fastest solver}$")
+    PyPlot.xlabel("iteration count of solver divided by iteration count of fastest solver")
+
     PyPlot.ylabel("proportion of problems")
     PyPlot.grid("on")
 

@@ -38,9 +38,9 @@ PyPlot.close()
 res = all_status(overlapping_results, mode)
 its, best, ratios, times = compute_its_etc(res,MAX_IT=3000);
 
-println("number of overlapping results = ", length(res["ipopt"]))
+println("number of overlapping results = ", length(res["IPOPT"]))
 
-plot_iteration_ratios(its, best, ratios)
+plot_iteration_ratios(its, best, ratios, line_styles, line_colors)
 savefig("$folder/opt_iter_ratios.pdf")
 PyPlot.close()
 

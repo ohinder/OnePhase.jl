@@ -8,9 +8,18 @@ problem_list = default_list()
 # :dynamic,
 #RUN_LIST = ARGS
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
-RUN_LIST = ["test_knitro_init"] #["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
+RUN_LIST = ["Jan4"] #["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
 
-if "test_knitro_init" in RUN_LIST
+if "Jan4" in RUN_LIST
+
+my_par = Class_parameters()
+my_par.term.max_time = 60.0 * 60
+my_par.term.max_it = 3000
+
+folder_name = "one_phase/Jan4/CUTEst"
+if_mkdir("../results/$folder_name")
+run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
+
 my_par = Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
@@ -18,7 +27,7 @@ my_par.term.tol_opt = 1e-2
 my_par.term.tol_inf_1 = 1e-2
 my_par.term.tol_inf_2 = 1e-2
 #folder_name = "one_phase/test_meh_init2_Dec30"
-folder_name = "one_phase/Jan3_LowTol"
+folder_name = "one_phase/Jan4/LowTol"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 end

@@ -6,15 +6,6 @@ overlapping_results = get_CUTEst_results()
 ############# SUMMARY TABLE
 #############
 
-#=
-nlp_raw2 = CUTEstModel("AIRPORT")
-nlp = nlp_raw2
-x0 = nlp.meta.x0
-#
-nlp.meta.ncon * (norm(grad(nlp,x0),1) + norm(hess(nlp,x0),1))/norm(jac(nlp,x0),1)
-finalize(nlp_raw2)
-=#
-
 problem_list = collect(keys(first(overlapping_results)[2]))
 method_list = collect(keys(overlapping_results))
 
@@ -63,20 +54,20 @@ column_name = [
 "KKT"
 ],
 ipopt = [
-fail_only["ipopt"],
-tot(different_status_results["ipopt"],[:primal_infeasible]),
-tot(different_status_results["ipopt"],[:dual_infeasible]),
-#winners["one phase"],
-#winners["ipopt"],
-tot(different_status_results["ipopt"],[:optimal])
+fail_only["IPOPT"],
+tot(different_status_results["IPOPT"],[:primal_infeasible]),
+tot(different_status_results["IPOPT"],[:dual_infeasible]),
+#winners["one-phase"],
+#winners["IPOPT"],
+tot(different_status_results["IPOPT"],[:optimal])
 ],
 one_phase = [
-fail_only["one phase"],
-tot(different_status_results["one phase"],[:primal_infeasible]),
-tot(different_status_results["one phase"],[:dual_infeasible]),
-#winners["ipopt"],
-#winners["one phase"],
-tot(different_status_results["one phase"],[:optimal])
+fail_only["one-phase"],
+tot(different_status_results["one-phase"],[:primal_infeasible]),
+tot(different_status_results["one-phase"],[:dual_infeasible]),
+#winners["IPOPT"],
+#winners["one-phase"],
+tot(different_status_results["one-phase"],[:optimal])
 ]
 )
 

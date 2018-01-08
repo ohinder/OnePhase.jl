@@ -1,5 +1,5 @@
 using MAT, JuMP, Ipopt
-include("../include.jl")
+include("../benchmark.jl")
 
 function read_lp2(dir, name)
     lp_data = matopen("$(dir)/$(name).mat")
@@ -21,9 +21,28 @@ function read_lp2(dir, name)
     return m
 end
 
+function get_file_names(dir::String,ext::String)
+  name_list = readdir(dir)
+  cleaned_name_list = []
+  for name_full in name_list
+    try
+      if name_full[(end-3):end] == ext
+          name = name_full[1:(end-4)]
+      end
+      cleaned_name_list = [cleaned_name_list; name]
+      catch(e)
+        @show e
+        println("ERROR in running " * name_full)
+      end
+  end
+
+  return cleaned_name_list
+end
+
 function run_infeas_netlib(test_name, my_par, solve_func!)
-    summary = Dict{String, problem_summary}()
-    problem_list = get_file_names("../netlib-infeas",".mat")
+    summary = Dict{String, problem_summary2}()
+    dir = "../data/netlib-infeas"
+    problem_list = get_file_names(dir,".mat")
 
     if_mkdir("../results/$test_name")
     if_mkdir("../results/$test_name/log")
@@ -31,13 +50,17 @@ function run_infeas_netlib(test_name, my_par, solve_func!)
 
     for problem_name in problem_list
         if problem_name != "lpi_cplex2"
-          m = read_lp2("../netlib-infeas", problem_name)
+          m = read_lp2(dir, problem_name)
           nlp = MathProgNLPModel(m);
-          solve_func!(nlp, problem_name, test_name, my_par, summary)
+          #if nlp.meta.ncon < 2000
+          summary[problem_name] = solve_func!(nlp, problem_name, test_name, my_par)
+          #end
         end
+        write_summary("../results/$(test_name)/summary.txt", summary)
+        save("../results/$(test_name)/summary.jld","summary",summary, "pars", my_par)
     end
 end
 
 my_par = Class_parameters()
-run_infeas_netlib("one_phase/infeas-lp-test", my_par, one_phase_solve!)
-run_infeas_netlib("ipopt/infeas-lp-test", my_par, ipopt_solve!)
+run_infeas_netlib("one_phase/Jan4/infeas-netlib", my_par, one_phase_run_and_store)
+run_infeas_netlib("ipopt/Jan4/infeas-netlib", my_par, ipopt_solve_run_and_store)
