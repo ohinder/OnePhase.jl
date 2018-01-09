@@ -1,6 +1,6 @@
-include("../include.jl")
+include("../benchmark.jl")
 
-using JuMP
+using JuMP, OnePhase
 #using Ipopt
 
 function create_tax_problem(na::Int64)
@@ -35,10 +35,43 @@ function create_tax_problem(na::Int64)
     return m
 end
 
-m = create_tax_problem(100);
+m = create_tax_problem(50);
+@show m
 
 nlp_raw = MathProgNLPModel(m);
 my_pars = Class_parameters();
+iter = one_phase_solve(nlp_raw, my_pars);
+
+
+m = create_tax_problem(100);
+@show m
+
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+iter = one_phase_solve(nlp_raw, my_pars);
+
+m = create_tax_problem(200);
+@show m
+
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+iter = one_phase_solve(nlp_raw, my_pars);
+
+
+m = create_tax_problem(400);
+@show m
+
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+my_par.max_time = 60.0 * 60.0 * 10.0
+iter = one_phase_solve(nlp_raw, my_pars);
+
+m = create_tax_problem(800);
+@show m
+
+nlp_raw = MathProgNLPModel(m);
+my_pars = Class_parameters();
+my_par.max_time = 60.0 * 60.0 * 10.0
 iter = one_phase_solve(nlp_raw, my_pars);
 
 #=
