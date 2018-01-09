@@ -152,6 +152,8 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
 
         if status == :success
           pause_advanced_timer(timer,"SIMPLE_LS")
+          start_advanced_timer(timer,"SIMPLE_LS_SUCCESS")
+          pause_advanced_timer(timer,"SIMPLE_LS_SUCCESS")
           return :success, candidate, accept_obj
         elseif status == :predict_red_non_negative
           pause_advanced_timer(timer, "SIMPLE_LS")
