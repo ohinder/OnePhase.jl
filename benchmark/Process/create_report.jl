@@ -1,7 +1,7 @@
 #folder = "CUTEst_infeasible"
-#folder = "CUTEst"
+folder = "CUTEst"
 #folder = "CUTEst_low_tol"
-folder = "netlib_infeasible"
+#folder = "netlib_infeasible"
 
 if folder == "CUTEst"
   mode = :optimal

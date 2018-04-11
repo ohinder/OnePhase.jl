@@ -20,7 +20,6 @@ Pkg.clone("https://github.com/ohinder/advanced_timer.jl")
 Pkg.clone("https://github.com/ohinder/OnePhase.git")
 ```
 
-
 ## How to use with JuMP
 
 Here is a simple example where a [JuMP](http://www.juliaopt.org/JuMP.jl/0.18/JuMP) model is passed to the one-phase solver
@@ -51,6 +50,8 @@ Note that the typical way solvers are called with JuMP
 m = Model(solver=IpoptSolver())
 ```
 will not work for the one-phase algorithm. In future, we intend to add this into JuMP as a solver. But since this is still in development we are not doing this yet.
+
+To interpret the solver output see [here](solver_output.md)
 
 ## Example using CUTEst
 

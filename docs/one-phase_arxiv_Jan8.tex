@@ -14,6 +14,10 @@
 
 \maketitle
 
+\newcommand\figDir[1]{figures2/#1}
+%\newcommand\figDir[1]{#1} % arXiv
+
+
 \newcommand{\fracBound}{fraction-to-boundary}
 \newcommand{\kStart}{k_{\text{start}}}
 \newcommand{\kEnd}{k_{\text{end}}}
@@ -25,11 +29,9 @@
 \newcommand{\nvar}{n}
 \newcommand{\ncon}{m}
 
-\newcommand\figDir[1]{figures2/#1}
-%\newcommand\figDir[1]{#1} % arXiv
 
-\renewcommand{\vec}[1]{\mathbf{#1}}
-%\renewcommand{\vec}[1]{#1}
+%\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\vec}[1]{#1}
 
 \newcommand{\eye}{I}
 \newcommand{\ones}{\vec{e}}
@@ -192,6 +194,7 @@
 %\newcommand{\Filter}{\mathbb{F}}
 \newcommand{\History}{\mathbb{H}}
 \newcommand{\conWeight}{\vec{w}}
+%\newcommand{\conWeight}{w}
 \newcommand{\ConWeight}{W}
 \newcommand{\zeroSet}{Z}
 \newcommand{\nonzeroSet}{N}
@@ -255,7 +258,7 @@ Consider the problem
 where the functions $a : \R^{\nvar} \rightarrow \R^{\ncon}$ and $f : \R^{\nvar} \rightarrow \R$ are twice differentiable and might be nonconvex. Examples of real-world problems in this framework include truss design, robot control, aircraft control, and aircraft design, e.g., the problems TRO11X3, ROBOT, AIRCRAFTA, AVION2 in the CUTEst test set \cite{gould2015cutest}. This paper develops an interior point method (IPM) for finding KKT points of \eqref{original-problem}, i.e., points such that
 \begin{subequations}\label{kkt-of-original-problem} 
 \begin{flalign}
-\grad \obj(x) - \grad \cons(x)^T y &= 0 \\
+\grad \obj(x) + \grad \cons(x)^T y &= 0 \\
 y^T \cons(x) &= 0 \\
 \cons(x) &\le 0, \quad y \ge 0.
 \end{flalign}
@@ -321,11 +324,11 @@ Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that 
 \begin{flalign}
 \frac{\| \grad_{x} \Lag_{\mu^{\pi_{k}}}(x^{\pi_{k}}, y^{\pi_{k}}) \|_{\infty}}{\mu^{\pi_{k}}(\| y^{\pi_{k}} \|_{\infty} + 1)} &\le c, \label{eq:dual-feas}
 \end{flalign}
-where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) - (y + \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path.
+where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) + (y - \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path.
 
 Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence of this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}.
 
-Related to this property of the dual multipliers being well-behaved is that our algorithm is explicitly designed for inequality constraints only. Often primal feasibility is written as $a(x)=0$, $x \ge 0$ as used by Mehrotra (and many others in the IPM literature). If we took the dual of a linear program before applying our technique then our method would be working with the same problem as the typical method, because for us dual feasibility is $\grad f(x) - \grad a(x)^T y = 0, y \ge 0$. We believe working in this form is superior for nonlinear programming where there is no symmetry between the primal and dual, and the form $a(x) \le 0$ has many benefits that we discuss shortly. Using inequalities has the following advantages:
+Related to this property of the dual multipliers being well-behaved is that our algorithm is explicitly designed for inequality constraints only. Often primal feasibility is written as $a(x)=0$, $x \ge 0$ as used by Mehrotra (and many others in the IPM literature). If we took the dual of a linear program before applying our technique then our method would be working with the same problem as the typical method, because for us dual feasibility is $\grad \obj(x) + \grad \cons(x)^T y = 0, y \ge 0$. We believe working in this form is superior for nonlinear programming where there is no symmetry between the primal and dual, and the form $a(x) \le 0$ has many benefits that we discuss shortly. Using inequalities has the following advantages:
 \begin{enumerate}
 \item It enables us to generate sequences satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas}.
 \item It allows us to use a Cholesky factorization instead of the  \LBL{} factorization of \citet*{bunch1971direct}. See end of Section~\ref{sub:direction-computation} for further discussion.
@@ -393,7 +396,7 @@ We now explain how we choose our directions \eqref{eq:Schur-complement-system} a
 
 In our algorithm the direction $\dir{x}$ for the $x$ variables is computed with the goal of being approximately equal to $\dir{x}^{*}$ defined by
 \begin{flalign}\label{sophisticated-barrier-problem}
-\dir{x}^{*} \in \arg \min_{\bar{d}_{x} \in \R^{\nvar}} & \barrier_{\gamma \mu}(x + \bar{d}_{x}) + \frac{\delta}{2} \| \bar{d}_{x} \|^2 %
+\dir{x}^{*} \in \arg \min_{\bar{\vec{d}}_{x} \in \R^{\nvar}} & \barrier_{\gamma \mu}(x + \bar{\vec{d}}_{x}) + \frac{\delta}{2} \|\bar{\vec{d}}_{x} \|^2 %
 \end{flalign}
 with $\barrier_{\gamma \mu}$ denoting $\barrier_{\bar{\mu}}$ with $\bar{\mu}  = \gamma \mu$. This notation is used for subscripts throughout, i.e., $\Lag_{\gamma \mu}$ denotes $\Lag_{\bar{\mu}}$ with $\bar{\mu}  = \gamma \mu$.
 
@@ -636,7 +639,7 @@ Consider the optimization problem
 \text{s.t. } a_i(x) \le 0, \forall i \text{ s.t. } \conWeight_i = 0,
 \end{flalign}
 \end{subequations}
-for some non-negative vector $\conWeight$. For example, a natural choice of $\conWeight$ is $\conWeight_i = 0$ for variable bounds and $\conWeight_i = 1$ for all other constraints. This results in minimizing the $L_{\infty}$ norm of the constraint violation subject to variable bounds. Note that \eqref{infeasible-problem} is equivalent to the optimization problem
+for some non-negative vector $\conWeight$. For example, a natural choice of $\conWeight$ is $\conWeight_i = 0$ for variable bounds and $\conWeight_i = 1$ for all other constraints. This results in minimizing the $L_{\infty}$ norm of the constraint violation subject to variable bounds. Using $\conWeight \ge 0$ we can see that \eqref{infeasible-problem} is equivalent to the optimization problem
 \begin{subequations}\label{feas-problem}
 \begin{flalign}
 \min_{x,s,\mu} \mu \\
@@ -673,6 +676,12 @@ y^T \cons(x^{*}) &\ge y^T \left( \cons(x) + \grad a (x) (x^{*} - x) \right) \ge 
 \end{flalign*}
 where the first inequality holds via convexity and $y \ge 0$, the second by definition of $\infeasFuncOne(x,s,y) := \frac{\| \grad  a(x)^T y \|_{1}}{ a(x)^T y }$, the third and fourth by assumption. Since $y \ge 0$, we deduce that $a_i(x^{*}) > 0$ for some $i$.
 \end{proof}
+
+This leads to a puzzle. How can we guarantee to either find a certificate of infeasibility or optimality on any problem, when classic infeasible start methods fail on \eqref{failure-ex}? The key is that the example of \citet*{wachter2000failure} forces the IPM to converge to a point $(x^{*}, s^{*})$ with
+$$
+a_1(x^{*}) + s^{*}_1 < 0 \quad \quad a_1(x^{*}) + s^{*}_2 > 0.
+$$
+Consequently, even if $(x^{*}, s^{*})$ is a KKT point for \eqref{infeasible-problem} this is not equivalent to any natural feasibility minimization problem such as \eqref{feas-problem}. This is because the transition from \eqref{infeasible-problem} to \eqref{feas-problem} is dependent on $\conWeight \ge 0$.
 
 Finally, we remark that if wish to find a stationary point with respect to a different measure of constraint violation $v(z)$ we can apply our solver to the problem
 \begin{flalign*}
@@ -1250,7 +1259,7 @@ Finally, we note that improving the accuracy of the linear system solves would a
 
 \section*{Acknowledgements}
 
-We would like to thank Michael Saunders and Ron Estrin for useful conversations and feedback on the paper.
+We would like to thank Michael Saunders and Ron Estrin for useful conversations and feedback on the paper. The first author was supported by the PACCAR INC. fellowship.
 
 \bibliographystyle{abbrvnat} %
 \bibliography{library-one-phase-2.bib}

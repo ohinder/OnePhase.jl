@@ -284,7 +284,7 @@ Consider the problem
 where the functions $a : \R^{\nvar} \rightarrow \R^{\ncon}$ and $f : \R^{\nvar} \rightarrow \R$ are twice differentiable and might be nonconvex. Examples of real-world problems in this framework include truss design, robot control, aircraft control, and aircraft design, e.g., the problems TRO11X3, ROBOT, AIRCRAFTA, AVION2 in the CUTEst test set \cite{gould2015cutest}. This paper develops an interior point method (IPM) for finding KKT points of \eqref{original-problem}, i.e., points such that
 \begin{subequations}\label{kkt-of-original-problem} 
 \begin{flalign}
-\grad \obj(x) - \grad \cons(x)^T y &= 0 \\
+\grad \obj(x) + \grad \cons(x)^T y &= 0 \\
 y^T \cons(x) &= 0 \\
 \cons(x) &\le 0, \quad y \ge 0.
 \end{flalign}
@@ -367,11 +367,11 @@ Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that 
 \begin{flalign}
 \frac{\| \grad_{x} \Lag_{\mu^{\pi_{k}}}(x^{\pi_{k}}, y^{\pi_{k}}) \|_{\infty}}{\mu^{\pi_{k}}(\| y^{\pi_{k}} \|_{\infty} + 1)} &\le c, \label{eq:dual-feas}
 \end{flalign}
-where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) - (y + \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}\if\inProgress1 \cite{more} \fi. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path\if\inProgress1 (see Appendix~\ref{app:non-existence-of-central-path})\fi.
+where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) + (y - \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}\if\inProgress1 \cite{more} \fi. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path\if\inProgress1 (see Appendix~\ref{app:non-existence-of-central-path})\fi.
 
 Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence of this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}\if\inProgress1 (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation)\fi.
 
-Related to this property of the dual multipliers being well-behaved is that our algorithm is explicitly designed for inequality constraints only. Often primal feasibility is written as $a(x)=0$, $x \ge 0$ as used by Mehrotra (and many others in the IPM literature). If we took the dual of a linear program before applying our technique then our method would be working with the same problem as the typical method, because for us dual feasibility is $\grad f(x) - \grad a(x)^T y = 0, y \ge 0$. We believe working in this form is superior for nonlinear programming where there is no symmetry between the primal and dual, and the form $a(x) \le 0$ has many benefits that we discuss shortly. Using inequalities has the following advantages:
+Related to this property of the dual multipliers being well-behaved is that our algorithm is explicitly designed for inequality constraints only. Often primal feasibility is written as $a(x)=0$, $x \ge 0$ as used by Mehrotra (and many others in the IPM literature). If we took the dual of a linear program before applying our technique then our method would be working with the same problem as the typical method, because for us dual feasibility is $\grad \obj(x) + \grad \cons(x)^T y = 0, y \ge 0$. We believe working in this form is superior for nonlinear programming where there is no symmetry between the primal and dual, and the form $a(x) \le 0$ has many benefits that we discuss shortly. Using inequalities has the following advantages:
 \begin{enumerate}
 \item It enables us to generate sequences satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas}.
 \item It allows us to use a Cholesky factorization instead of the  \LBL{} factorization of \citet*{bunch1971direct}. See end of Section~\ref{sub:direction-computation} for further discussion.
@@ -1488,7 +1488,7 @@ Picking $\conWeight$ small and selecting $\mu$ s.t. $s > 0$ gives an algorithm t
 
 \section*{Acknowledgements}
 
-We would like to thank Michael Saunders and Ron Estrin for useful conversations and feedback on the paper.
+We would like to thank Michael Saunders, Ron Estrin and Toshihiro Kosaki for useful conversations and feedback on the paper.
 
 \bibliographystyle{abbrvnat} %abbrv}
 \bibliography{library-one-phase-2.bib}

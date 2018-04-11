@@ -1,4 +1,4 @@
-include("../include.jl")
+include("../benchmark.jl")
 
 using JuMP
 using Ipopt
