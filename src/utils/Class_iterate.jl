@@ -82,6 +82,18 @@ type Class_iterate
     end
 end
 
+function get_original_x(it::Class_iterate)
+     _cute_x(it.nlp, it.point.x)
+end
+
+function get_constrduals(it::Class_iterate)
+    return get_constrduals(it.nlp,it.point.y)
+end
+
+function get_reducedcosts(it::Class_iterate)
+    return get_reducedcosts(it.nlp,it.point.y)
+end
+
 function validate(it::Class_iterate)
     @assert(it.nvar == length(it.point.x))
     @assert(it.ncon == length(it.point.y))

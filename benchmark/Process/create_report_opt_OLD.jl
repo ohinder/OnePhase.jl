@@ -44,7 +44,7 @@ function create_opt_res(res::Dict{String, Dict{String,problem_summary}}, method_
          else
            same_fval = false
          end
-         if res[method][problem_name].status != :optimal
+         if res[method][problem_name].status != :Optimal
            some_method_failed = true
          end
       end
@@ -169,7 +169,7 @@ function create_opt_res(res::Dict{String, Dict{String,problem_summary}}, method_
 
       for method in method_list
          fval = res[method][problem_name].fval
-         if res[method][problem_name].status == :optimal
+         if res[method][problem_name].status == :Optimal
            if first || abs(fval_others - fval) / (1.0 + max(abs(fval),abs(fval_others))) < f_TOL
              fval_others = min(fval_others, fval)
              first = false

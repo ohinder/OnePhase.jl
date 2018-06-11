@@ -33,7 +33,7 @@ begin
         print(rd(con_vio))
         print(rd(fval))
 
-        if info.status == :optimal
+        if info.status == :Optimal
           if con_vio > CON_TOL
             both_kkt = false
             println("CON VIOLATION!!")

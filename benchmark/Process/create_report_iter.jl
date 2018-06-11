@@ -4,7 +4,7 @@ include("create_report.jl")
 overlapping_results = get_CUTEst_results()
 #dual_inf_free_results = remove_errors(overlapping_results, [:dual_infeasible,:primal_infeasible])
 #overlapping_opt_results = overlap(dual_inf_free_results)
-#overlapping_opt_results = restrict_to_set(overlapping_opt_results,[:optimal])
+#overlapping_opt_results = restrict_to_set(overlapping_opt_results,[:Optimal])
 #overlapping_opt_results = overlap(overlapping_opt_results)
 
 ####

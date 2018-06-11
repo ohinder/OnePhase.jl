@@ -8,7 +8,7 @@ overlapping_results = results;
 ##
 ## do exactly same thing as before ????
 ##
-mode = :optimal
+mode = :Optimal
 
 overlapping_results = all_status(overlapping_results,:primal_infeasible)
 its, best, ratios, times = compute_its_etc(overlapping_results,MAX_IT=3000);

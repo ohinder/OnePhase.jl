@@ -115,7 +115,7 @@ overlapping_results = overlap(error_free_results)
 #overlapping_results = restrict_to_set(overlapping_results,[:primal_infeasible])
 
 
-overlapping_results = restrict_to_set(overlapping_results,[:optimal,:primal_infeasible,:dual_infeasible])
+overlapping_results = restrict_to_set(overlapping_results,[:Optimal,:primal_infeasible,:dual_infeasible])
 
 elseif false
 overlapping_results = overlap(results)
@@ -132,7 +132,7 @@ end
 
 println("kkt")
 for (method_name, sum_data) in overlapping_results
-    println(method_name, "=" ,tot(sum_data,[:optimal]), " out of ", length(sum_data))
+    println(method_name, "=" ,tot(sum_data,[:Optimal]), " out of ", length(sum_data))
 end
 
 println("unbounded")
@@ -208,7 +208,7 @@ begin
         print(rd(con_vio))
         print(rd(fval))
 
-        if info.status == :optimal
+        if info.status == :Optimal
           if con_vio > 1e-6
             both_kkt = false
             println("CON VIOLATION!!")

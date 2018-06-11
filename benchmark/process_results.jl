@@ -45,7 +45,7 @@ end
 function jump_status_conversion(info::problem_summary2; MAX_IT::Int64=3000)
   status = info.status
   if status == :Optimal
-    return :optimal
+    return :Optimal
   elseif status == :Infeasible
     return :primal_infeasible
   elseif status == :Unbounded
@@ -77,7 +77,7 @@ end
 
 function status_conversion(status::Int64)
     if status == 0
-      return :optimal
+      return :Optimal
     elseif status == 17 || status == 2
       return :primal_infeasible
     #elseif status ==
@@ -117,7 +117,7 @@ Infty = 99999999
 
 
 function alg_success(status::Symbol)
-    return (status == :optimal  || status == :primal_infeasible || status == :dual_infeasible)
+    return (status == :Optimal  || status == :primal_infeasible || status == :dual_infeasible)
 end
 
 
@@ -516,7 +516,7 @@ function get_all_optimal(summary, problem_list) # get all problems where all sol
 
     for problem_name in problem_list
       for (method_name, sum_data) in summary_netlib
-          if sum_data[problem_name].status != :optimal
+          if sum_data[problem_name].status != :Optimal
             push!(remove_these, problem_name)
           end
       end

@@ -59,7 +59,7 @@ tot(different_status_results["IPOPT"],[:primal_infeasible]),
 tot(different_status_results["IPOPT"],[:dual_infeasible]),
 #winners["one-phase"],
 #winners["IPOPT"],
-tot(different_status_results["IPOPT"],[:optimal])
+tot(different_status_results["IPOPT"],[:Optimal])
 ],
 one_phase = [
 fail_only["one-phase"],
@@ -67,7 +67,7 @@ tot(different_status_results["one-phase"],[:primal_infeasible]),
 tot(different_status_results["one-phase"],[:dual_infeasible]),
 #winners["IPOPT"],
 #winners["one-phase"],
-tot(different_status_results["one-phase"],[:optimal])
+tot(different_status_results["one-phase"],[:Optimal])
 ]
 )
 

@@ -4,10 +4,10 @@ folder = "CUTEst"
 #folder = "netlib_infeasible"
 
 if folder == "CUTEst"
-  mode = :optimal
+  mode = :Optimal
   data = :CUTEst
 elseif folder == "CUTEst_low_tol"
-  mode = :optimal
+  mode = :Optimal
   data = :CUTEst_low_tol
 elseif folder == "CUTEst_infeasible"
   mode = :primal_infeasible
@@ -24,7 +24,7 @@ function get_CUTEst_results()
   results = Dict{String, Dict{String,problem_summary2}}()
 
   #GLOBAL mode;
-  if mode == :optimal
+  if mode == :Optimal
     if data == :CUTEst
     #results["IPOPT"] = load("../results/one_phase/sept_3_corrections/summary.jld", "summary")
       #results["one-phase"] = cps(load("../results/one_phase/Dec24/summary.jld", "summary"))

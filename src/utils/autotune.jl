@@ -17,7 +17,7 @@ function autotune(nlp_raw, pars::Class_parameters)
 
       @assert(is_feasible(intial_it, pars.ls.comp_feas))
       iter, status, hist, t, err = one_phase_IPM(intial_it, pars, local_timer);
-      if t < best_it - 1 && status == :optimal
+      if t < best_it - 1 && status == :Optimal
         best_it = t
         best_mu_ratio = mu_ratio
       end
