@@ -27,31 +27,14 @@ Here is a simple example where a [JuMP](http://www.juliaopt.org/JuMP.jl/0.18/JuM
 ```julia
 using OnePhase, JuMP
 
-m = Model()
+m = Model(OnePhase())
 @variable(m, x, start=-3)
 @objective(m, Min, x)
 @NLconstraint(m, x^2 >= 1.0)
 @NLconstraint(m, x >= -1.0)
 
-iter, status, hist, t, err = one_phase_solve(m);
-@show iter.point.x
+status = solve(m)
 ```
-
-If you wish to change the parameters:
-
-```julia
-my_pars = Class_parameters()
-my_pars.term.tol_opt = 1e-8
-one_phase_solve(m, my_pars);
-```
-
-Note that the typical way solvers are called with JuMP
-```
-m = Model(solver=IpoptSolver())
-```
-will not work for the one-phase algorithm. In future, we intend to add this into JuMP as a solver. But since this is still in development we are not doing this yet.
-
-To interpret the solver output see [here](solver_output.md)
 
 ## Example using CUTEst
 
@@ -65,3 +48,45 @@ iter = one_phase_solve(nlp);
 ## Feedback?
 
 If you have found some bug or think there is someway I can improve the code feel free to contact me! My webpage is https://stanford.edu/~ohinder/.
+
+## Solver output
+
+it = iteration number
+
+step = step type, either stabilization step (s) or aggressive step (a)
+
+eta = *targeted* reduction in feasibility/barrier parameter, eta=1 for stabilization steps eta<1 for aggressive steps
+
+α_P = primal step size
+
+α_D = dual step size
+
+ls = number of points trialled during line search
+
+|dx| = infinity norm of primal direction size
+
+|dy| = infinity norm of dual direction size
+
+N err = relative error in linear system solves.
+
+mu = value of barrier parameter
+
+dual = gradient of lagragian scaled by largest dual variable
+
+primal = error in primal feasibility
+
+cmp scaled = \| Sy \|/(1 + \|y\|)
+
+inf = how close to infeasible problem is, values close to zero indicate infeasibility
+
+delta = size of perturbation
+
+\#fac  = number of factorizations (split into two numbers -- first is how many factorization needed to ensure primal schur complement is positive definite, second number represents total number of factorizations including any increases in delta to avoid issues when direction quality is very poor)
+
+|x| = infinity norm of x variables
+
+|y| = infinity norm of y variables
+
+∇phi = gradient of log barrier
+
+phi = value of log barrier
