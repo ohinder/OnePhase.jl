@@ -16,5 +16,6 @@ include("kkt_system_solver/include.jl")
 include("line_search/line_search.jl")
 include("IPM/ipm.jl")
 include("init/init.jl")
+include("JuMPinterface.jl")
 
 end

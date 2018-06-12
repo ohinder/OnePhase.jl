@@ -84,7 +84,7 @@ end
 function ineq_cons(m::Class_CUTEst)
     is_ineq = zeros(m.nlp.meta.ncon)
     is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] = 1.0
-    vec = [is_ineq[m.bcon.l_i]; is_ineq[m.bcon.u_i];; ones(nbounds_orginal(m))]
+    vec = [is_ineq[m.bcon.l_i]; is_ineq[m.bcon.u_i]; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
 end
@@ -166,6 +166,23 @@ end
 
 function eval_grad_f(m::Class_CUTEst, x::Array{Float64,1})
     return grad(m.nlp, _cute_x(m, x))[_i_not_fixed(m.nlp)]
+end
+
+function get_constrduals(m::Class_CUTEst, y::Array{Float64,1})
+     constrdual = zeros(m.nlp.meta.ncon)
+     st_u = length(m.bcon.l) #+ ncons_orginal(m)
+     constrdual[m.bcon.l_i] += y[1:st_u]
+     constrdual[m.bcon.u_i] -= y[(st_u+1):(length(m.bcon.u) + st_u)]
+     return constrdual
+end
+
+function get_reducedcosts(m::Class_CUTEst, y::Array{Float64,1})
+    rc = zeros(m.nlp.meta.nvar)
+    st_l = ncons_orginal(m)
+    st_u = length(m.bvar.l) + ncons_orginal(m)
+    rc[m.bvar.l_i] += y[(st_l+1):st_u]
+    rc[m.bvar.u_i] -= y[(st_u+1):(length(m.bvar.u) + st_u)]
+    return rc
 end
 
 function y_cons_net(m::Class_CUTEst, y::Array{Float64,1})

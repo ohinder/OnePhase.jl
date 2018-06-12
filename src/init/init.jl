@@ -55,7 +55,7 @@ function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_t
     #@show nl
 
     #@show li
-    if false
+    if true
       conWeight[nl_eq] *= pars.init.nl_eq_scale
       conWeight[nl_ineq] *= pars.init.nl_ineq_scale
       #@show li, nl_ineq
