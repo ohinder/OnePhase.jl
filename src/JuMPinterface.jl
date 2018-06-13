@@ -89,7 +89,8 @@ end
 MathProgBase.setwarmstart!(m :: OnePhaseMathProgModel, x) = (m.x = x)
 MathProgBase.status(m :: OnePhaseMathProgModel) = m.inner.status
 MathProgBase.getsolution(m :: OnePhaseMathProgModel) = m.inner.x
-MathProgBase.getobjval(m :: OnePhaseMathProgModel) = MathProgBase.eval_f(m.eval, m.x)
+MathProgBase.getobjval(m :: OnePhaseMathProgModel) = m.inner.iter.cache.fval
+#MathProgBase.eval_f(m.eval, m.x)
 
 mutable struct MathProgNLPModel <: AbstractNLPModel
   meta :: NLPModelMeta
