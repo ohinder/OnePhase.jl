@@ -27,7 +27,7 @@ Here is a simple example where a [JuMP](http://www.juliaopt.org/JuMP.jl/0.18/JuM
 ```julia
 using OnePhase, JuMP
 
-m = Model(OnePhase())
+m = Model(solver=OnePhaseSolver())
 @variable(m, x, start=-3)
 @objective(m, Min, x)
 @NLconstraint(m, x^2 >= 1.0)
