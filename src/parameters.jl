@@ -260,7 +260,7 @@ type Class_parameters <: abstract_pars
         this.a_norm_penalty = 1e-4
 
         # debugging
-        this.output_level = 3
+        this.output_level = 2
         this.debug_mode = 0
         this.throw_error_nans = false
 

@@ -1,3 +1,5 @@
+importall CUTEst
+
 type Class_bounds
     l_i::Array{Int64,1}
     u_i::Array{Int64,1}
