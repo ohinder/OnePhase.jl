@@ -72,12 +72,26 @@ function get_cons(it::Class_iterate)
     return it.cache.cons
 end
 
-#function get_jacobian(it::Class_iterate)
-#    return it.cache.J # should make this smaller and use the sparse non-zero format
-#end
+function get_jac(it::Class_iterate)
+    return it.cache.J
+end
+
+function get_jac_T(it::Class_iterate)
+    return it.cache.J_T
+end
 
 function eval_J_T_J(it::Class_iterate, diag_vals::Vector)
     return it.cache.J_T * spdiagm(diag_vals) * it.cache.J
+end
+
+function eval_diag_J_T_J(it::Class_iterate,diag_vals::Vector)
+    n = dim(it)
+    di = zeros(n)
+    for i = 1:n
+        a = it.cache.J[:,i]
+        di[i] = dot(a .* diag_vals,a)
+    end
+    return di
 end
 
 function eval_jac_prod(it::Class_iterate, x::Vector)

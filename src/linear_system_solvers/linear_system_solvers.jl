@@ -1,6 +1,11 @@
 println("Loading linear_system_solvers ...")
 @compat abstract type abstract_linear_system_solver end
 
+## define linear system solvers.
+## note that linear system solvers need to be coupled with a KKT system solver
+## these solvers can be found in the `kkt_system_solver` folder and
+## reduces the linear system that needs to be solved, e.g., does a "primal schur complement"
+
 include("julia.jl")
 #include("matlab.jl")
 if USE_MUMPS

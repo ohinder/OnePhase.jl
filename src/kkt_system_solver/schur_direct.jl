@@ -1,3 +1,5 @@
+# what is the difference between schur direct and schur????
+
 type Schur_KKT_solver_direct <: abstract_schur_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver

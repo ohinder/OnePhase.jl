@@ -1,8 +1,6 @@
 @compat abstract type abstract_KKT_system_solver end
 @compat abstract type abstract_schur_solver <: abstract_KKT_system_solver end
 
-
-
 function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_iterate)
     initialize!(kkt_solver.ls_solver)
     kkt_solver.dir = zero_point(dim(intial_it),ncon(intial_it))
@@ -202,9 +200,11 @@ function pick_KKT_solver(pars::Class_parameters)
   if kkt_solver_type == :symmetric
     my_kkt_solver = Symmetric_KKT_solver()
     if linear_solver_type == :julia
-      my_kkt_solver.ls_solver = linear_solver_JULIA(:unsymmetric, safe, recycle)
+      my_kkt_solver.ls_solver = linear_solver_JULIA(:symmetric, safe, recycle)
     elseif linear_solver_type == :mumps
       my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
+    else
+        error("pick a valid solver!")
     end
   elseif kkt_solver_type == :schur
     my_kkt_solver = Schur_KKT_solver()
@@ -212,6 +212,8 @@ function pick_KKT_solver(pars::Class_parameters)
       my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe, recycle)
     elseif linear_solver_type == :mumps
       my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe, recycle)
+    else
+      error("pick a valid solver!")
     end
   elseif kkt_solver_type == :schur_direct
     my_kkt_solver = Schur_KKT_solver_direct()
@@ -219,7 +221,9 @@ function pick_KKT_solver(pars::Class_parameters)
       my_kkt_solver.ls_solver = linear_solver_JULIA(:definite, safe, recycle)
     elseif linear_solver_type == :mumps
       my_kkt_solver.ls_solver = linear_solver_MUMPS(:definite, safe, recycle)
-    end
+  else
+    error("pick a valid solver!")
+  end
   else
       error("pick a solver!")
   end
@@ -228,4 +232,16 @@ function pick_KKT_solver(pars::Class_parameters)
   my_kkt_solver.pars = pars
 
   return my_kkt_solver
+end
+
+## helper functions
+
+function diag_min(kkt_solver::abstract_KKT_system_solver)
+    return minimum(kkt_solver.schur_diag)
+end
+
+function compute_schur_diag(iter::Class_iterate)
+    # compute the diagonal of the primal schur complement matrix
+    schur_scaling = get_y(iter) ./ get_s(iter);
+    return diag(get_lag_hess(iter)) + eval_diag_J_T_J(iter,schur_scaling)
 end

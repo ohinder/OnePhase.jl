@@ -1,5 +1,9 @@
 @compat abstract type abstract_alg_history end
 
+export abstract_alg_history, get_col, generic_alg_history, alg_history2
+
+using NLPModels, JuMP
+
 struct alg_history2 <: abstract_alg_history
     t::Int64
     step_type::String
@@ -34,7 +38,20 @@ struct alg_history2 <: abstract_alg_history
   end=#
 end
 
-type ipopt_alg_history <: abstract_alg_history
+function major_its_only(hist::Array{alg_history2,1})
+    # reduce the history list so it only includes major iterations
+    its = get_col(hist,:t);
+    keep_these = Array{Int64,1}()
+    for i = 1:(length(its)-1)
+        if its[i+1] != its[i]
+            push!(keep_these,i)
+        end
+    end
+    push!(keep_these,length(its))
+    return hist[keep_these]
+end
+
+type generic_alg_history <: abstract_alg_history
   t::Int64
   #mu::Float64
   fval::Float64
@@ -52,10 +69,67 @@ type ipopt_alg_history <: abstract_alg_history
   con_vio::Float64
   y_norm::Float64
   x_norm::Float64
+end
 
-  function ipopt_alg_history()
-    return new()
-  end
+#function add_solver_results!(hist::Array{generic_alg_history,1}, m::JuMP.Model)
+
+function add_solver_results!(hist::Array{generic_alg_history,1}, nlp::AbstractNLPModel, inner)
+    x = inner.x
+    mult_x_L = inner.mult_x_L
+    mult_x_U = inner.mult_x_U
+    mult_g = inner.mult_g
+
+    x_norm = norm(x,Inf)
+
+    y_norm = max(norm(mult_g,Inf), norm(mult_x_L,Inf), norm(mult_x_U,Inf))
+    J = jac(nlp, x)
+    norm_grad_lag = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
+    #=norm_grad_lag2 = norm(-grad(nlp,x) -  J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
+    norm_grad_lag3 = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
+    norm_grad_lag4 = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
+    norm_grad_lag5 = norm(grad(nlp,x) + J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
+    norm_grad_lag6 = norm(grad(nlp,x) +  J' *  mult_g + mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
+
+    @show norm_grad_lag, norm_grad_lag2, norm_grad_lag3, norm_grad_lag4, norm_grad_lag5, norm_grad_lag6
+    @show norm(grad(nlp,x),Inf), norm(jtprod(nlp, x, mult_g),Inf), norm(mult_x_L,Inf), norm(mult_x_U,Inf)
+    =#
+    #@show norm(mult_g,Inf)
+
+    g_val = cons(nlp, x)
+    g_val = inner.g
+    # only seems to work with equality constraints with r.h.s of zero.
+    con_vio = max(maximum(g_val-nlp.meta.ucon),maximum(nlp.meta.lcon-g_val),0.0)
+    #@show nlp.meta.ucon, nlp.meta.lcon
+    #@show x, nlp.meta.lvar, nlp.meta.uvar, mult_x_L, mult_x_U, mult_g
+
+    # doesn't allow inequality constraints.
+    comp_vec = [mult_x_L .* max.(0.0,x-nlp.meta.lvar); mult_x_U .* max.(0.0,nlp.meta.uvar-x)]
+    comp_vec[[nlp.meta.lvar; nlp.meta.uvar] .== Inf] = 0.0
+    comp_vec[[nlp.meta.lvar; nlp.meta.uvar] .== -Inf] = 0.0
+    #@show comp_vec
+    comp = maximum(comp_vec)
+    max_comp = maximum(comp_vec)
+    min_comp = minimum(comp_vec)
+
+    fval = obj(nlp,x)
+
+    t = length(hist)
+
+    this_it = generic_alg_history(t,fval,norm_grad_lag,comp,con_vio,y_norm,x_norm)
+
+    push!(hist,this_it)
+end
+
+function get_col(arr::Array,colname::Symbol)
+    col = nothing
+    for i = 1:length(arr)
+        val = getfield(arr[i],colname)
+        if i == 1
+            col = Array{typeof(val),1}();
+        end
+        push!(col,val)
+    end
+    return col
 end
 
 function head_progress()
@@ -78,7 +152,8 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     mu = get_mu(iter)
     fval = get_fval(iter)
     dot_sy = dot(iter.point.s,iter.point.y)/length(iter.point.s)
-    norm_grad_lag = norm(eval_grad_lag(iter, iter.point.mu),Inf)
+    norm_grad_lag = norm(eval_grad_lag(iter, 0.0),Inf)
+    norm_grad_lag_mod = norm(eval_grad_lag(iter, iter.point.mu),Inf)
     dual_scaled = scaled_dual_feas(iter, par)
     primal_residual = norm(get_primal_res(iter),Inf)
     con_vio = get_max_vio(iter)
@@ -125,7 +200,7 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     tot_num_fac::Int64,
     num_fac_inertia::Int64)
 
-    #push!(progress, hist)
+    push!(progress, hist)
 
     if display
       println(pd(t,5), pd(step_type[1], 3), rd(mu),  rd(ls_info_step_size_P),  rd(ls_info_step_size_D), pd(ls_info_num_steps,2), rd(dir_x_norm), rd(dir_y_norm), rd(kkt_ratio), "|", rd(mu), rd(dual_scaled), rd(primal_residual), rd(comp_ratio), rd(farkas), "|", rd(delta), pd(num_fac_inertia,3), pd(tot_num_fac,3), rd(x_norm), rd(y_norm), rd(val_grad_phi), rd(val_merit_function, 5))

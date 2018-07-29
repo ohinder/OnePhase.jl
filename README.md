@@ -27,7 +27,7 @@ Here is a simple example where a [JuMP](http://www.juliaopt.org/JuMP.jl/0.18/JuM
 ```julia
 using OnePhase, JuMP
 
-m = Model(OnePhase())
+m = Model(solver=OnePhaseSolver())
 @variable(m, x, start=-3)
 @objective(m, Min, x)
 @NLconstraint(m, x^2 >= 1.0)
@@ -42,7 +42,9 @@ Install [CUTEst](http://juliasmoothoptimizers.github.io/CUTEst.jl/latest/) then 
 ```julia
 using OnePhase, CUTEst
 nlp = CUTEstModel("CHAIN")
-iter = one_phase_solve(nlp);
+iter, status, hist, t, err, timer = one_phase_solve(nlp);
+@show get_original_x(iter) # gives the primal solution of the solver
+@show get_y(iter) # gives the dual solution of the solver
 ```
 
 ## Feedback?
