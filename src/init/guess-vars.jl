@@ -45,7 +45,7 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
       ais = cons_indicies(nlp)
       bis = bound_indicies(nlp)
       s_tilde[bis] = a[bis]
-      @show ais, bis
+      #@show ais, bis
     else
       ais = 1:(length(cons_indicies(nlp)) + length(bound_indicies(nlp)))
       bis = bound_indicies(nlp)
@@ -74,7 +74,7 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     s_tilde[ais] = s_tilde[ais] + δ_s_tilde
 
 
-    @show δ_s, δ_y, norm(g)
+    #@show δ_s, δ_y, norm(g)
     #s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
@@ -97,6 +97,7 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
 
     for i in bound_indicies(nlp)
         if (s_tilde[i] <= 0.0)
+            println("Error:")
             @show i, s_tilde[i], a[i] #lvar[i], uvar[i]
         end
         if bounds

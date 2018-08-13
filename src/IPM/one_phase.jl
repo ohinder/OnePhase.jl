@@ -79,7 +79,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       kkt_solver = pick_KKT_solver(pars);
       initialize!(kkt_solver, iter)
 
-      head_progress()
+      if pars.output_level >= 1
+          head_progress()
+      end
 
       display = pars.output_level >= 1
       record_progress_first_it!(progress, iter, kkt_solver, pars, display)
@@ -101,12 +103,16 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       pause_advanced_timer(timer, "misc/terminate")
 
       if status != false
-        println("Terminated with ", status)
+        if pars.output_level >= 1
+            println("Terminated with ", status)
+        end
         return iter, status, progress, t, false
       end
 
       if time() - start_time > pars.term.max_time
-        println("Terminated due to timeout")
+          if pars.output_level >= 1
+            println("Terminated due to timeout")
+        end
         return iter, :MAX_TIME, progress, t, false
       end
 
@@ -216,7 +222,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        start_advanced_timer(timer, "misc/record_progress")
                        # output to the console
                        output_level = pars.output_level
-                       display = output_level >= 4 || (output_level >= 3 && i == 1) || (output_level == 2 && t % 10 == 1 && i == 1) || status != false
+                       display = output_level >= 4 || (output_level >= 3 && i == 1) || (output_level == 2 && t % 10 == 1 && i == 1) || (status != false && output_level >= 1)
                        record_progress!(progress, t, be_aggressive ? "agg" : "stb", iter, kkt_solver, ls_info, reduct_factors, inertia_num_fac, tot_num_fac, pars, display)
                        pause_advanced_timer(timer, "misc/record_progress")
                        @assert(is_updated_correction(iter.cache))
@@ -224,12 +230,16 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                        # if termination criteron is satisfied stop the algorithm
                        if status != false
-                         println("Terminated with ", status)
+                         if pars.output_level >= 1
+                             println("Terminated with ", status)
+                         end
                          return iter, status, progress, t, false
                        end
 
                        if time() - start_time > pars.term.max_time
-                         println("Terminated due to timeout")
+                         if pars.output_level >= 1
+                             println("Terminated due to timeout")
+                         end
                          return iter, :MAX_TIME, progress, t, false
                        end
 
@@ -239,6 +249,8 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
              end
       end
 
-  println("Terminated due to max iterations reached")
+  if pars.output_level >= 1
+      println("Terminated due to max iterations reached")
+  end
   return iter, :MAX_IT, progress, pars.term.max_it, false
 end

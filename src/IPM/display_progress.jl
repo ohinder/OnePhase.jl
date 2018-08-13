@@ -32,6 +32,7 @@ struct alg_history2 <: abstract_alg_history
     x_norm::Float64
     tot_num_fac::Int64
     num_fac_inertia::Int64
+    strict_comp::Float64
 
     #=function alg_history()
       return new()
@@ -66,58 +67,11 @@ type generic_alg_history <: abstract_alg_history
   #eval_merit_function::Float64
   #eval_phi::Float64
   #eval_grad_phi::Float64
+  primal_residual::Float64
   con_vio::Float64
   y_norm::Float64
   x_norm::Float64
-end
-
-#function add_solver_results!(hist::Array{generic_alg_history,1}, m::JuMP.Model)
-
-function add_solver_results!(hist::Array{generic_alg_history,1}, nlp::AbstractNLPModel, inner)
-    x = inner.x
-    mult_x_L = inner.mult_x_L
-    mult_x_U = inner.mult_x_U
-    mult_g = inner.mult_g
-
-    x_norm = norm(x,Inf)
-
-    y_norm = max(norm(mult_g,Inf), norm(mult_x_L,Inf), norm(mult_x_U,Inf))
-    J = jac(nlp, x)
-    norm_grad_lag = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
-    #=norm_grad_lag2 = norm(-grad(nlp,x) -  J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
-    norm_grad_lag3 = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
-    norm_grad_lag4 = norm(grad(nlp,x) +  J' *  mult_g - mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
-    norm_grad_lag5 = norm(grad(nlp,x) + J' *  mult_g - mult_x_L + mult_x_U,Inf) # / (1 + max_dual)
-    norm_grad_lag6 = norm(grad(nlp,x) +  J' *  mult_g + mult_x_L - mult_x_U,Inf) # / (1 + max_dual)
-
-    @show norm_grad_lag, norm_grad_lag2, norm_grad_lag3, norm_grad_lag4, norm_grad_lag5, norm_grad_lag6
-    @show norm(grad(nlp,x),Inf), norm(jtprod(nlp, x, mult_g),Inf), norm(mult_x_L,Inf), norm(mult_x_U,Inf)
-    =#
-    #@show norm(mult_g,Inf)
-
-    g_val = cons(nlp, x)
-    g_val = inner.g
-    # only seems to work with equality constraints with r.h.s of zero.
-    con_vio = max(maximum(g_val-nlp.meta.ucon),maximum(nlp.meta.lcon-g_val),0.0)
-    #@show nlp.meta.ucon, nlp.meta.lcon
-    #@show x, nlp.meta.lvar, nlp.meta.uvar, mult_x_L, mult_x_U, mult_g
-
-    # doesn't allow inequality constraints.
-    comp_vec = [mult_x_L .* max.(0.0,x-nlp.meta.lvar); mult_x_U .* max.(0.0,nlp.meta.uvar-x)]
-    comp_vec[[nlp.meta.lvar; nlp.meta.uvar] .== Inf] = 0.0
-    comp_vec[[nlp.meta.lvar; nlp.meta.uvar] .== -Inf] = 0.0
-    #@show comp_vec
-    comp = maximum(comp_vec)
-    max_comp = maximum(comp_vec)
-    min_comp = minimum(comp_vec)
-
-    fval = obj(nlp,x)
-
-    t = length(hist)
-
-    this_it = generic_alg_history(t,fval,norm_grad_lag,comp,con_vio,y_norm,x_norm)
-
-    push!(hist,this_it)
+  strict_comp::Float64
 end
 
 function get_col(arr::Array,colname::Symbol)
@@ -169,6 +123,7 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     tot_num_fac = tot_num_fac
     num_fac_inertia = num_fac_inertia
     kkt_ratio = kss.kkt_err_norm.ratio
+    strict_comp = minimum(iter.point.s+iter.point.y)
 
 
     hist = alg_history2(t::Int64,
@@ -198,7 +153,8 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     y_norm::Float64,
     x_norm::Float64,
     tot_num_fac::Int64,
-    num_fac_inertia::Int64)
+    num_fac_inertia::Int64,
+    strict_comp::Float64)
 
     push!(progress, hist)
 
