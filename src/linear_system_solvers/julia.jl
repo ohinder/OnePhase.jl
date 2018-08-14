@@ -3,7 +3,7 @@ type linear_solver_JULIA <: abstract_linear_system_solver
 	_factor_defined::Bool
 
 	# options
-	sym::Symbol
+	sym::Symbol # this determines if we use LU, cholesky or LDL.
 	safe_mode::Bool
 	recycle::Bool
 
@@ -19,12 +19,15 @@ type linear_solver_JULIA <: abstract_linear_system_solver
 end
 
 function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{Float64,Int64}, n::Int64, m::Int64, timer::class_advanced_timer)
-			inertia_status = 1;
+			inertia_status_val = 1;
 
 			start_advanced_timer(timer, "JULIA/factorize")
 			if solver.sym == :unsymmetric
+				# incomplete ---- how does one compute inertia????
 				 solver._factor = lufact(SparseMatrix);
 			elseif solver.sym == :definite
+				# do a cholesky factorization
+				@assert(m == 0)
 				try
 					if !solver.recycle || !solver._factor_defined
 						solver._factor = cholfact(Symmetric(SparseMatrix,:L));
@@ -34,18 +37,45 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 					end
 				catch(e)
 					if typeof(e) == Base.LinAlg.PosDefException
-							inertia_status = 0
+						inertia_status_val = 0
 					else
 							println("ERROR in linear_solver_JULIA.ls_factor!")
 							throw(e)
 					end
+				end
+			elseif solver.sym == :symmetric
+				# LDL factorization
+				try
+					if !solver.recycle || !solver._factor_defined
+						solver._factor = ldltfact(Symmetric(SparseMatrix,:L));
+						solver._factor_defined = true
+					else
+						ldltfact!(solver._factor,Symmetric(SparseMatrix,:L));
+					end
+				catch(e)
+					if typeof(e) == ArgumentError
+							inertia_status_val = 0
+					else
+							println("ERROR in saddle_solver_JULIA.ls_factor!")
+							throw(e)
+					end
+				end
+
+				if inertia_status_val == 1
+					# do something !!!!!!
+					di = diag(solver._factor)
+					pos_eigs =  sum(di .> 0.0)
+					zero_eigs = sum(di .== 0.0)
+					neg_eigs = sum(di .< 0.0)
+
+					inertia_status_val = inertia_status(pos_eigs, neg_eigs, zero_eigs, n, m)
 				end
 			else
 				error("this.options.sym = " * string(solver.sym) * " not supported")
 			end
 			pause_advanced_timer(timer, "JULIA/factorize")
 
-			return inertia_status; # inertia
+			return inertia_status_val; # inertia
 end
 
 function ls_solve!(solver::linear_solver_JULIA, my_rhs::Array{Float64,1}, my_sol::Array{Float64,1}, timer::class_advanced_timer)

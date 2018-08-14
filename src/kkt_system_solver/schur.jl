@@ -9,13 +9,14 @@ type Schur_KKT_solver <: abstract_schur_solver
     kkt_err_norm::Class_kkt_error
     rhs_norm::Float64
     pars::Class_parameters
+    schur_diag::Array{Float64,1}
 
     ready::Symbol #
 
     # Schur_KKT_solver only
-    true_diag::Array{Float64,1}
-    M::SparseMatrixCSC{Float64,Int64}
-    K::SparseMatrixCSC{Float64,Int64}
+    Q::SparseMatrixCSC{Float64,Int64}
+    #M::SparseMatrixCSC{Float64,Int64} # Is two linear systems really necessary????
+    #K::SparseMatrixCSC{Float64,Int64}
     current_it::Class_iterate
     reduct_factors::Class_reduction_factors
 
@@ -25,10 +26,6 @@ type Schur_KKT_solver <: abstract_schur_solver
 
       return this
     end
-end
-
-function diag_min(kkt_solver::abstract_schur_solver)
-    return minimum(kkt_solver.true_diag)
 end
 
 
@@ -48,23 +45,16 @@ end
 function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, timer::class_advanced_timer)
     start_advanced_timer(timer, "SCHUR")
     start_advanced_timer(timer, "SCHUR/form_system");
-    x = iter.point.x;
-    y = iter.point.y
-    s = iter.point.s
 
     ## REMEMBER  M is triangular!!!
     # this could be sped up significantly!!!
-    kkt_solver.M = eval_J_T_J(iter, iter.point.y ./ iter.point.s) + get_lag_hess(iter);
-    kkt_solver.true_diag = diag(kkt_solver.M)
+    kkt_solver.Q = eval_J_T_J(iter, iter.point.y ./ iter.point.s) + get_lag_hess(iter);
+    kkt_solver.schur_diag = diag(kkt_solver.Q)
     kkt_solver.factor_it = iter;
     kkt_solver.ready = :system_formed
 
     pause_advanced_timer(timer, "SCHUR/form_system");
     pause_advanced_timer(timer, "SCHUR");
-end
-
-function update_diag!(Mat::SparseMatrixCSC{Float64,Int64})
-
 end
 
 function update_delta_vecs!(kkt_solver::abstract_schur_solver, delta_x_vec::Array{Float64,1}, delta_s_vec::Array{Float64,1}, timer::class_advanced_timer)
@@ -74,9 +64,13 @@ function update_delta_vecs!(kkt_solver::abstract_schur_solver, delta_x_vec::Arra
     kkt_solver.delta_s_vec = delta_s_vec
 
     if sum(abs.(delta_s_vec)) > 0.0
-        kkt_solver.K = kkt_solver.M + eval_J_T_J(kkt_solver.factor_it, delta_s_vec) + spdiagm(delta_x_vec)
+        error("Not implemented")
+        #kkt_solver.Q[i,i] =
+        #kkt_solver.M + eval_J_T_J(kkt_solver.factor_it, delta_s_vec) + spdiagm(delta_x_vec)
     else
-        kkt_solver.K = kkt_solver.M + spdiagm(delta_x_vec)
+        for i = 1:size(kkt_solver.Q,1)
+            kkt_solver.Q[i,i] = kkt_solver.schur_diag[i] + delta_x_vec[i]
+        end
     end
 
     kkt_solver.ready = :delta_updated
@@ -85,7 +79,7 @@ function update_delta_vecs!(kkt_solver::abstract_schur_solver, delta_x_vec::Arra
 end
 
 function factor_implementation!(kkt_solver::abstract_schur_solver, timer::class_advanced_timer)
-    return ls_factor!(kkt_solver.ls_solver, kkt_solver.K, dim(kkt_solver.factor_it), 0, timer)
+    return ls_factor!(kkt_solver.ls_solver, kkt_solver.Q, dim(kkt_solver.factor_it), 0, timer)
 end
 
 function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::class_advanced_timer)
@@ -131,6 +125,9 @@ end
 
 
 function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, timer::class_advanced_timer)
+  # Solve Ax = b where b is formed by the function compute_direction_implementation!().
+  # The main purpose of this function is to do iterative refinement.
+
   fit = kkt_solver.factor_it
   #∇a_org = get_jac(factor_it);
   y_org = get_y(fit);

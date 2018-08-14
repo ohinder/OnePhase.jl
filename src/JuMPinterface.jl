@@ -23,7 +23,9 @@ type OnePhaseProblem
     obj_val::Float64  # (length 1) Final objective
     solve_time::Float64
 
+    # Custom attributes of the OnePhaseSolver
     iter::Class_iterate
+    hist::Array{alg_history2,1}
 
     function OnePhaseProblem()
         return new()
@@ -292,10 +294,12 @@ function status_One_Phase_To_JuMP(status::Symbol)
         return :Unbounded
     elseif status == :MAX_IT || status === :MAX_TIME
         return :UserLimit
+    else
+        return :Error
     end
 end
 
-function create_pars_JuMP(options)
+function create_pars_JuMP(options )
     pars = Class_parameters()
     for (param,value) in options
       what = split(String(param),"!") # we represent a parameter such as init.mu_scale as init!mu_scale because we cannot pass init.mu_scale as a parameter
@@ -320,12 +324,16 @@ function MathProgBase.optimize!(m :: OnePhaseMathProgModel)
     pars = create_pars_JuMP(m.options)
 
     iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
-    m.inner.iter = iter
+
     m.inner.status = status_One_Phase_To_JuMP(status)
     m.inner.x = get_original_x(iter)
     m.inner.obj_val = iter.cache.fval
     m.inner.lambda = get_y(iter)
     m.inner.solve_time = time() - t
+
+    # custom one phase features
+    m.inner.iter = iter
+    m.inner.hist = hist
 end
 
 MathProgBase.getconstrsolution(m::OnePhaseMathProgModel) = m.inner.g

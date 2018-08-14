@@ -65,11 +65,11 @@ end
 
 function ls_factor!(solver::linear_solver_MUMPS, SparseMatrix::SparseMatrixCSC{Float64,Int64}, n::Int64, m::Int64, timer::class_advanced_timer)
 		#if
-		return ls_factor_LDL!(solver, SparseMatrix, n, m, timer)
+		return ls_factor_LBL!(solver, SparseMatrix, n, m, timer)
 end
 
 # A-matrix
-function ls_factor_LDL!(solver::linear_solver_MUMPS, SparseMatrix::SparseMatrixCSC{Float64,Int64}, n::Int64, m::Int64, timer::class_advanced_timer)
+function ls_factor_LBL!(solver::linear_solver_MUMPS, SparseMatrix::SparseMatrixCSC{Float64,Int64}, n::Int64, m::Int64, timer::class_advanced_timer)
 		start_advanced_timer(timer,"MUMPS")
 		@assert(size(SparseMatrix,1) == n + m)
 		@assert(size(SparseMatrix,2) == n + m)
@@ -77,7 +77,7 @@ function ls_factor_LDL!(solver::linear_solver_MUMPS, SparseMatrix::SparseMatrixC
 		solver.M = deepcopy(SparseMatrix)
 
 		start_advanced_timer(timer,"MUMPS/associate_matrix")
-    associate_matrix!(solver._factor, solver.M);
+    	associate_matrix!(solver._factor, solver.M);
 		pause_advanced_timer(timer,"MUMPS/associate_matrix")
 
 		start_advanced_timer(timer,"MUMPS/factorize")
