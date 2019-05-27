@@ -14,7 +14,7 @@ type Symmetric_KKT_solver <: abstract_KKT_system_solver
 
     ready::Symbol #
 
-    # Schur_KKT_solver only
+    # Symmetric_KKT_solver only
     #true_diag::Array{Float64,1}
     Q::SparseMatrixCSC{Float64,Int64}
     #M::SparseMatrixCSC{Float64,Int64}
@@ -23,6 +23,10 @@ type Symmetric_KKT_solver <: abstract_KKT_system_solver
     #reduct_factors::Class_reduction_factors
 
     function Symmetric_KKT_solver()
+        ## reworks system to form of
+        ## [[H A']]
+        ## [[A D]].
+        ##
       return new()
     end
 end

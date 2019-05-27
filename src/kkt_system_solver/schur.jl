@@ -1,24 +1,24 @@
 type Schur_KKT_solver <: abstract_schur_solver
     # abstract_KKT_system_solver
-    ls_solver::abstract_linear_system_solver
-    factor_it::Class_iterate
-    delta_x_vec::Array{Float64,1}
-    delta_s_vec::Array{Float64,1}
-    rhs::System_rhs
-    dir::Class_point
+    ls_solver::abstract_linear_system_solver # the linear system solver we wish to use, see the folder `linear_system_solvers`
+    factor_it::Class_iterate # iterate where the factorization is computed
+    delta_x_vec::Array{Float64,1} # the amount we perturb the Hessian
+    delta_s_vec::Array{Float64,1} # MAYBE DELETE? I DON'T REALLY USE THIS ANYMORE??????
+    rhs::System_rhs # the right hand side
+    dir::Class_point # the direction that was computed
     kkt_err_norm::Class_kkt_error
     rhs_norm::Float64
     pars::Class_parameters
-    schur_diag::Array{Float64,1}
+    schur_diag::Array{Float64,1} # diagonal values of the schur complement, if any of these elements is negative matrix inertia is incorrect.
 
-    ready::Symbol #
+    ready::Symbol # is the KKT solver correctly intialized
 
     # Schur_KKT_solver only
     Q::SparseMatrixCSC{Float64,Int64}
     #M::SparseMatrixCSC{Float64,Int64} # Is two linear systems really necessary????
     #K::SparseMatrixCSC{Float64,Int64}
-    current_it::Class_iterate
-    reduct_factors::Class_reduction_factors
+    current_it::Class_iterate # current iterate
+    reduct_factors::Class_reduction_factors # the amount that we want to reduce
 
     function Schur_KKT_solver()
       this = new()
@@ -43,11 +43,12 @@ function kkt_associate_rhs!(kkt_solver::abstract_schur_solver, iter::Class_itera
 end
 
 function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, timer::class_advanced_timer)
+    # form the matrix before we factorize it
+
     start_advanced_timer(timer, "SCHUR")
     start_advanced_timer(timer, "SCHUR/form_system");
 
-    ## REMEMBER  M is triangular!!!
-    # this could be sped up significantly!!!
+    # TODO build specialized schur complement code.
     kkt_solver.Q = eval_J_T_J(iter, iter.point.y ./ iter.point.s) + get_lag_hess(iter);
     kkt_solver.schur_diag = diag(kkt_solver.Q)
     kkt_solver.factor_it = iter;
@@ -83,6 +84,7 @@ function factor_implementation!(kkt_solver::abstract_schur_solver, timer::class_
 end
 
 function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::class_advanced_timer)
+    # compute a search direction
     start_advanced_timer(timer, "SCHUR")
 
     factor_it = kkt_solver.factor_it

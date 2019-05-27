@@ -1,10 +1,12 @@
-println("Loading linear_system_solvers ... ")
-@compat abstract type abstract_linear_system_solver end
-
-## define linear system solvers.
-## note that linear system solvers need to be coupled with a KKT system solver
+################################################################################
+## Defines linear system solvers.
+## Note that linear system solvers need to be coupled with a KKT system solver
 ## these solvers can be found in the `kkt_system_solver` folder and
 ## reduces the linear system that needs to be solved, e.g., does a "primal schur complement"
+################################################################################
+
+println("Loading linear_system_solvers ... ")
+@compat abstract type abstract_linear_system_solver end
 
 include("julia.jl")
 USE_HSL = true
@@ -12,7 +14,9 @@ if USE_HSL
 	try
 		include("hsl.jl")
 	catch (e)
+		println("Loading HSL failed:")
 		warn(e)
+		println("Continuing although you will not be able to choose HSL as a linear solver ...")
 	end
 end
 #include("matlab.jl")
@@ -29,9 +33,28 @@ function finalize!(solver::abstract_linear_system_solver)
 end
 
 function inertia_status(pos_eigs::Int64, neg_eigs::Int64, zero_eigs::Int64, num_vars::Int64, num_constraints::Int64)
+	###########################################################################################
+	# INPUT:
+	# pos_eigs, neg_eigs, zero_eigs = number of positive, negative and zero eigenvalues in the matrix:
+	# [[ H A'];
+	# [ A D ]];
+	# num_vars = number of variables in problem
+	# num_constraints = number of constraints in problem
+	# OUTPUT:
+	# is the inertia good, i.e., is H + A' D^{-1} A positive semidefinite?
+	# this ensures that our direction will be a descent direction on the shifted log barrier.
+	###########################################################################################
+
 	try
 		#println("inertia_status called") # ????
-		@assert(pos_eigs + neg_eigs + zero_eigs == num_vars + num_constraints)
+		if(pos_eigs + neg_eigs + zero_eigs != num_vars + num_constraints)
+			println("pos_eigs = $pos_eigs")
+			println("neg_eigs = $neg_eigs")
+			println("zero_eigs = $pos_eigs")
+			println("num_vars = $num_vars")
+			println("num_constraints = $num_constraints")
+			error("pos_eigs + neg_eigs + zero_eigs != num_vars + num_constraints")
+		end
 		# return number instead of true or false???
 
 		if pos_eigs == num_vars && neg_eigs == num_constraints

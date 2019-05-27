@@ -3,7 +3,9 @@ function mehortra_guess2( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
     m = length(s)
 
     if true
-      println("estimating intial y")
+        if pars.output_level >= 2
+          println("estimating intial y")
+      end
       start_advanced_timer(timer, "INIT/estimate_y_tilde")
       y = estimate_y_tilde( J, g, pars )
       if isbad(y)
@@ -23,7 +25,9 @@ function mehortra_guess( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
     m = length(s)
 
     if true
+        if pars.output_level >= 2
       println("estimating intial y")
+  end
       start_advanced_timer(timer, "INIT/estimate_y_tilde")
       y = estimate_y_tilde( J, g, pars )
       if isbad(y)
@@ -112,14 +116,19 @@ end
 
 function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1}, pars::Class_parameters )
     try
-      println("estimate y_tilde ...")
-      @show densest_col(J)
-      @show densest_row(J)
+      if pars.output_level >= 2
+          println("estimate y_tilde ...")
+          @show densest_col(J)
+          @show densest_row(J)
+      end
+
       #@time H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
       n = size(J,2); m = size(J,1);
 
       lambda = 1e-4
-      @show lambda
+      if pars.output_level >= 2
+          @show lambda
+      end
       if false
         @time H = [speye(n) -J'; J lambda * speye(m)]
         @time M = lufact( H );
@@ -128,13 +137,15 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
         y = sol[(n+1):end]
       else # cholesky factor
         scaling = 1.0 #norm(J,Inf)^2
-        @time H = lambda * speye(n) + J' * J / scaling;
-        @time M = cholfact( H );
+        H = lambda * speye(n) + J' * J / scaling;
+        M = cholfact( H );
         dx = scaling * (M \ -g)
         y = -J * dx
       end
 
-      println("linear system solved")
+      if pars.output_level >= 2
+          println("linear system solved in init")
+      end
       return y
     catch (e)
       println("error in estimate_y_tilde")

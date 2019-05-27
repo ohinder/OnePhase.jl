@@ -171,7 +171,7 @@ type Class_init_parameters <: abstract_pars
         if mode == :standard
           this.mu_scale = 1.0
           this.mehotra_scaling = true
-          this.init_style = :Gertz # #
+          this.init_style = :gertz # #
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1.0
@@ -182,7 +182,7 @@ type Class_init_parameters <: abstract_pars
         else
           this.mu_scale = 1.0
           this.mehotra_scaling = false
-          this.init_style = :mehotra
+          this.init_style = :mehrotra
           this.dual_threshold = 1.0
           this.start_satisfying_bounds = true
           this.linear_scale = 1e-2
@@ -256,7 +256,8 @@ type Class_parameters <: abstract_pars
         this.superlinear_theory_mode = false
         this.agg_protection_factor = 0.9
 
-        # penalty parameter size
+        # penalty parameter size, changes log barrier to stop iterates growing too big when feasible region is unbounded
+        # e.g. min x s.t. x, y >= 0, without any changes y -> \infty
         this.a_norm_penalty = 1e-4
 
         # debugging

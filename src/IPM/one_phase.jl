@@ -20,11 +20,14 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
     start_advanced_timer(timer)
 
     start_advanced_timer(timer, "INIT")
-    # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
-    if pars.init.init_style == :Gertz
-        intial_it = gertz_init(nlp, pars, timer);
+    if pars.init.init_style == :gertz
+        intial_it = gertz_init(nlp, pars, timer); # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
+    elseif pars.init.init_style == :mehrotra
+        intial_it = mehrotra_init(nlp, pars, timer);
+    elseif pars.init.init_style == :LP
+        intial_it = LP_init(nlp, pars, timer);
     else
-        intial_it = init(nlp, pars, timer);
+        error("Init strategy does not exist")
     end
     pause_advanced_timer(timer, "INIT")
 
@@ -48,6 +51,7 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
 end
 
 function switching_condition(iter::Class_iterate, last_step_was_superlinear::Bool, pars::Class_parameters)
+    # should we take an aggressive step or not?
     is_feas = is_feasible(iter, pars.ls.comp_feas_agg)
     dual_avg = scaled_dual_feas(iter, pars)
 
@@ -66,7 +70,13 @@ function switching_condition(iter::Class_iterate, last_step_was_superlinear::Boo
 end
 
 function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class_advanced_timer)
-  # the main algorithm
+  #####################################################################
+  # THE MAIN ALGORITHM
+  # input:
+  # iter = starting point
+  # pars = parameters for running the algorithm
+  # timer = code to time the algorithm
+  #####################################################################
 
       # intialize code
       t = 0;
@@ -85,6 +95,9 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
       display = pars.output_level >= 1
       record_progress_first_it!(progress, iter, kkt_solver, pars, display)
+      if pars.output_level >= 4
+          println("")
+      end
 
       init_step_size = 1.0
       status = :success
@@ -121,23 +134,34 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
              @assert(is_feasible(iter, pars.ls.comp_feas))
 
              for i = 1:pars.max_it_corrections
+                         if pars.output_level >= 4
+                             println("================================== ITERATION $t, MINOR ITERATION $i ======================================")
+                         end
+
+                         if pars.output_level >= 5
+                             println("Strict comp = ", maximum(min.(iter.point.s/norm(iter.point.s,Inf),iter.point.y/norm(iter.point.y,Inf))))
+                         end
+
                        tot_num_fac = 0; inertia_num_fac = 0;
 
                        start_advanced_timer(timer, "misc/checks")
-                       be_aggressive = switching_condition(iter, last_step_was_superlinear, pars)
+                       be_aggressive = switching_condition(iter, last_step_was_superlinear, pars) # should we take an aggressive step or not?
                        last_step_was_superlinear = false
 
                        pause_advanced_timer(timer, "misc/checks")
 
                        if i == 1
-                           # first correction of iteration, we need to compute lag hessian and do a factorization
-                           # move to it's own function
+                           ##########################################################################################
+                           ##### first step of iteration, we need to compute lag hessian and do a factorization #####
+                           ##########################################################################################
                            update_H!(iter, timer, pars)
                            @assert(is_updated(iter.cache))
 
+                           # form matrix that we are going to factorize
                            form_system!(kkt_solver, iter, timer)
 
                            start_advanced_timer(timer, "ipopt_strategy")
+                           # Figures out what delta will give
                            fact_succeed, inertia_num_fac, new_delta = ipopt_strategy!(iter, kkt_solver, pars, timer)
                            tot_num_fac = inertia_num_fac
                            old_delta = get_delta(iter)
@@ -152,7 +176,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            start_advanced_timer(timer, "STEP/first")
 
                            if pars.output_level >= 5
-                             println(pd("**"), pd("status"), pd("delta"), pd("step"))
+                             println(pd("**"), pd("status"), pd("delta"), pd("α_P"), pd("dx"), pd("dy"), pd("ds"))
                            end
 
                            for k = 1:100
@@ -161,6 +185,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
 
                              if pars.output_level >= 6
+                               println("")
                                println(pd("**"), pd(step_status), rd(get_delta(iter)), rd(ls_info.step_size_P), rd(norm(kkt_solver.dir.x,Inf)), rd(norm(kkt_solver.dir.y,Inf)), rd(norm(kkt_solver.dir.s,Inf)))
                              end
 
@@ -190,7 +215,10 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                            pause_advanced_timer(timer, "STEP/first")
                            pause_advanced_timer(timer, "STEP")
-                       else # corrections, reuse factorization
+                       else
+                           #######################################
+                           ### corrections, reuse factorization ##
+                           #######################################
                            start_advanced_timer(timer, "STEP")
                            start_advanced_timer(timer, "STEP/correction")
 
@@ -223,7 +251,12 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        # output to the console
                        output_level = pars.output_level
                        display = output_level >= 4 || (output_level >= 3 && i == 1) || (output_level == 2 && t % 10 == 1 && i == 1) || (status != false && output_level >= 1)
+
                        record_progress!(progress, t, be_aggressive ? "agg" : "stb", iter, kkt_solver, ls_info, reduct_factors, inertia_num_fac, tot_num_fac, pars, display)
+                       if pars.output_level >= 4
+                           println("")
+                       end
+
                        pause_advanced_timer(timer, "misc/record_progress")
                        @assert(is_updated_correction(iter.cache))
                        check_for_nan(iter.point)

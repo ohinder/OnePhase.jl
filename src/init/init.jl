@@ -3,6 +3,7 @@ include("guess-vars.jl")
 include("other.jl")
 include("primal-project.jl")
 include("gertz_init.jl")
+include("lp.jl")
 
 function linear_cons(nlp::Class_CUTEst, x0::Vector)
     a1 = eval_a(nlp, x0)
@@ -13,7 +14,7 @@ function linear_cons(nlp::Class_CUTEst, x0::Vector)
     return abs(a1 - 2 * a2 + a3) .< 1e-6
 end
 
-function init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_timer)
+function mehrotra_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_timer)
     start_advanced_timer(timer, "INIT/x")
     x0 = suggested_starting_point(nlp)
 

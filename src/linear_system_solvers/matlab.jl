@@ -16,6 +16,10 @@ type linear_solver_MATLAB <: abstract_linear_system_solver
 end
 
 function ls_factor!(solver::linear_solver_MATLAB, n::Int64, m::Int64)
+    # solver = linear system solver which calls matlab to solve linear systems
+    # n = number of variables
+    # m = number of constraints
+
 			sparse_matrix = solver. _SparseMatrix
 			@mput sparse_matrix
 

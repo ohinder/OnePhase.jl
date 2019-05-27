@@ -1,13 +1,36 @@
-@compat abstract type abstract_KKT_system_solver end
+################################################################################
+## Defines KKT system solvers
+## KKT system solvers modify the orginal linear system to make it possible to use a linear system solver.
+## For example,
+## - schur.jl does a primal schur complement which can then be solved with a cholseky linear system solver.
+## - symmetric.jl forms a symmetric system which can be solved using LDL
+################################################################################
+
+@compat abstract type abstract_KKT_system_solver
+    # list variables
+end
+# The following functions should be defined for any KKT_solver <: abstract_KKT_system_solver:
+# - form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, timer::class_advanced_timer)
+# - factor_implementation!(kkt_solver::KKT_solver, timer::class_advanced_timer)
+# - compute_direction_implementation!(kkt_solver::KKT_solver, timer::class_advanced_timer)
+# - update_delta_vecs!(kkt_solver::KKT_solver, delta_x_vec::Array{Float64,1}, delta_s_vec::Array{Float64,1}, timer::class_advanced_timer)
+
 @compat abstract type abstract_schur_solver <: abstract_KKT_system_solver end
 
 function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_iterate)
+    # call this before running using the kkt_solver
     initialize!(kkt_solver.ls_solver)
     kkt_solver.dir = zero_point(dim(intial_it),ncon(intial_it))
 end
 
 function predicted_lag_change(kkt_solver::abstract_KKT_system_solver)
-    #J = get_jac(kkt_solver.factor_it)
+    #################################################################################
+    # INPUT:
+    # kkt_solver with a direction and delta_x_vec representing how we perturbed the system to make the inertia correct.
+    # OUTPUT:
+    # vector denoting how do we expect gradient of the Lagragian to change
+    #################################################################################
+
     fi = kkt_solver.factor_it
 
     dir_x = kkt_solver.dir.x
@@ -23,12 +46,13 @@ function predicted_lag_change(kkt_solver::abstract_KKT_system_solver)
 end
 
 type Class_kkt_error
-    error_D::Float64
-    error_P::Float64
-    error_mu::Float64
-    overall::Float64
-    rhs_norm::Float64
-    ratio::Float64
+    # when we compute the directions how much error is there in the linear system.
+    error_D::Float64 # norm of error in dual feasibility
+    error_P::Float64 # norm error of error in primal feasibility
+    error_mu::Float64 # norm error of error in complementarity
+    overall::Float64 # total error
+    rhs_norm::Float64 # norm of rhs of linear system
+    ratio::Float64 # ratio of total error to norm of rhs. If this is less than zero then the direction is improving things.
 
     function Class_kkt_error(error_D::Float64,error_P::Float64,error_mu::Float64,overall::Float64, rhs_norm::Float64, ratio::Float64)
           return new(error_D,error_P,error_mu,overall,rhs_norm, ratio)
@@ -71,11 +95,13 @@ function update_kkt_error!(ss::abstract_KKT_system_solver, p::Float64, timer::cl
 end
 
 function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, delta_s::Float64, timer::class_advanced_timer)
+    # I don't think this is used anymore
     update_delta!(kkt_solver, delta_x, delta_s, timer)
     factor!(kkt_solver, timer)
 end
 
 function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, timer::class_advanced_timer)
+    # factorize the linear system for a particular perturbation to the Hessian of I * delta_x.
     factor!(kkt_solver, delta_x, 0.0, timer)
 end
 
@@ -86,6 +112,8 @@ function update_delta!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64,
 end
 
 function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate)
+    # Delete: I don't think this is used
+
     start_advanced_timer("KKT/factor");
     form_system!(kkt_solver, iter)
 
@@ -132,6 +160,7 @@ end
 
 
 function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, eta::Class_reduction_factors, timer::class_advanced_timer)
+    # create right hand side for linear system and attach it to iter.
     start_advanced_timer(timer, "KKT/rhs");
 
     kkt_solver.rhs = System_rhs(iter, eta)
@@ -142,6 +171,7 @@ function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_
 end
 
 function compute_direction!(kkt_solver::abstract_KKT_system_solver, timer::class_advanced_timer)
+    # compute a direction and store it in the kkt_solver object
     start_advanced_timer(timer, "KKT/compute_direction");
     if kkt_solver.ready != :factored
         error("kkt solver not ready to compute direction!")
@@ -153,20 +183,23 @@ function compute_direction!(kkt_solver::abstract_KKT_system_solver, timer::class
 end
 
 function factor!(kkt_solver::abstract_KKT_system_solver, timer::class_advanced_timer)
+    # factorize the linear system
+    # stores the factorize inside the kkt_solver
     start_advanced_timer(timer, "KKT/factor");
 
     if kkt_solver.ready != :delta_updated
-        error("kkt solver not ready to factor!")
+        error("kkt solver not ready to factor kkt_solver.ready = $(kkt_solver.ready) != :delta_updated")
     else
         kkt_solver.ready = :factored
     end
-    inertia =  factor_implementation!(kkt_solver, timer)
+    inertia = factor_implementation!(kkt_solver, timer)
     pause_advanced_timer(timer, "KKT/factor");
 
-    return inertia
+    return inertia # is the inertia correct?
 end
 
 function compute_eigenvector!(kkt_solver::abstract_KKT_system_solver, iter::Class_iterate, timer::class_advanced_timer)
+    # Delete: I think this is old code not really used.
     start_advanced_timer(timer, "KKT/direction/eig");
 
     approx_eigvec = randn(dim(iter));
@@ -192,22 +225,34 @@ function compute_eigenvector!(kkt_solver::abstract_KKT_system_solver, iter::Clas
 end
 
 function pick_KKT_solver(pars::Class_parameters)
+    # selects the KKT_solver based on the parameters
   kkt_solver_type = pars.kkt.kkt_solver_type
   linear_solver_type = pars.kkt.linear_solver_type
   safe = pars.kkt.linear_solver_safe_mode
   recycle = pars.kkt.linear_solver_recycle
 
   if kkt_solver_type == :symmetric
-    my_kkt_solver = Symmetric_KKT_solver()
-    if linear_solver_type == :julia
-      my_kkt_solver.ls_solver = linear_solver_JULIA(:symmetric, safe, recycle)
-    elseif linear_solver_type == :mumps
-      my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
-    elseif linear_solver_type == :HSL
-        my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle)
-    else
-        error("pick a valid solver!")
-    end
+        my_kkt_solver = Symmetric_KKT_solver()
+        if linear_solver_type == :julia
+          my_kkt_solver.ls_solver = linear_solver_JULIA(:symmetric, safe, recycle)
+        elseif linear_solver_type == :mumps
+          my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
+        elseif linear_solver_type == :HSL
+            my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle)
+        else
+            error("pick a valid solver!")
+        end
+  elseif kkt_solver_type == :clever_symmetric
+      my_kkt_solver = Clever_Symmetric_KKT_solver()
+      if linear_solver_type == :julia
+        my_kkt_solver.ls_solver = linear_solver_JULIA(:symmetric, safe, recycle)
+      elseif linear_solver_type == :mumps
+        my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
+      elseif linear_solver_type == :HSL
+          my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle)
+      else
+          error("pick a valid solver!")
+      end
   elseif kkt_solver_type == :schur
     my_kkt_solver = Schur_KKT_solver()
     if linear_solver_type == :julia
@@ -239,6 +284,7 @@ end
 ## helper functions
 
 function diag_min(kkt_solver::abstract_KKT_system_solver)
+    # find the smallest element of kkt_solver.schur_diag
     return minimum(kkt_solver.schur_diag)
 end
 
