@@ -64,11 +64,23 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				if inertia_status_val == 1
 					# do something !!!!!!
 					di = diag(solver._factor)
-					pos_eigs =  sum(di .> 0.0)
-					zero_eigs = sum(di .== 0.0)
-					neg_eigs = sum(di .< 0.0)
-
-					inertia_status_val = inertia_status(pos_eigs, neg_eigs, zero_eigs, n, m)
+					tol = 1e-20
+					pos_eigs =  sum(di .> tol)
+					zero_eigs = sum((-tol .<= di) .& (di .<= tol))
+					neg_eigs = sum(di .< -tol)
+					nan_eigs = sum(isnan.(di))
+					inf_eigs = sum(isinf.(di))
+					if nan_eigs + inf_eigs <= 0
+						inertia_status_val = inertia_status(pos_eigs, neg_eigs, zero_eigs, n, m)
+					else
+						if inf_eigs > 0
+							warn("Inf appears in diagonal")
+						end
+						if nan_eigs > 0
+							warn("NaN appears in diagonal")
+						end
+						inertia_status_val = 0
+					end
 				end
 			else
 				error("this.options.sym = " * string(solver.sym) * " not supported")

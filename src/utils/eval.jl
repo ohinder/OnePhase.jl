@@ -89,7 +89,10 @@ function eval_diag_J_T_J(it::Class_iterate,diag_vals::Vector)
     di = zeros(n)
     for i = 1:n
         a = it.cache.J[:,i]
-        di[i] = dot(a .* diag_vals,a)
+        for j in a.nzind
+            di[i] += a[j]^2 * diag_vals[j]
+        end
+        #dot(a .* diag_vals,a)
     end
     return di
 end
@@ -111,7 +114,11 @@ function get_max_vio(it::Class_iterate)
 end
 
 function eval_phi(it::Class_iterate, mu::Float64)
-    return get_fval(it) - mu * sum( log.( it.point.s ) ) + mu * eval_r(it)
+    if all(it.point.s .> 0.0)
+        return get_fval(it) - mu * sum( log.( it.point.s ) ) + mu * eval_r(it)
+    else
+        return Inf
+    end
 end
 
 function eval_grad_phi(it::Class_iterate, mu::Float64)
@@ -198,13 +205,29 @@ function eval_merit_function_difference(it::Class_iterate, candidate::Class_iter
     end
 end
 
-function vector_product(LowerTriangularMat, vector::Vector)
+function is_lower_triangular(mat)
+    for i = 1:size(mat,1)
+        for j = (i+1):size(mat,2)
+            if mat[i,j] != 0.0
+                return false
+            end
+        end
+    end
+    return true
+end
+
+function vector_product(LowerTriangularMat::SparseMatrixCSC{Float64,Int64}, vector::Array{Float64,1})
+    DEBUG_MODE = false
+    if DEBUG_MODE
+        warn("checking lower triangular property")
+        @assert is_lower_triangular(LowerTriangularMat) == true
+    end
     v1 = LowerTriangularMat * vector
     v2 = LowerTriangularMat' * vector
     return v1 + v2 - diag(LowerTriangularMat) .* vector
 end
 
-function hess_product(it::Class_iterate, vector::Vector)
+function hess_product(it::Class_iterate, vector::Array{Float64,1})
     return vector_product(it.cache.H, vector)
 end
 

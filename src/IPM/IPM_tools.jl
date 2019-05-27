@@ -22,7 +22,11 @@ function dual_scale(iter::Class_iterate, pars::Class_parameters)
 end
 
 function scaled_dual_feas(iter::Class_iterate, pars::Class_parameters)
-    return norm(eval_grad_lag(iter, iter.point.mu),Inf) * dual_scale(iter, pars)
+    return scaled_dual_feas(iter, iter.point.mu, pars)
+end
+
+function scaled_dual_feas(iter::Class_iterate, mu::Float64, pars::Class_parameters)
+    return norm(eval_grad_lag(iter, mu),Inf) * dual_scale(iter, pars)
 end
 
 function check_for_nan(point::Class_point)

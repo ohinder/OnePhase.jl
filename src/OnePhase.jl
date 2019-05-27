@@ -7,7 +7,7 @@ export pd, rd, Eval_NaN_error, Class_CUTEst, init # utils
 
 using advanced_timer, NLPModels, Compat, JuMP, CUTEst
 
-BLAS.set_num_threads(1) # this is because the server i uses does not correctly measure threads
+#BLAS.set_num_threads(1) # this is because the server i uses does not correctly measure threads
 USE_MUMPS = false
 include("parameters.jl")
 include("utils/utils.jl")

@@ -7,6 +7,7 @@ using NLPModels, JuMP
 struct alg_history2 <: abstract_alg_history
     t::Int64
     step_type::String
+    eta::Class_reduction_factors
     ls_info_num_steps::Int64
     ls_info_step_size_P::Float64
     ls_info_step_size_D::Float64
@@ -21,8 +22,9 @@ struct alg_history2 <: abstract_alg_history
     primal_residual::Float64
     con_vio::Float64
     comp::Float64
+    sy_inf::Float64
     comp_ratio::Float64
-    dot_sy::Float64
+    sy_mean::Float64
     farkas::Float64
     delta::Float64
     eval_merit_function::Float64
@@ -58,15 +60,16 @@ type generic_alg_history <: abstract_alg_history
   fval::Float64
   #dual_scaled::Float64
   norm_grad_lag::Float64
-  comp::Float64
+  sy_inf::Float64
   #comp_ratio::Float64
-  #dot_sy::Float64
+  #sy_mean::Float64
   #primal_residual::Float64
   #farkas::Float64
   #delta::Float64
   #eval_merit_function::Float64
   #eval_phi::Float64
   #eval_grad_phi::Float64
+  mu::Float64
   primal_residual::Float64
   con_vio::Float64
   y_norm::Float64
@@ -105,13 +108,14 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     kkt_err = kss.kkt_err_norm;
     mu = get_mu(iter)
     fval = get_fval(iter)
-    dot_sy = dot(iter.point.s,iter.point.y)/length(iter.point.s)
+    sy_mean = dot(iter.point.s,iter.point.y)/length(iter.point.s)
     norm_grad_lag = norm(eval_grad_lag(iter, 0.0),Inf)
     norm_grad_lag_mod = norm(eval_grad_lag(iter, iter.point.mu),Inf)
     dual_scaled = scaled_dual_feas(iter, par)
     primal_residual = norm(get_primal_res(iter),Inf)
     con_vio = get_max_vio(iter)
     val_comp = norm(comp(iter),Inf)
+    sy_inf = norm(iter.point.s .* iter.point.y,Inf)
     comp_ratio = comp_ratio_max(iter) * par.ls.comp_feas_agg #norm(comp(iter),Inf)
     farkas = eval_farkas(iter)
     delta = get_delta(iter)
@@ -128,7 +132,7 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
 
     hist = alg_history2(t::Int64,
     step_type::String,
-    #eta::Class_reduction_factors,
+    eta::Class_reduction_factors,
     ls_info_num_steps::Int64,
     ls_info_step_size_P::Float64,
     ls_info_step_size_D::Float64,
@@ -143,8 +147,9 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     primal_residual::Float64,
     con_vio::Float64,
     val_comp::Float64,
+    sy_inf::Float64,
     comp_ratio::Float64,
-    dot_sy::Float64,
+    sy_mean::Float64,
     farkas::Float64,
     delta::Float64,
     val_merit_function::Float64,
@@ -159,6 +164,6 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     push!(progress, hist)
 
     if display
-      println(pd(t,5), pd(step_type[1], 3), rd(mu),  rd(ls_info_step_size_P),  rd(ls_info_step_size_D), pd(ls_info_num_steps,2), rd(dir_x_norm), rd(dir_y_norm), rd(kkt_ratio), "|", rd(mu), rd(dual_scaled), rd(primal_residual), rd(comp_ratio), rd(farkas), "|", rd(delta), pd(num_fac_inertia,3), pd(tot_num_fac,3), rd(x_norm), rd(y_norm), rd(val_grad_phi), rd(val_merit_function, 5))
+      println(pd(t,5), pd(step_type[1], 3), rd(eta.mu),  rd(ls_info_step_size_P),  rd(ls_info_step_size_D), pd(ls_info_num_steps,2), rd(dir_x_norm), rd(dir_y_norm), rd(kkt_ratio), "|", rd(mu), rd(dual_scaled), rd(primal_residual), rd(comp_ratio), rd(farkas), "|", rd(delta), pd(num_fac_inertia,3), pd(tot_num_fac,3), rd(x_norm), rd(y_norm), rd(val_grad_phi), rd(val_merit_function, 5))
     end
 end

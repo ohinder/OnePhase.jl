@@ -26,6 +26,7 @@ type OnePhaseProblem
     # Custom attributes of the OnePhaseSolver
     iter::Class_iterate
     hist::Array{alg_history2,1}
+    pars::Class_parameters
 
     function OnePhaseProblem()
         return new()
@@ -332,6 +333,7 @@ function MathProgBase.optimize!(m :: OnePhaseMathProgModel)
     m.inner.solve_time = time() - t
 
     # custom one phase features
+    m.inner.pars = pars
     m.inner.iter = iter
     m.inner.hist = hist
 end
