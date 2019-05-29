@@ -1,8 +1,8 @@
 using JuMP, Base.Test
-include("src/OnePhase.jl")
-include("test/problems.jl")
-include("test/kkt_system_solvers.jl")
-include("test/linear_system_solvers.jl")
+include("../src/OnePhase.jl")
+include("problems.jl")
+include("kkt_system_solvers.jl")
+include("linear_system_solvers.jl")
 
 function unit_tests()
     test_compare_columns()
@@ -18,7 +18,7 @@ function basic_tests(solver)
         test_rosenbrook3(solver)
         test_rosenbrook4(solver)
     end
-    
+
     @testset "LP" begin
         test_toy_lp1(solver)
         test_toy_lp2(solver)
