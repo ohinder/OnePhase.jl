@@ -63,9 +63,18 @@ function columns_are_same(A::SparseMatrixCSC{Float64,Int64},i::Int64,j::Int64)
     a_i = A[:,i]
     a_j = A[:,j]
     if a_i.nzind == a_j.nzind
-        ratio = a_i.nzval[1] / a_j.nzval[1]
-        if norm(a_i - a_j * ratio,2) < 1e-16
-            return true
+        if length(a_i.nzval) == length(a_j.nzval)
+            if length(a_i.nzval) > 0
+                ratio = a_i.nzval[1] / a_j.nzval[1]
+                if norm(a_i - a_j * ratio,2) < 1e-16
+                    return true
+                else
+                    return false
+                end
+            else
+                warn("zero elements in column")
+                return true
+            end
         else
             return false
         end
@@ -192,7 +201,11 @@ function compute_indicies(J::SparseMatrixCSC{Float64,Int64})
         ind_ls = sorted_cols[bp:(end_bp-1)]
         ls = Array{Parallel_row,1}()
         for i in ind_ls
-            ratio = J_T[:,i].nzval[1] / J_T[:,ind_ls[1]].nzval[1]
+            if length(J_T[:,i].nzval) > 0
+                ratio = J_T[:,i].nzval[1] / J_T[:,ind_ls[1]].nzval[1]
+            else
+                ratio = 1.0
+            end
             push!(ls, Parallel_row(i,ratio,NaN,NaN))
         end
 
