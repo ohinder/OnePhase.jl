@@ -238,7 +238,7 @@ function pick_KKT_solver(pars::Class_parameters)
         elseif linear_solver_type == :mumps
           my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
         elseif linear_solver_type == :HSL
-            my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle)
+            my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle, pars.kkt.ma97_u)
         else
             error("pick a valid solver!")
         end
@@ -249,7 +249,7 @@ function pick_KKT_solver(pars::Class_parameters)
       elseif linear_solver_type == :mumps
         my_kkt_solver.ls_solver = linear_solver_MUMPS(:symmetric, safe, recycle)
       elseif linear_solver_type == :HSL
-          my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle)
+          my_kkt_solver.ls_solver = linear_solver_HSL(:symmetric, safe, recycle, pars.kkt.ma97_u)
       else
           error("pick a valid solver!")
       end

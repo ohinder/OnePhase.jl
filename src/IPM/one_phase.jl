@@ -201,6 +201,11 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                                end
                                inertia = factor!(kkt_solver, get_delta(iter), timer)
                                tot_num_fac += 1
+                             elseif norm(comp(iter),Inf) > 1e-14
+                                 warn("Error ... large delta causing issues")
+                                iter.point.y = iter.point.mu ./ iter.point.s
+                                step_status = :success
+                                break
                              else
                                pause_advanced_timer(timer, "STEP/first")
                                pause_advanced_timer(timer, "STEP")

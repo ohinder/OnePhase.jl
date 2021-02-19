@@ -92,8 +92,12 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         inertia = factor!( kkt_solver, delta, timer )
         num_fac += 1
 
+        n = length(iter.point.x)
         if inertia == 1
           return :success, num_fac, delta
+        elseif is_diag_dom(kkt_solver.Q[1:n,1:n])
+            println("WARNING: Inertia calculation incorrect")
+            warn("Inertia calculation incorrect")
         end
 
         if delta > DELTA_MAX

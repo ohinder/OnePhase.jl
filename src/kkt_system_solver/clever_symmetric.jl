@@ -21,7 +21,7 @@ end
 # e.g., a' * x and θ * a' * x
 # not only eliminate duplicate bound constraints
 # algorithm: scale all vectors so first element is one and sort list
-type Clever_Symmetric_KKT_solver <: abstract_KKT_system_solver
+mutable struct Clever_Symmetric_KKT_solver <: abstract_KKT_system_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver
     factor_it::Class_iterate
@@ -34,6 +34,7 @@ type Clever_Symmetric_KKT_solver <: abstract_KKT_system_solver
     pars::Class_parameters
     schur_diag::Array{Float64,1}
     true_x_diag::Array{Float64,1}
+    diag_rescale::Array{Float64,1}
 
     ready::Symbol
 
@@ -63,9 +64,19 @@ function columns_are_same(A::SparseMatrixCSC{Float64,Int64},i::Int64,j::Int64)
     a_i = A[:,i]
     a_j = A[:,j]
     if a_i.nzind == a_j.nzind
-        ratio = a_i.nzval[1] / a_j.nzval[1]
-        if norm(a_i - a_j * ratio,2) < 1e-16
-            return true
+        if length(a_i.nzval) == length(a_j.nzval)
+            if length(a_i.nzval) > 0
+                ratio = a_i.nzval[1] / a_j.nzval[1]
+                if norm(a_i - a_j * ratio,2) < 1e-16 #&& norm(a_i,2) > 1e-16 && norm(a_j,2) > 1e-16
+                    return true
+                else
+                    return false
+                end
+            else
+                println("zero elements in column")
+                warn("zero elements in column")
+                return true
+            end
         else
             return false
         end
@@ -192,7 +203,22 @@ function compute_indicies(J::SparseMatrixCSC{Float64,Int64})
         ind_ls = sorted_cols[bp:(end_bp-1)]
         ls = Array{Parallel_row,1}()
         for i in ind_ls
-            ratio = J_T[:,i].nzval[1] / J_T[:,ind_ls[1]].nzval[1]
+            if i == ind_ls[1]
+                ratio = 1.0
+            else
+                if length(J_T[:,i].nzval) > 0
+                    ratio = J_T[:,i].nzval[1] / J_T[:,ind_ls[1]].nzval[1]
+                else
+                    ratio = 1.0
+                end
+                if ratio == 0.0 || isnan(ratio) || isinf(ratio)
+                    println("ERROR in clever_symmetric.jl: ratio = $ratio")
+                    @show ind_ls[1], i
+                    @show J_T[:,i].nzval[1]
+                    @show J_T[:,ind_ls[1]].nzval[1]
+                    error("clever_symmetric.jl: ratio = $ratio")
+                end
+            end
             push!(ls, Parallel_row(i,ratio,NaN,NaN))
         end
 
@@ -232,10 +258,13 @@ function update_indicies!(para_row_info::Array{Parallel_row_group,1}, diag_vals:
             row.u = diag_vals[row.ind]
             u_inv += (row.ratio)^2 * (row.u)^(-1.0)
         end
+        if !(u_inv > 0.0)
+            error("clever_symmetric.jl: u_inf = $u_inv !> 0.0")
+        end
 
         group_u = 1.0/u_inv
-        if (group_u <= 0.0)
-            error("$group_u == group_u <= 0.0")
+        if !(group_u > 0.0) && !isinf(group_u)
+            error("clever_symmetric.jl: $group_u = group_u !> 0.0")
         end
         row_group.u = group_u
 
@@ -257,6 +286,39 @@ A D_bd 0
 B 0 D_eq
 =#
 
+###########################
+# code to rescale system
+###########################
+function create_diag_rescale_identity(factor_it::Class_iterate,u_new::Vector)
+    return ones(length(factor_it.point.x) + length(u_new))
+end
+
+function create_diag_rescale_u_new(factor_it::Class_iterate,u_new::Vector)
+    return [ones(length(factor_it.point.x)); factor_it.point.mu ./ sqrt.(u_new)];
+end
+
+function create_diag_rescale_u_new_dir(factor_it::Class_iterate,u_new::Vector,dir::Class_point)
+    return [(norm(dir.x,Inf) + 1e-8) * ones(length(factor_it.point.x)); factor_it.point.mu ./ sqrt.(u_new)];
+end
+
+function create_diag_rescale_u_new_and_x(factor_it::Class_iterate,u_new::Vector)
+    x = factor_it.point.x
+    return [ones(length(x)) / sqrt(1.0 + norm(x,Inf)); factor_it.point.mu ./ sqrt.(u_new)];
+end
+
+function apply_rescale_to_matrix(diag_rescale,Q)
+    return spdiagm(diag_rescale) * Q * spdiagm(diag_rescale)
+end
+
+function apply_rescale_to_rhs(diag_rescale::Vector,clever_sym_rhs::Vector)
+    return clever_sym_rhs .* diag_rescale
+end
+
+function unscale_directions(diag_rescale::Vector,dir_x_and_y::Vector)
+    return dir_x_and_y .* diag_rescale
+end
+
+
 function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_iterate, timer::class_advanced_timer)
     k = kkt_solver
     start_advanced_timer(timer, "symmetric/form_system");
@@ -267,6 +329,7 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     #kkt_solver.first_para_indicies = first_para_indicies
     first_para_indicies = kkt_solver.first_para_indicies
     para_row_info = kkt_solver.para_row_info
+    @assert( all(u.> 0.0) )
     update_indicies!(para_row_info, u)
 
     pause_advanced_timer(timer, "symmetric/form_system/update_indicies");
@@ -281,7 +344,7 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     end
 
     if !all(u_new .>= 0)
-        error("minimum(u_new) = $(minimum(u_new)) < 0.0")
+        error("clever_symmetric.jl: minimum(u_new) = $(minimum(u_new)) < 0.0")
     end
 
     start_advanced_timer(timer, "symmetric/form_system/M");
@@ -296,10 +359,24 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     start_advanced_timer(timer, "symmetric/allocate");
     kkt_solver.Q = M;
     kkt_solver.factor_it = iter;
+
+    # rescaling of matrix
+    kkt_system_rescale = kkt_solver.pars.kkt.kkt_system_rescale
+    if kkt_system_rescale == :none
+        kkt_solver.diag_rescale = create_diag_rescale_identity(kkt_solver.factor_it,u_new)
+    elseif kkt_system_rescale == :u_only
+        kkt_solver.diag_rescale = create_diag_rescale_u_new(kkt_solver.factor_it,u_new)
+        #kkt_solver.diag_rescale = create_diag_rescale_u_new_dir(kkt_solver.factor_it,u_new,kkt_solver.dir)
+    elseif kkt_system_rescale == :u_and_x
+        kkt_solver.diag_rescale = create_diag_rescale_u_new_and_x(kkt_solver.factor_it,u_new)
+    end
+    kkt_solver.Q = apply_rescale_to_matrix(kkt_solver.diag_rescale,kkt_solver.Q)
+
     kkt_solver.schur_diag = compute_schur_diag(iter)
     kkt_solver.true_x_diag = diag(M)[1:dim(iter)]
     kkt_solver.ready = :system_formed
     pause_advanced_timer(timer, "symmetric/allocate");
+
 end
 
 function factor_implementation!(kkt_solver::Clever_Symmetric_KKT_solver, timer::class_advanced_timer)
@@ -343,20 +420,22 @@ function compute_direction_implementation!(kkt_solver::Clever_Symmetric_KKT_solv
     end
 
     clever_symmetric_rhs = [rhs.dual_r; clever_symmetric_primal_rhs];
+    rescaled_clever_symmetric_rhs = apply_rescale_to_rhs(kkt_solver.diag_rescale,clever_symmetric_rhs);
     pause_advanced_timer(timer, "symmetric/rhs_clever")
 
     # DO ITERATIVE REFINEMENT!
     #@show kkt_solver.ready
 
     if false
-        dir_x_and_y = ls_solve(kkt_solver.ls_solver, clever_symmetric_rhs, timer)
+        scaled_dir_x_and_y = ls_solve(kkt_solver.ls_solver, rescaled_clever_symmetric_rhs, timer)
         #display(full(kkt_solver.Q))
         #@show norm(clever_symmetric_rhs - vector_product(kkt_solver.Q,dir_x_and_y))
         #@show norm(clever_symmetric_rhs - kkt_solver.Q * dir_x_and_y)
     else
-        num_ref = 2
-        dir_x_and_y = ls_solve(kkt_solver.Q, kkt_solver.ls_solver, clever_symmetric_rhs, timer, num_ref)
+        num_ref = kkt_solver.pars.kkt.ItRefine_Num # number of iterative refinement iterations
+        scaled_dir_x_and_y = ls_solve(kkt_solver.Q, kkt_solver.ls_solver, rescaled_clever_symmetric_rhs, timer, num_ref)
     end
+    dir_x_and_y = unscale_directions(kkt_solver.diag_rescale,scaled_dir_x_and_y);
 
     dir = kkt_solver.dir;
     dir.x = dir_x_and_y[1:length(rhs.dual_r)];

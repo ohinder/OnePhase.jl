@@ -10,11 +10,13 @@ type linear_solver_HSL <: abstract_linear_system_solver
 	sym::Symbol # this determines if we use LU, cholesky or LDL.
 	#safe_mode::Bool
 	#recycle::Bool
+	u::Float64
 
 
-  function linear_solver_HSL(sym::Symbol, safe_mode::Bool, recycle::Bool)
+  function linear_solver_HSL(sym::Symbol, safe_mode::Bool, recycle::Bool, u::Float64)
 			this = new();
 			this.sym = sym
+			this.u = u
 			#this.safe_mode = safe_mode
 			#this.recycle = recycle
 			#this._factor_defined = false
@@ -31,6 +33,7 @@ function ls_factor!(solver::linear_solver_HSL, SparseMatrix::SparseMatrixCSC{Flo
 			if solver.sym == :symmetric
 				#@assert(m == 0)
 				solver._factor = Ma97(SparseMatrix,print_level=-1)
+				solver._factor.control.u = solver.u
                 ma97_factorize!(solver._factor);
                 info = solver._factor.info
                 if info.num_neg > m

@@ -1,8 +1,8 @@
 using JuMP, Base.Test
-include("src/OnePhase.jl")
-include("test/problems.jl")
-include("test/kkt_system_solvers.jl")
-include("test/linear_system_solvers.jl")
+include("../src/OnePhase.jl")
+include("problems.jl")
+include("kkt_system_solvers.jl")
+include("linear_system_solvers.jl")
 
 function unit_tests()
     test_compare_columns()
@@ -18,7 +18,7 @@ function basic_tests(solver)
         test_rosenbrook3(solver)
         test_rosenbrook4(solver)
     end
-    
+
     @testset "LP" begin
         test_toy_lp1(solver)
         test_toy_lp2(solver)
@@ -117,7 +117,7 @@ function basic_tests()
             kkt!kkt_solver_type=:schur)
             basic_tests(solver)
         end
-        @testset "Ma57 linear system solve" begin
+        @testset "Ma97 linear system solve" begin
             solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,
@@ -126,7 +126,7 @@ function basic_tests()
 
             basic_tests(solver)
         end
-        @testset "Ma57 linear system solve with clever elimination" begin
+        @testset "Ma97 linear system solve with clever elimination" begin
             solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,

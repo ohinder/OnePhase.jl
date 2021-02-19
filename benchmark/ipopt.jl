@@ -5,7 +5,7 @@ function IpoptSolve(nlp;print_level=5)
 
     #,mehrotra_algorithm="yes") #, tol_dual_abs=1e-6)
     #solver = IpoptSolver(print_level=5, tol=1e-8)
-    mp = NLPModels.NLPtoMPB(nlp, solver)
+    mp = NLPModelsJuMP.NLPtoMPB(nlp, solver)
     MathProgBase.optimize!(mp)
     @show norm(mp.inner.mult_g, Inf)
     #y = MathProgBase.getdual(mp)

@@ -6,9 +6,11 @@ type Class_kkt_solver_options <: abstract_pars
     ItRefine_BigFloat::Bool
     saddle_err_tol::Float64
     kkt_solver_type::Symbol
+    kkt_system_rescale::Symbol
     linear_solver_type::Symbol
     linear_solver_safe_mode::Bool
     linear_solver_recycle::Bool
+    ma97_u::Float64
     stable_reduct_factors::abstract_reduct_factors
     aggressive_reduct_factors::abstract_reduct_factors
 
@@ -19,6 +21,11 @@ type Class_kkt_solver_options <: abstract_pars
       this.ItRefine_BigFloat = false
       this.saddle_err_tol = Inf
 
+      this.kkt_system_rescale = :none
+      this.ma97_u = 1e-8
+      #this.kkt_system_rescale = :u_only
+      #this.kkt_system_rescale = :u_and_x
+      #this.kkt_system_rescale = :u_and_x
       if true
         this.kkt_solver_type = :schur #_direct
         this.linear_solver_type = :julia
@@ -230,6 +237,8 @@ type Class_parameters <: abstract_pars
     primal_bounds_dual_feas::Bool
     a_norm_penalty::Float64
 
+    eps_mach::Float64
+
     function Class_parameters()
         this = new()
 
@@ -247,6 +256,11 @@ type Class_parameters <: abstract_pars
         ## general parameters ##
         ########################
 
+        # debugging
+        this.output_level = 2
+        this.debug_mode = 0
+        this.throw_error_nans = false
+
         # switching condition
         this.aggressive_dual_threshold = 1.0 # kappa_{1}
         this.primal_bounds_dual_feas = false
@@ -260,11 +274,8 @@ type Class_parameters <: abstract_pars
         # e.g. min x s.t. x, y >= 0, without any changes y -> \infty
         this.a_norm_penalty = 1e-4
 
-        # debugging
-        this.output_level = 2
-        this.debug_mode = 0
-        this.throw_error_nans = false
-
+        # machine precision
+        this.eps_mach = 1e-16
 
         return this
     end
