@@ -67,8 +67,11 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     #@show norm(g - J' * y_tilde,Inf) / (1.0 + norm(y_tilde,Inf))
     δ_y = max(-2.0 * minimum(y_tilde), 0.0)
 
-    s_tilde[ais] = s_tilde[ais] + δ_s
+    s_tilde[ais] = s_tilde[ais] + δ_s + 1e-8
     y_tilde = y_tilde + δ_y
+    if isbad(y_tilde)
+      throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
+    end
 
     δ_y_tilde = δ_y + 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
     y_tilde = y_tilde + δ_y_tilde

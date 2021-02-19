@@ -86,24 +86,27 @@ function test_kkt_solvers(jump_model)
     pars.output_level = 0
 
     dir_schur = test_kkt_solver(jump_model,pars)
+    @test_broken begin
+        pars.kkt.kkt_solver_type=:symmetric
+        pars.kkt.linear_solver_type=:HSL
 
-    pars.kkt.kkt_solver_type=:symmetric
-    pars.kkt.linear_solver_type=:HSL
+        dir_sym = test_kkt_solver(jump_model,pars)
 
-    dir_sym = test_kkt_solver(jump_model,pars)
+        @test norm(dir_schur.x - dir_sym.x,2)<1e-6
+        @test norm(dir_schur.y - dir_sym.y,2)<1e-6
+        @test norm(dir_schur.s - dir_sym.s,2)<1e-6
+    end
 
-    @test norm(dir_schur.x - dir_sym.x,2)<1e-6
-    @test norm(dir_schur.y - dir_sym.y,2)<1e-6
-    @test norm(dir_schur.s - dir_sym.s,2)<1e-6
+    @test_broken begin
+        pars.kkt.kkt_solver_type=:clever_symmetric
+        pars.kkt.linear_solver_type=:HSL
 
-    pars.kkt.kkt_solver_type=:clever_symmetric
-    pars.kkt.linear_solver_type=:HSL
+        dir_clever_sym =test_kkt_solver(jump_model,pars)
 
-    dir_clever_sym =test_kkt_solver(jump_model,pars)
-
-    @test norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
-    @test norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
-    @test norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
+        @test norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
+        @test norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
+        @test norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
+    end
 end
 
 function test_kkt_solvers()

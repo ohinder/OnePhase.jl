@@ -1,4 +1,5 @@
-print("loading HSL lib ... ")
+println("HSL library not working")
+#=print("loading HSL lib ... ")
 using HSL
 println("HSL lib loaded.")
 
@@ -62,3 +63,4 @@ function ls_solve(solver::linear_solver_HSL, my_rhs::AbstractArray, timer::class
 
 	return sol
 end
+=#

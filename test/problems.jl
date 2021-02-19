@@ -423,7 +423,6 @@ function test_unbd_feas(solver)
     status = solve(model)
     @test status == :Optimal
     @test getvalue(model[:z]) < 1e5
-    @show getvalue(model[:z])
 end
 
 ###########################

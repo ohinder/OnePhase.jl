@@ -1,4 +1,5 @@
-using Gurobi
+println("GUROBI NOT WORKING")
+#using Gurobi
 
 function LP_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_timer)
     start_advanced_timer(timer, "INIT/x")
