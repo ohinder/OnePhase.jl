@@ -6,3 +6,6 @@
 *.bbl
 *.blg
 *.aux
+*.mat
+*.txt
+benchmark/CUTEst
