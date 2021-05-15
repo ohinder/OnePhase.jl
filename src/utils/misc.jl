@@ -1,12 +1,12 @@
 function rd(num::Float64, digits::Int64=2) # round
     if digits == 2
-      return pd(@sprintf("%.2e", num))
+      return pd(Printf("%.2e", num))
     elseif digits == 3
-      return pd(@sprintf("%.3e", num))
+      return pd(Printf("%.3e", num))
     elseif digits == 4
-      return pd(@sprintf("%.4e", num))
+      return pd(Printf("%.4e", num))
     elseif digits == 5
-      return pd(@sprintf("%.5e", num))
+      return pd(Printf("%.5e", num))
     else
       error("digits $digits not supported for rd")
     end

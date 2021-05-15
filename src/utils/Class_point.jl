@@ -1,6 +1,6 @@
 using Calculus
 
-type Class_point
+mutable struct Class_point
     x::Array{Float64,1}
     y::Array{Float64,1}
     s::Array{Float64,1}

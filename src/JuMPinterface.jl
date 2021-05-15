@@ -13,7 +13,7 @@ end
 OnePhaseSolver(;kwargs...) = OnePhaseSolver(kwargs)
 
 
-type OnePhaseProblem
+mutable struct OnePhaseProblem
     status::Symbol  # Final status
 
     # For MathProgBase
@@ -41,7 +41,7 @@ mutable struct OnePhaseMathProgModel <: MathProgBase.AbstractMathProgModel
   options
   inner::OnePhaseProblem
 
-  eval :: Union{MathProgBase.AbstractNLPEvaluator, Void}
+  eval :: Union{MathProgBase.AbstractNLPEvaluator, Nothing}
   numVar :: Int
   numConstr :: Int
   x :: Vector{Float64}

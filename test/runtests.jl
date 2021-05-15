@@ -1,4 +1,4 @@
-using JuMP, Base.Test
+using JuMP, Test
 include("../src/OnePhase.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")

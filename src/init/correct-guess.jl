@@ -53,9 +53,10 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
       ais = cons_indicies(nlp)
       s = zeros(length(a))
 
-      i = 1
+      counter_i = 1
       min_s = deepcopy(s)
       for i = 1:100
+        counter_i = i
         @show mu
         s = a + mu * conWeight
         #@assert()
@@ -72,7 +73,7 @@ function correct_guess2( nlp, pars, timer, x, a, J, g, y, mu, conWeight )
         end
       end
 
-      if i == 100
+      if counter_i == 100
         @show mu, norm(conWeight), all(s .>= min_s), minimum(a)
         @show norm(g - J' * y,1) / (length(s) + norm(y,1))
         error("init error max it")

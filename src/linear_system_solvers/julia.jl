@@ -1,4 +1,4 @@
-type linear_solver_JULIA <: abstract_linear_system_solver
+mutable struct linear_solver_JULIA <: abstract_linear_system_solver
 	_factor # TO DO, give type
 	_factor_defined::Bool
 

@@ -1,4 +1,5 @@
-type Schur_KKT_solver <: abstract_schur_solver
+using SparseArrays
+mutable struct Schur_KKT_solver <: abstract_schur_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver # the linear system solver we wish to use, see the folder `linear_system_solvers`
     factor_it::Class_iterate # iterate where the factorization is computed

@@ -1,3 +1,5 @@
+using SparseArrays
+
 function comp_merit(it::Class_iterate)
     return norm(comp(it),Inf)^3 / get_mu(it)^2
 end
@@ -16,7 +18,7 @@ function comp_ratio_max(it::Class_iterate)
     return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu ./ (it.point.s .* it.point.y)))
 end
 
-type Eval_NaN_error <: Exception
+mutable struct Eval_NaN_error <: Exception
    num::Float64
    point::Array{Float64,1}
    place::String

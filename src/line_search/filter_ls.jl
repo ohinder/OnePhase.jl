@@ -3,7 +3,7 @@
 #    return norm(comp(iter),Inf)^3 / (iter.point.mu)^2 + norm(dir.x,2)^2 * get_delta(iter)
 #end
 
-type Class_filter_ls <: abstract_ls_info
+mutable struct Class_filter_ls <: abstract_ls_info
     step_size_P::Float64
     step_size_D::Float64
     num_steps::Int64
@@ -41,7 +41,7 @@ type Class_filter_ls <: abstract_ls_info
     end
 end
 
-type Class_filter
+mutable struct Class_filter
     fval::Float64
     scaled_kkt_err::Float64
     mu::Float64

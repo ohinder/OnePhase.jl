@@ -103,8 +103,8 @@ function rescale_cols(A::SparseMatrixCSC{Float64,Int64})
 end
 
 function compare_columns(A::SparseMatrixCSC{Float64,Int64},i::Int64,j::Int64)
-    const a_i_nzind = A[:,i].nzind
-    const a_j_nzind = A[:,j].nzind
+    a_i_nzind = A[:,i].nzind
+    a_j_nzind = A[:,j].nzind
     if length(a_j_nzind) == 0
         return false
     elseif length(a_i_nzind) == 0

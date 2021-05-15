@@ -54,7 +54,7 @@ function major_its_only(hist::Array{alg_history2,1})
     return hist[keep_these]
 end
 
-type generic_alg_history <: abstract_alg_history
+mutable struct generic_alg_history <: abstract_alg_history
   t::Int64
   #mu::Float64
   fval::Float64

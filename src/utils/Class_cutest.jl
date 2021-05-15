@@ -2,7 +2,7 @@ importall CUTEst
 
 export get_original_x, get_y
 
-type Class_bounds
+mutable struct Class_bounds
     l_i::Array{Int64,1}
     u_i::Array{Int64,1}
     l::Array{Float64,1}
@@ -33,7 +33,7 @@ function _i_not_fixed(m::NLPModels.AbstractNLPModel)
     return (1:m.meta.nvar)[m.meta.lvar .!= m.meta.uvar]
 end
 
-type Class_CUTEst <: abstract_nlp
+mutable struct Class_CUTEst <: abstract_nlp
     nlp::NLPModels.AbstractNLPModel
 
     bcon::Class_bounds

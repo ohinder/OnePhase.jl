@@ -1,6 +1,7 @@
+using SparseArrays
 @compat abstract type abstract_nlp end
 
-type Class_cache
+mutable struct Class_cache
     fval::Float64
     cons::Array{Float64,1}
     grad::Array{Float64,1}
@@ -26,7 +27,7 @@ function is_updated_correction(c::Class_cache)
     return c.fval_updated && c.cons_updated && c.grad_updated && c.J_updated
 end
 
-type Class_local_info
+mutable struct Class_local_info
     delta::Float64
     radius::Float64
     prev_step::Symbol
@@ -36,7 +37,7 @@ type Class_local_info
 end
 
 
-type Class_iterate
+mutable struct Class_iterate
     primal_residual_intial::Array{Float64,1}
     point::Class_point
     nlp::abstract_nlp

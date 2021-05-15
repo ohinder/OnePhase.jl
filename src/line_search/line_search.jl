@@ -209,8 +209,9 @@ function eigenvector_ls(iter::Class_iterate, dir::Class_point, pars::Class_param
 
     max_it = 10;
 
-    i = 1;
+    counter_i = 1;
     for i = 1:max_it
+      counter_i = i
       candidate_pos, is_feas, step_size_D = move(iter, dir, step_size_P, pars, timer)
       candidate_neg, is_feas, step_size_D = move(iter, dir, -step_size_P, pars, timer)
 
@@ -239,7 +240,7 @@ function eigenvector_ls(iter::Class_iterate, dir::Class_point, pars::Class_param
 
     @show step_size_P, norm(dir.x), best_val - intial_val
 
-    if i == max_it
+    if counter_i == max_it
       my_warn("max it reached for eig search")
     end
 

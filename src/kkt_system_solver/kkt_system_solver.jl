@@ -45,7 +45,7 @@ function predicted_lag_change(kkt_solver::abstract_KKT_system_solver)
     return delta_err + H_err - J_err
 end
 
-type Class_kkt_error
+mutable struct Class_kkt_error
     # when we compute the directions how much error is there in the linear system.
     error_D::Float64 # norm of error in dual feasibility
     error_P::Float64 # norm error of error in primal feasibility
@@ -124,7 +124,7 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
     inertia = factor!(kkt_solver, 0.0)
 
 
-    j = 1;
+    #j = 1;
     if inertia == 1
       set_delta(iter, 0.0)
     else
@@ -138,19 +138,23 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
           break
         end
       end
-
+      
+      counter_j = 1
       for j = 1:max_it
+	counter_j = j
+        
         inertia = factor!(kkt_solver, get_delta(iter))
-
+        
         if inertia == 1
             break
         else
            set_delta(iter, get_delta(iter) * 3.0 )
         end
+
       end
     end
 
-    if j == max_it
+    if counter_j == max_it
       @show get_delta(iter)
       error("delta too large!")
     end

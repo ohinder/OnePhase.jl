@@ -1,7 +1,7 @@
 @compat abstract type abstract_reduct_factors end
 @compat abstract type abstract_pars end
 
-type Class_kkt_solver_options <: abstract_pars
+mutable struct Class_kkt_solver_options <: abstract_pars
     ItRefine_Num::Int64
     ItRefine_BigFloat::Bool
     saddle_err_tol::Float64
@@ -45,7 +45,7 @@ type Class_kkt_solver_options <: abstract_pars
     end
 end
 
-type Class_line_search_parameters <: abstract_pars
+mutable struct Class_line_search_parameters <: abstract_pars
   kkt_reduction_factor::Float64
   kkt_include_comp::Bool
   filter_type::Symbol
@@ -103,11 +103,11 @@ type Class_line_search_parameters <: abstract_pars
   end
 end
 
-type Class_IPM_parameters
+mutable struct Class_IPM_parameters
   # fill in
 end
 
-type Class_termination_parameters <: abstract_pars
+mutable struct Class_termination_parameters <: abstract_pars
     max_it::Int64
     max_time::Float64
     tol_opt::Float64
@@ -135,7 +135,7 @@ type Class_termination_parameters <: abstract_pars
     end
 end
 
-type Class_delta_parameters <: abstract_pars
+mutable struct Class_delta_parameters <: abstract_pars
     max::Float64
     #max_it::Int64
     start::Float64
@@ -159,7 +159,7 @@ type Class_delta_parameters <: abstract_pars
 end
 
 
-type Class_init_parameters <: abstract_pars
+mutable struct Class_init_parameters <: abstract_pars
     mu_scale::Float64
     mehotra_scaling::Bool
     init_style::Symbol
@@ -201,7 +201,7 @@ type Class_init_parameters <: abstract_pars
     end
 end
 
-type Class_testing <: abstract_pars
+mutable struct Class_testing <: abstract_pars
     response_to_failure::Symbol
     function Class_testing()
         this = new()
@@ -212,7 +212,7 @@ type Class_testing <: abstract_pars
     end
 end
 
-type Class_parameters <: abstract_pars
+mutable struct Class_parameters <: abstract_pars
     term::Class_termination_parameters
     init::Class_init_parameters
     delta::Class_delta_parameters
