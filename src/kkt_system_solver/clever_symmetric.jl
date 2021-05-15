@@ -1,3 +1,4 @@
+using LinearAlgebra
 # UNDER CONSTRUCTION
 
 mutable struct Parallel_row
@@ -67,7 +68,7 @@ function columns_are_same(A::SparseMatrixCSC{Float64,Int64},i::Int64,j::Int64)
         if length(a_i.nzval) == length(a_j.nzval)
             if length(a_i.nzval) > 0
                 ratio = a_i.nzval[1] / a_j.nzval[1]
-                if norm(a_i - a_j * ratio,2) < 1e-16 #&& norm(a_i,2) > 1e-16 && norm(a_j,2) > 1e-16
+                if LinearAlgebra.norm(a_i - a_j * ratio,2) < 1e-16 #&& LinearAlgebra.norm(a_i,2) > 1e-16 && LinearAlgebra.norm(a_j,2) > 1e-16
                     return true
                 else
                     return false
@@ -298,12 +299,12 @@ function create_diag_rescale_u_new(factor_it::Class_iterate,u_new::Vector)
 end
 
 function create_diag_rescale_u_new_dir(factor_it::Class_iterate,u_new::Vector,dir::Class_point)
-    return [(norm(dir.x,Inf) + 1e-8) * ones(length(factor_it.point.x)); factor_it.point.mu ./ sqrt.(u_new)];
+    return [(LinearAlgebra.norm(dir.x,Inf) + 1e-8) * ones(length(factor_it.point.x)); factor_it.point.mu ./ sqrt.(u_new)];
 end
 
 function create_diag_rescale_u_new_and_x(factor_it::Class_iterate,u_new::Vector)
     x = factor_it.point.x
-    return [ones(length(x)) / sqrt(1.0 + norm(x,Inf)); factor_it.point.mu ./ sqrt.(u_new)];
+    return [ones(length(x)) / sqrt(1.0 + LinearAlgebra.norm(x,Inf)); factor_it.point.mu ./ sqrt.(u_new)];
 end
 
 function apply_rescale_to_matrix(diag_rescale,Q)
@@ -396,7 +397,7 @@ function ls_solve(mat, solver, my_rhs::Array{Float64,1}, timer::class_advanced_t
 			err = my_rhs - vector_product(mat,sol)
 		end
 		sol += ls_solve(solver, err, timer)
-		#@show i, norm(my_rhs - mat * sol)
+		#@show i, LinearAlgebra.norm(my_rhs - mat * sol)
 	end
 	return sol
 end
@@ -429,8 +430,8 @@ function compute_direction_implementation!(kkt_solver::Clever_Symmetric_KKT_solv
     if false
         scaled_dir_x_and_y = ls_solve(kkt_solver.ls_solver, rescaled_clever_symmetric_rhs, timer)
         #display(full(kkt_solver.Q))
-        #@show norm(clever_symmetric_rhs - vector_product(kkt_solver.Q,dir_x_and_y))
-        #@show norm(clever_symmetric_rhs - kkt_solver.Q * dir_x_and_y)
+        #@show LinearAlgebra.norm(clever_symmetric_rhs - vector_product(kkt_solver.Q,dir_x_and_y))
+        #@show LinearAlgebra.norm(clever_symmetric_rhs - kkt_solver.Q * dir_x_and_y)
     else
         num_ref = kkt_solver.pars.kkt.ItRefine_Num # number of iterative refinement iterations
         scaled_dir_x_and_y = ls_solve(kkt_solver.Q, kkt_solver.ls_solver, rescaled_clever_symmetric_rhs, timer, num_ref)

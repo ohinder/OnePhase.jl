@@ -39,7 +39,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
 
     MAX_IT = 500
     DELTA_ZERO = pars.delta.zero
-    #DELTA_MIN = iter.point.mu * norm(iter.point.y,Inf) / 100.0 #
+    #DELTA_MIN = iter.point.mu * LinearAlgebra.norm(iter.point.y,Inf) / 100.0 #
     DELTA_MIN = pars.delta.min
     DELTA_MAX = pars.delta.max
 
@@ -56,7 +56,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     #eigvals,vec, = eigs(Q,nev=1,which=:SR,maxiter=10,tol=1e4)
     #@show eigvals
     #v = randn(length(iter.point.x))
-    #v = v /norm(v,2)
+    #v = v /LinearAlgebra.norm(v,2)
     #@show dot(v,Q * v)
     delta = DELTA_ZERO
 
@@ -101,9 +101,9 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         end
 
         if delta > DELTA_MAX
-          dx = norm(kkt_solver.dir.x,Inf)
-          dy = norm(kkt_solver.dir.y,Inf)
-          ds = norm(kkt_solver.dir.s,Inf)
+          dx = LinearAlgebra.norm(kkt_solver.dir.x,Inf)
+          dy = LinearAlgebra.norm(kkt_solver.dir.y,Inf)
+          ds = LinearAlgebra.norm(kkt_solver.dir.s,Inf)
 
           my_warn("ipopt_strategy failed with delta_max=$DELTA_MAX, delta=$delta, i=$i")
           my_warn("num_fac=$num_fac, inertia=$inertia, status=$status, dir_x=$dx, dir_y=$dx, dir_s=$ds")

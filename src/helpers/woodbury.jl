@@ -1,4 +1,6 @@
-type woodbury_identity
+#using SparseArrays
+
+mutable struct woodbury_identity
     U::AbstractMatrix
     V::AbstractMatrix
     invA_U::AbstractMatrix
@@ -33,7 +35,7 @@ function evaluate(W::woodbury_identity, sol::Array{Float64,1})
 end
 
 function rel_error(W::woodbury_identity, rhs::Array{Float64,1}, sol::Array{Float64,1})
-    return norm(evaluate(W, sol) - rhs,1)/norm(rhs,1);
+    return LinearAlgebra.norm(evaluate(W, sol) - rhs,1)/LinearAlgebra.norm(rhs,1);
 end
 
 function ls_solve(W::woodbury_identity, rhs::Array{Float64,1})
@@ -46,7 +48,7 @@ function ls_solve(W::woodbury_identity, rhs::Array{Float64,1})
         Δd = (my_temp - W.invA_U * (W.factored_capacitance_matrix \ (W.V * my_temp)))
         sol = sol + Δd[:]
         rhs_err = rhs - evaluate(W,sol)
-        #@show i, norm(rhs_err,1)
+        #@show i, LinearAlgebra.norm(rhs_err,1)
     end
 
     # catch errors
@@ -70,12 +72,12 @@ function ls_solve(W::woodbury_identity, rhs::Array{Float64,1})
 end
 
 function ls_solve_direct(W::woodbury_identity, rhs::Array{Float64,1}) # if there is numerical errors
-    mat = W.factored_A._SparseMatrix + sparse(W.U) * sparse(W.V)
+    mat = W.factored_A._SparseMatrix + SparseArrays.sparse(W.U) * SparseArrays.sparse(W.V)
     return lufact(mat) \ rhs;
 end
 
 function numerical_error(A, sol, rhs)
-    return norm(A * sol - rhs,1);
+    return LinearAlgebra.norm(A * sol - rhs,1);
 end
 
 function e_(i::Int64,n::Int64)

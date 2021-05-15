@@ -141,7 +141,7 @@ mutable struct Class_delta_parameters <: abstract_pars
     start::Float64
     dec::Float64
     inc::Float64
-    zero::Float64 #get_mu(iter) / ((1e2 + norm(get_x(iter),Inf)) * 1e2)
+    zero::Float64 #get_mu(iter) / ((1e2 + LinearAlgebra.norm(get_x(iter),Inf)) * 1e2)
     min::Float64
 
     function Class_delta_parameters()

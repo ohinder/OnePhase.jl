@@ -5,7 +5,7 @@ function LP_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advance
     start_advanced_timer(timer, "INIT/x")
     x0 = suggested_starting_point(nlp)
 
-    #@show norm(x0)
+    #@show LinearAlgebra.norm(x0)
 
     if pars.init.start_satisfying_bounds
       x = projection_onto_bounds_ipopt_style( nlp, pars, x0 )
@@ -34,11 +34,11 @@ function LP_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advance
 
     theta = 1e-4 # parameter
     penalty = theta
-    scale = mean(abs.(J))
+    scale = Statistics.mean(abs.(J))
     sc_J = J / scale
     sc_g = g / scale
     #@show sc_J
-    @show mean(abs.(J))
+    @show Statistics.mean(abs.(J))
 
     if false
         @objective(m, Min, (sc_J' * yVar - sc_g)' * (sc_J' * yVar - sc_g) + penalty * (yVar - y0)' * (yVar - y0))
@@ -68,13 +68,13 @@ function LP_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advance
     #mu = getvalue(muVar)
     y = getvalue(yVar)
     #@show getvalue(muVar)
-    mu = - minimum(a) * mean(y) #/ length(y)
-    #mu = mean(s .* y)
+    mu = - minimum(a) * Statistics.mean(y) #/ length(y)
+    #mu = Statistics.mean(s .* y)
     obj = dot(J' * y - g, J' * y - g) + penalty * dot(y - y0, y - y0)
     @show maximum(y), getobjectivevalue(m), penalty, obj
     buffer = 2.0
     y_c = mu ./ s;
-    @show norm(y_c,Inf), mu, minimum(s)
+    @show LinearAlgebra.norm(y_c,Inf), mu, minimum(s)
     y = min.( y_c / (pars.ls.comp_feas * buffer), max.(y, pars.ls.comp_feas * y_c * buffer)) # project onto complementarity constraints
 
     #@show mu, theta

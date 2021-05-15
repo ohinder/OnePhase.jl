@@ -1,4 +1,5 @@
-using SparseArrays
+#using LinearAlgebra
+#using SparseArrays
 mutable struct Schur_KKT_solver <: abstract_schur_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver # the linear system solver we wish to use, see the folder `linear_system_solvers`
@@ -146,7 +147,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   output_level = pars.output_level
   res_old = schur_rhs
   if output_level >= 4
-    println("res", 0, " ", rd(norm(res_old,2)))
+    println("res", 0, " ", rd(LinearAlgebra.norm(res_old,2)))
   end
 
   dir_x = zeros(length(dir.x));
@@ -156,7 +157,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
 
   for i = 1:pars.kkt.ItRefine_Num
       if output_level >= 4
-        println("res", i, " ", rd(Float64(norm(res_old,2))))
+        println("res", i, " ", rd(Float64(LinearAlgebra.norm(res_old,2))))
       end
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement");
@@ -173,7 +174,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   end
 
   if output_level >= 4
-    println("res ", rd(Float64(norm(res_old,2))))
+    println("res ", rd(Float64(LinearAlgebra.norm(res_old,2))))
   end
 
   return dir_x

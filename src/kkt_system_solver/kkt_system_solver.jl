@@ -1,3 +1,4 @@
+#using LinearAlgebra
 ################################################################################
 ## Defines KKT system solvers
 ## KKT system solvers modify the orginal linear system to make it possible to use a linear system solver.
@@ -82,16 +83,16 @@ function update_kkt_error!(ss::abstract_KKT_system_solver, p::Float64, timer::cl
     error_mu = get_s(factor_iter) .* dir.y + get_y(factor_iter) .* dir.s  - rhs.comp_r;
     pause_advanced_timer(timer, "update_kkt_error/compute/mu")
 
-    #@show norm(error_D), norm(error_P), norm(error_mu)
-    overall = norm([error_D; error_P; error_mu], p)
+    #@show LinearAlgebra.norm(error_D), LinearAlgebra.norm(error_P), LinearAlgebra.norm(error_mu)
+    overall = LinearAlgebra.norm([error_D; error_P; error_mu], p)
 
     dual_scaling_org = 1.0 #dual_scale(iter)
-    rhs_norm = norm([rhs.dual_r * dual_scaling_org; rhs.primal_r; rhs.comp_r], p)
+    rhs_norm = LinearAlgebra.norm([rhs.dual_r * dual_scaling_org; rhs.primal_r; rhs.comp_r], p)
 
     ratio = overall / rhs_norm;
     #@show ratio
 
-    ss.kkt_err_norm = Class_kkt_error(norm(error_D,p), norm(error_P,p), norm(error_mu,p), overall, rhs_norm, ratio)
+    ss.kkt_err_norm = Class_kkt_error(LinearAlgebra.norm(error_D,p), LinearAlgebra.norm(error_P,p), LinearAlgebra.norm(error_mu,p), overall, rhs_norm, ratio)
 end
 
 function factor!(kkt_solver::abstract_KKT_system_solver, delta_x::Float64, delta_s::Float64, timer::class_advanced_timer)
@@ -215,10 +216,10 @@ function compute_eigenvector!(kkt_solver::abstract_KKT_system_solver, iter::Clas
       kkt_solver.dir.mu = 0.0
 
       compute_direction!(kkt_solver, timer)
-      approx_eigvec = kkt_solver.dir.x / norm(kkt_solver.dir.x,2)
+      approx_eigvec = kkt_solver.dir.x / LinearAlgebra.norm(kkt_solver.dir.x,2)
     end
 
-    lambda = norm(kkt_solver.dir.x,2)
+    lambda = LinearAlgebra.norm(kkt_solver.dir.x,2)
     eig_est = (1 - kkt_solver.delta_x_vec[1] * lambda) / lambda
 
     kkt_solver.dir = scale_direction(kkt_solver.dir, 1.0 / lambda)

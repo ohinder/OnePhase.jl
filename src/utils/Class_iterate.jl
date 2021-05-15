@@ -128,13 +128,13 @@ end
 function finite_diff_check(it::Class_iterate)
    approx_grad = Calculus.gradient(it.nlp.eval_f, it.point.x)
    actual_grad = it.nlp.eval_grad_lag(it.point.x, 0.0, zeros(length(it.point.y)))
-   @assert(norm(approx_grad -  actual_grad, 2) < 1e-3)
+   @assert(LinearAlgebra.norm(approx_grad -  actual_grad, 2) < 1e-3)
 
    actual_jac = it.nlp.eval_jac(it.point.x)
    for i = 1:length(it.point.s)
        a_i = x::Vector -> it.nlp.eval_a(x)[i]
        approx_grad_a_i = Calculus.gradient(a_i, it.point.x)
-       @assert(norm(actual_jac[i,:] - approx_grad_a_i,2) < 1e-3)
+       @assert(LinearAlgebra.norm(actual_jac[i,:] - approx_grad_a_i,2) < 1e-3)
    end
 end
 

@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 ################################################################################
 ## Defines linear system solvers.
 ## Note that linear system solvers need to be coupled with a KKT system solver

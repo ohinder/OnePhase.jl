@@ -1,3 +1,5 @@
+#using SparseArrays
+
 function mehortra_guess2( nlp, pars, timer, x::Vector, a::Vector, J, g::Vector )
     s = deepcopy(a);
     m = length(s)
@@ -63,8 +65,8 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
     end
-    δ_s = max(-2.0 * minimum(s_tilde[ais]), 0.0) + norm(g - J' * y_tilde,Inf) / (1.0 + norm(y_tilde,Inf))
-    #@show norm(g - J' * y_tilde,Inf) / (1.0 + norm(y_tilde,Inf))
+    δ_s = max(-2.0 * minimum(s_tilde[ais]), 0.0) + LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
+    #@show LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
     δ_y = max(-2.0 * minimum(y_tilde), 0.0)
 
     s_tilde[ais] = s_tilde[ais] + δ_s + 1e-8
@@ -81,7 +83,7 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     s_tilde[ais] = s_tilde[ais] + δ_s_tilde
 
 
-    #@show δ_s, δ_y, norm(g)
+    #@show δ_s, δ_y, LinearAlgebra.norm(g)
     #s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
@@ -125,7 +127,7 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
           @show densest_row(J)
       end
 
-      #@time H = Symmetric(J * J' + norm(J,Inf) * 1e-4 * speye( size(J,1) ))
+      #@time H = Symmetric(J * J' + LinearAlgebra.norm(J,Inf) * 1e-4 * SparseArrays.speye( size(J,1) ))
       n = size(J,2); m = size(J,1);
 
       lambda = 1e-4
@@ -133,14 +135,14 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
           @show lambda
       end
       if false
-        @time H = [speye(n) -J'; J lambda * speye(m)]
+        @time H = [SparseArrays.speye(n) -J'; J lambda * SparseArrays.speye(m)]
         @time M = lufact( H );
         rhs = [-g; zeros(m)];
         sol = M \ rhs
         y = sol[(n+1):end]
       else # cholesky factor
-        scaling = 1.0 #norm(J,Inf)^2
-        H = lambda * speye(n) + J' * J / scaling;
+        scaling = 1.0 #LinearAlgebra.norm(J,Inf)^2
+        H = lambda * SparseArrays.speye(n) + J' * J / scaling;
         M = cholfact( H );
         dx = scaling * (M \ -g)
         y = -J * dx
@@ -203,9 +205,9 @@ function KNITRO_guess(iter::Class_iterate, dir::Class_point, pars::Class_paramet
       s_est = s_temp - 2.0 * min(0.0, minimum(s))
 
       mu = iter.point.mu
-      mu_est = norm(y,Inf) * norm(get_primal_res(iter),Inf)
-      #0.5 * (iter)+ mean(-y_guess .* get_primal_res(iter))
-      #mu_est = norm(dir.x,1) #min(mu * 2.0, max(mu/2.0, mu_est)) #+ get_cons(iter) .* iter.point.y
+      mu_est = LinearAlgebra.norm(y,Inf) * LinearAlgebra.norm(get_primal_res(iter),Inf)
+      #0.5 * (iter)+ Statistics.mean(-y_guess .* get_primal_res(iter))
+      #mu_est = LinearAlgebra.norm(dir.x,1) #min(mu * 2.0, max(mu/2.0, mu_est)) #+ get_cons(iter) .* iter.point.y
       suggested_mu = min(100.0 * mu,max(mu_est,0.01 * mu)) #
       #@show suggested_mu
       change_mu!(iter,suggested_mu,pars)

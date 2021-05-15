@@ -1,4 +1,5 @@
 using MathProgBase
+#using SparseArrays
 
 ########################################################
 ## this code is based on ModelReader in NLPModels
@@ -195,7 +196,7 @@ function jac_coord(nlp :: MathProgNLPModel, x :: Array{Float64})
 end
 
 function jac(nlp :: MathProgNLPModel, x :: Array{Float64})
-  return sparse(jac_coord(nlp, x)..., nlp.meta.ncon, nlp.meta.nvar)
+  return SparseArrays.sparse(jac_coord(nlp, x)..., nlp.meta.ncon, nlp.meta.nvar)
 end
 
 function jprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64})
@@ -264,7 +265,7 @@ end
 
 function hess(nlp :: MathProgNLPModel, x :: Array{Float64};
     obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  return sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
+  return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
 end
 
 function hprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64};

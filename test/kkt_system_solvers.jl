@@ -1,6 +1,8 @@
+#using SparseArrays
+
 function test_compute_indicies()
     @testset "test_compute_indicies" begin
-        J = sparse([[1.0 1.0 1.0];
+        J = SparseArrays.sparse([[1.0 1.0 1.0];
                     [-1.0 -1.0 -1.0];
                     [1.0 0.0 0.0];
                     [0.0 4.0 3.0];
@@ -92,9 +94,9 @@ function test_kkt_solvers(jump_model)
 
         dir_sym = test_kkt_solver(jump_model,pars)
 
-        @test norm(dir_schur.x - dir_sym.x,2)<1e-6
-        @test norm(dir_schur.y - dir_sym.y,2)<1e-6
-        @test norm(dir_schur.s - dir_sym.s,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.x - dir_sym.x,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
     end
 
     @test_broken begin
@@ -103,9 +105,9 @@ function test_kkt_solvers(jump_model)
 
         dir_clever_sym =test_kkt_solver(jump_model,pars)
 
-        @test norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
-        @test norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
-        @test norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
+        @test LinearAlgebra.norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
+        @test LinearAlgebra.norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
+        @test LinearAlgebra.norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
     end
 end
 
@@ -139,7 +141,7 @@ end
 
 function test_compare_columns()
     @testset "test_compare_columns" begin
-        A = sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])'
+        A = SparseArrays.sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])'
         @test OnePhase.compare_columns(A,1,2) === true
         @test OnePhase.compare_columns(A,2,1) === false
         @test OnePhase.compare_columns(A,2,3) === false

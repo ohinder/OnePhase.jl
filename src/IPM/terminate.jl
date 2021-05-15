@@ -11,11 +11,11 @@ function terminate(iter::Class_iterate, par::Class_parameters)
     
     if scaled_dual_feas(iter, 0.0, par) < par.term.tol_opt && comp_scaled < par.term.tol_opt && max_vio < par.term.tol_opt
         return :Optimal
-    elseif max_vio > par.term.tol_opt && fark_feas1 < par.term.tol_inf_1 && fark_feas2 < par.term.tol_inf_2  #&& norm(get_y(iter), Inf) > 1/tol #&& norm(get_y(iter),Inf) > 1/tol
+    elseif max_vio > par.term.tol_opt && fark_feas1 < par.term.tol_inf_1 && fark_feas2 < par.term.tol_inf_2  #&& LinearAlgebra.norm(get_y(iter), Inf) > 1/tol #&& LinearAlgebra.norm(get_y(iter),Inf) > 1/tol
         return :primal_infeasible
-    elseif norm(iter.point.x,Inf) > 1.0 / par.term.tol_unbounded # TMP!!!
+    elseif LinearAlgebra.norm(iter.point.x,Inf) > 1.0 / par.term.tol_unbounded # TMP!!!
         return :dual_infeasible
-    elseif norm(iter.cache.grad,Inf) > par.term.grad_max
+    elseif LinearAlgebra.norm(iter.cache.grad,Inf) > par.term.grad_max
         return :max_gradient
     else
         return false

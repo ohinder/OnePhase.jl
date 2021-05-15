@@ -1,4 +1,5 @@
 importall CUTEst
+#using SparseArrays
 
 export get_original_x, get_y
 
@@ -161,7 +162,7 @@ function eval_jac(m::Class_CUTEst, x::Array{Float64,1})
     cute_x = _cute_x(m, x)
     J_full_T = jac(m.nlp, cute_x)'
     J_T = J_full_T[_i_not_fixed(m.nlp),:];
-    my_eye = speye(length(x))
+    my_eye = SparseArrays.speye(length(x))
     Q_T = [J_T[:,m.bcon.l_i] -J_T[:,m.bcon.u_i] my_eye[:,m.bvar.l_i] -my_eye[:,m.bvar.u_i]];
     return Q_T'
 
@@ -239,11 +240,11 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     ind = _i_not_fixed(m.nlp)
 
     H_not_fixed = H[ind,ind]
-    #H_true = sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
+    #H_true = SparseArrays.sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
     #H_true = H_not_fixed + H_not_fixed' - spdiagm(diag(H_not_fixed))
     #convert()
     #@time H_true = make_symmetric(H_not_fixed)
-    #@show norm(H_true - H2,Inf)
+    #@show LinearAlgebra.norm(H_true - H2,Inf)
 
     return H_not_fixed
 end

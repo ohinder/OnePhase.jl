@@ -1,3 +1,5 @@
+#using SparseArrays
+
 function eig_min!(linear_solver::abstract_linear_system_solver, K::SparseMatrixCSC{Float64,Int64}, x_0::Array{Float64,1}, n::Int64, m::Int64, tol::Float64)
 	# computes smallest magnitude eigenvalue and eigenvector viz inverse iteration
 	try
@@ -17,10 +19,10 @@ function eig_min!(linear_solver::abstract_linear_system_solver, K::SparseMatrixC
 			sol = ls_solve(linear_solver, rhs);
 			x_old = x;
 			x = sol[1:n];
-			eigen_value = 1.0/norm(x,2)
+			eigen_value = 1.0/LinearAlgebra.norm(x,2)
 			x = x * eigen_value;
 
-			err = norm(x - x_old, 1)
+			err = LinearAlgebra.norm(x - x_old, 1)
 
 			if err < tol
 				println(eigen_value)
@@ -70,7 +72,7 @@ end
 
 if false
 	H = spdiagm([1.1,-1.0]);
-	A = sparse([[1.0, 1.0] ])
+	A = SparseArrays.sparse([[1.0, 1.0] ])
 	K = [ [H A]; [A' spzeros(1,1)] ];
 
 

@@ -27,7 +27,7 @@ mutable struct Class_agg_ls <: abstract_ls_info
         this.do_ls = dot(eval_grad_lag(iter, get_mu(iter) * gamma, y_tilde), dir.x) < 0.0
 
         #this.do_ls = true
-        #norm(comp_predicted(iter,dir,1.0),Inf) < get_mu(iter) / pars.ls.comp_feas_agg
+        #LinearAlgebra.norm(comp_predicted(iter,dir,1.0),Inf) < get_mu(iter) / pars.ls.comp_feas_agg
         return this
     end
 end

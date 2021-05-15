@@ -1,3 +1,4 @@
+using LinearAlgebra
 mutable struct Symmetric_KKT_solver <: abstract_KKT_system_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver

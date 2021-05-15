@@ -12,7 +12,7 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     a, J, g = eval_init(nlp, pars, timer, x)
     #s = max(a, ones(ncon(nlp)))
     s_thres = 1e-4
-    #s_thres = norm(g - J' * y, Inf)
+    #s_thres = LinearAlgebra.norm(g - J' * y, Inf)
     #s = max(a,s_thres) #
     d_s = max(s_thres,-2.0 * minimum(a))
     s = a + d_s
@@ -38,7 +38,7 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     @assert(all(s .>= 0.0))
     @assert(all(s .> 0.0))
     @assert(all(y .> 0.0))
-    mu = mean(s .* y)
+    mu = Statistics.mean(s .* y)
     @assert(mu > 0.0)
 
     conWeight = ((s - a) / mu)

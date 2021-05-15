@@ -36,7 +36,7 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 						cholfact!(solver._factor,Symmetric(SparseMatrix,:L));
 					end
 				catch(e)
-					if typeof(e) == Base.LinAlg.PosDefException
+					if typeof(e) == LinearAlgebra.PosDefException
 						inertia_status_val = 0
 					else
 							println("ERROR in linear_solver_JULIA.ls_factor!")

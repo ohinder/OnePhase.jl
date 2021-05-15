@@ -1,4 +1,6 @@
 using JuMP, Test
+using SparseArrays
+
 include("../src/OnePhase.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")

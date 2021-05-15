@@ -20,11 +20,11 @@ mutable struct Class_filter_ls <: abstract_ls_info
         this.num_steps = 0
 
         g = eval_grad_phi(iter, get_mu(iter))
-        this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * norm(dir.x,2)^2)
+        this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * LinearAlgebra.norm(dir.x,2)^2)
         #merit_function_predicted_reduction(iter, dir, 1.0);
         this.cur_merit = eval_merit_function(iter, pars)
 
-        sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * norm(g,2)^2 / norm(get_lag_hess(iter),2)^2
+        sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * LinearAlgebra.norm(g,2)^2 / LinearAlgebra.norm(get_lag_hess(iter),2)^2
         merit_reduce = merit_function_predicted_reduction(iter, dir, 1.0) < this.predict_red / 2.0
         #comp_sufficient = -get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 100.0 * get_mu(iter)
         #comp_sufficient = -get_mu(iter) * pars.ls.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.ls.comp_feas_agg - 1.0)
@@ -50,9 +50,9 @@ mutable struct Class_filter
       this = new()
       this.fval = eval_merit_function(iter, pars)
 
-      kkt_err = norm(eval_grad_lag(iter, get_mu(iter)),Inf)
+      kkt_err = LinearAlgebra.norm(eval_grad_lag(iter, get_mu(iter)),Inf)
       if pars.ls.kkt_include_comp
-         kkt_err += norm(comp(iter),Inf)
+         kkt_err += LinearAlgebra.norm(comp(iter),Inf)
       end
       this.scaled_kkt_err = kkt_err * dual_scale(iter, pars) #eval_kkt_err(iter, pars)
       this.mu = iter.point.primal_scale
