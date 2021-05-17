@@ -1,5 +1,7 @@
 using JuMP, Test
 using SparseArrays
+using LinearAlgebra
+using Statistics
 
 include("../src/OnePhase.jl")
 include("problems.jl")

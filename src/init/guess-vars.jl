@@ -69,18 +69,18 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     #@show LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
     δ_y = max(-2.0 * minimum(y_tilde), 0.0)
 
-    s_tilde[ais] = s_tilde[ais] + δ_s + 1e-8
-    y_tilde = y_tilde + δ_y
+    s_tilde[ais] = s_tilde[ais] .+ δ_s .+ 1e-8
+    y_tilde = y_tilde .+ δ_y
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
     end
 
-    δ_y_tilde = δ_y + 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
-    y_tilde = y_tilde + δ_y_tilde
+    δ_y_tilde = δ_y .+ 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
+    y_tilde = y_tilde .+ δ_y_tilde
     y_tilde = min.(pars.init.dual_max, max.(y_tilde, pars.init.dual_min))
 
-    δ_s_tilde = δ_s + 0.5 * dot(s_tilde, y_tilde) / sum(y_tilde)
-    s_tilde[ais] = s_tilde[ais] + δ_s_tilde
+    δ_s_tilde = δ_s .+ 0.5 * dot(s_tilde, y_tilde) / sum(y_tilde)
+    s_tilde[ais] = s_tilde[ais] .+ δ_s_tilde
 
 
     #@show δ_s, δ_y, LinearAlgebra.norm(g)
@@ -135,15 +135,18 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
           @show lambda
       end
       if false
-        @time H = [SparseArrays.speye(n) -J'; J lambda * SparseArrays.speye(m)]
+        #@time H = [SparseArrays.speye(n) -J'; J lambda * SparseArrays.speye(m)]
+        @time H = [SparseMatrixCSC{Float64}(LinearAlgebra.I, n, n) -J'; J lambda * SparseMatrixCSC{Float64}(LinearAlgebra.I, m, m)]
         @time M = lufact( H );
         rhs = [-g; zeros(m)];
         sol = M \ rhs
         y = sol[(n+1):end]
       else # cholesky factor
         scaling = 1.0 #LinearAlgebra.norm(J,Inf)^2
-        H = lambda * SparseArrays.speye(n) + J' * J / scaling;
-        M = cholfact( H );
+        #H = lambda * SparseArrays.speye(n) + J' * J / scaling;
+	H = lambda * SparseMatrixCSC{Float64}(LinearAlgebra.I, n, n) + J' * J / scaling;
+        #M = cholfact( H );
+	M = cholesky( H );
         dx = scaling * (M \ -g)
         y = -J * dx
       end
@@ -163,11 +166,11 @@ function mehortra_guarding( s_tilde::Array{Float64,1}, y_tilde::Array{Float64,1}
     δ_s = max(-2.0 * minimum(s_tilde), threshold)
     δ_y = max(-2.0 * minimum(y_tilde), threshold)
 
-    δ_s_tilde = δ_s + 0.5 * dot(s_tilde + δ_s, y_tilde + δ_y) / sum(y_tilde + δ_y)
-    δ_y_tilde = δ_y + 0.5 * dot(s_tilde + δ_s, y_tilde + δ_y) / sum(s_tilde + δ_s)
+    δ_s_tilde = δ_s .+ 0.5 * dot(s_tilde .+ δ_s, y_tilde .+ δ_y) / sum(y_tilde .+ δ_y)
+    δ_y_tilde = δ_y .+ 0.5 * dot(s_tilde .+ δ_s, y_tilde .+ δ_y) / sum(s_tilde .+ δ_s)
 
-    s = s_tilde + δ_s_tilde
-    y = y_tilde + δ_y_tilde
+    s = s_tilde .+ δ_s_tilde
+    y = y_tilde .+ δ_y_tilde
 
     return s, y
 end

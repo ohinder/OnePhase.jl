@@ -8,9 +8,9 @@ function eval_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advan
     s = deepcopy(a);
     m = length(a)
 
-    if length(nonzeros(J)) > 0
-      if(isbad(nonzeros(J)))
-          throw(Eval_NaN_error(getbad(nonzeros(J)),x,"J"))
+    if length(SparseArrays.nonzeros(J)) > 0
+      if(isbad(SparseArrays.nonzeros(J)))
+          throw(Eval_NaN_error(getbad(SparseArrays.nonzeros(J)),x,"J"))
       end
 
       if(isbad(a))

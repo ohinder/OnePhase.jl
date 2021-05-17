@@ -10,7 +10,8 @@ function test_compute_indicies()
                     [3.0 2.0 1.0];
                     [-2.0 -2.0 -2.0]])
 
-        J_T = J'
+        J_T = SparseArrays.sparse(J')
+
         sorted_cols = OnePhase.sorted_col_list(J_T)
         @test sorted_cols == [4, 5, 3, 6, 1, 2, 7]
         break_points = OnePhase.compute_breakpoints(J_T,sorted_cols)
@@ -141,7 +142,7 @@ end
 
 function test_compare_columns()
     @testset "test_compare_columns" begin
-        A = SparseArrays.sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])'
+        A = SparseArrays.sparse(SparseArrays.sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])')
         @test OnePhase.compare_columns(A,1,2) === true
         @test OnePhase.compare_columns(A,2,1) === false
         @test OnePhase.compare_columns(A,2,3) === false

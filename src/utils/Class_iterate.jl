@@ -288,7 +288,7 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
 
       x = it.point.x
 
-      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0)
+      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y .+ y_rx, 1.0)
       #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
       it.cache.H_updated = true
     end

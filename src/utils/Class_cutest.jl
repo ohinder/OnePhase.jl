@@ -1,5 +1,6 @@
-importall CUTEst
+#importall CUTEst
 #using SparseArrays
+import CUTEst
 
 export get_original_x, get_y
 
@@ -80,7 +81,7 @@ end
 
 function linear_cons(m::Class_CUTEst)
     is_linear = zeros(m.nlp.meta.ncon)
-    is_linear[m.nlp.meta.lin] = 1.0
+    is_linear[m.nlp.meta.lin] .= 1.0
     vec = [is_linear[m.bcon.l_i]; is_linear[m.bcon.u_i]; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
@@ -88,7 +89,7 @@ end
 
 function ineq_cons(m::Class_CUTEst)
     is_ineq = zeros(m.nlp.meta.ncon)
-    is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] = 1.0
+    is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] .= 1.0
     vec = [is_ineq[m.bcon.l_i]; is_ineq[m.bcon.u_i]; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
@@ -162,9 +163,10 @@ function eval_jac(m::Class_CUTEst, x::Array{Float64,1})
     cute_x = _cute_x(m, x)
     J_full_T = jac(m.nlp, cute_x)'
     J_T = J_full_T[_i_not_fixed(m.nlp),:];
-    my_eye = SparseArrays.speye(length(x))
+    #my_eye = SparseArrays.speye(length(x))
+    my_eye = SparseMatrixCSC{Float64}(LinearAlgebra.I, length(x), length(x))
     Q_T = [J_T[:,m.bcon.l_i] -J_T[:,m.bcon.u_i] my_eye[:,m.bvar.l_i] -my_eye[:,m.bvar.u_i]];
-    return Q_T'
+    return SparseArrays.sparse(Q_T')
 
     #return @time [J[m.bcon.l_i,:]; -J[m.bcon.u_i,:]; my_eye[m.bvar.l_i,:]; -my_eye[m.bvar.u_i,:]];
 end

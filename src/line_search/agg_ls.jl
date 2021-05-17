@@ -23,7 +23,7 @@ mutable struct Class_agg_ls <: abstract_ls_info
         #this.do_ls = true
         eta = - dir.mu / get_mu(iter)
         gamma = 1.0 - eta
-        y_tilde = (gamma * get_mu(iter) - eta * iter.point.y .* get_primal_res(iter)) ./ iter.point.s
+        y_tilde = (gamma * get_mu(iter) .- eta * iter.point.y .* get_primal_res(iter)) ./ iter.point.s
         this.do_ls = dot(eval_grad_lag(iter, get_mu(iter) * gamma, y_tilde), dir.x) < 0.0
 
         #this.do_ls = true

@@ -30,7 +30,8 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				@assert(m == 0)
 				try
 					if !solver.recycle || !solver._factor_defined
-						solver._factor = cholfact(Symmetric(SparseMatrix,:L));
+						#solver._factor = cholfact(Symmetric(SparseMatrix,:L));
+						solver._factor = cholesky(Symmetric(SparseMatrix,:L));
 						solver._factor_defined = true
 					else
 						cholfact!(solver._factor,Symmetric(SparseMatrix,:L));
@@ -47,13 +48,16 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				# LDL factorization
 				try
 					if !solver.recycle || !solver._factor_defined
-						solver._factor = ldltfact(Symmetric(SparseMatrix,:L));
+						#solver._factor = ldltfact(Symmetric(SparseMatrix,:L));
+						solver._factor = ldlt(Symmetric(SparseMatrix,:L));
 						solver._factor_defined = true
 					else
 						ldltfact!(solver._factor,Symmetric(SparseMatrix,:L));
 					end
 				catch(e)
-					if typeof(e) == ArgumentError
+					#The check also on PosDefException was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
+					#Not sure if this is correct way to handle that, but will continue looking into that
+					if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException
 							inertia_status_val = 0
 					else
 							println("ERROR in saddle_solver_JULIA.ls_factor!")
@@ -97,9 +101,18 @@ function ls_solve!(solver::linear_solver_JULIA, my_rhs::Array{Float64,1}, my_sol
 end
 
 function ls_solve(solver::linear_solver_JULIA, my_rhs::AbstractArray, timer::class_advanced_timer)
-	start_advanced_timer(timer, "JULIA/ls_solve")
-  sol = solver._factor \ my_rhs;
-	pause_advanced_timer(timer, "JULIA/ls_solve")
-
+    start_advanced_timer(timer, "JULIA/ls_solve")
+    try 
+	sol = solver._factor \ my_rhs;
 	return sol
+    catch e
+	if typeof(e) == MethodError
+		#FIXME
+		#Do Nothing. This whole try/catch block was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
+		#Not sure if this is correct way to handle that, but will continue looking into that
+	else
+		throw(e)
+	end
+    end
+    pause_advanced_timer(timer, "JULIA/ls_solve")
 end

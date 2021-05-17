@@ -164,6 +164,22 @@ function sorted_col_list(A::SparseMatrixCSC{Float64,Int64})
     return sorted_cols
 end
 
+function compute_breakpoints(A::Adjoint{Float64,SparseMatrixCSC{Float64,Int64}},sorted_cols::Array{Int64,1})
+    break_points = Array{Int64,1}()
+    for bp = 1:length(sorted_cols)
+        if bp == 1
+            push!(break_points,bp)
+        else
+            prev = sorted_cols[bp-1]
+            cur = sorted_cols[bp]
+            if !columns_are_same(A,prev,cur)
+                push!(break_points,bp)
+            end
+        end
+    end
+    return break_points
+end
+
 function compute_breakpoints(A::SparseMatrixCSC{Float64,Int64},sorted_cols::Array{Int64,1})
     break_points = Array{Int64,1}()
     for bp = 1:length(sorted_cols)
@@ -180,9 +196,10 @@ function compute_breakpoints(A::SparseMatrixCSC{Float64,Int64},sorted_cols::Arra
     return break_points
 end
 
+
 function compute_indicies(J::SparseMatrixCSC{Float64,Int64})
     dic = Dict{Any,Array{Int64,1}}()
-    J_T = J'
+    J_T = SparseArrays.sparse(J')
     # REWRITE FASTER BY EMPLOYING SORTING FUNCTION.
     # a < b if
     # ahat = a / a[a_first_index], bhat = b / b[b_first_index]
@@ -308,7 +325,8 @@ function create_diag_rescale_u_new_and_x(factor_it::Class_iterate,u_new::Vector)
 end
 
 function apply_rescale_to_matrix(diag_rescale,Q)
-    return spdiagm(diag_rescale) * Q * spdiagm(diag_rescale)
+    #return spdiagm(diag_rescale) * Q * spdiagm(diag_rescale)
+    return sparse(Diagonal(diag_rescale)) * Q * sparse(Diagonal(diag_rescale))
 end
 
 function apply_rescale_to_rhs(diag_rescale::Vector,clever_sym_rhs::Vector)
@@ -349,7 +367,8 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     end
 
     start_advanced_timer(timer, "symmetric/form_system/M");
-    U_new = spdiagm(u_new)
+    #U_new = spdiagm(u_new)
+    U_new = sparse(Diagonal(u_new))
     n_var = size(J_new,2)
     M = [[get_lag_hess(iter) spzeros(n_var,m_new)]
         [J_new -U_new]];
@@ -396,7 +415,7 @@ function ls_solve(mat, solver, my_rhs::Array{Float64,1}, timer::class_advanced_t
 		else
 			err = my_rhs - vector_product(mat,sol)
 		end
-		sol += ls_solve(solver, err, timer)
+		sol .+= ls_solve(solver, err, timer)
 		#@show i, LinearAlgebra.norm(my_rhs - mat * sol)
 	end
 	return sol
@@ -484,7 +503,8 @@ function update_delta_vecs!(kkt_solver::Clever_Symmetric_KKT_solver, delta_x_vec
         if sum(abs.(delta_x_vec)) > 0.0
             n = length(delta_x_vec)
             m = size(kkt_solver.Q,2) - n
-            kkt_solver.Q = kkt_solver.Q + spdiagm([rand(length(delta_x_vec)); zeros(m)])
+            #kkt_solver.Q = kkt_solver.Q + spdiagm([rand(length(delta_x_vec)); zeros(m)])
+            kkt_solver.Q = kkt_solver.Q + sparse(Diagonal([rand(length(delta_x_vec)); zeros(m)]))
             for i = 1:length(delta_x_vec)
                 kkt_solver.Q[i,i] = kkt_solver.true_x_diag[i] + delta_x_vec[i]
             end

@@ -69,7 +69,7 @@ mutable struct System_rhs
       s = get_s(it)
       y = get_y(it)
 
-      return new(dual_target, primal_target, mu_target - s .* y);
+      return new(dual_target, primal_target, mu_target .- s .* y);
     end
 end
 

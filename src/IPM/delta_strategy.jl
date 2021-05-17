@@ -97,7 +97,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
           return :success, num_fac, delta
         elseif is_diag_dom(kkt_solver.Q[1:n,1:n])
             println("WARNING: Inertia calculation incorrect")
-            warn("Inertia calculation incorrect")
+            @warn("Inertia calculation incorrect")
         end
 
         if delta > DELTA_MAX

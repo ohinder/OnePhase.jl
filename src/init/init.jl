@@ -5,6 +5,8 @@ include("primal-project.jl")
 include("gertz_init.jl")
 include("lp.jl")
 
+using Statistics
+
 function linear_cons(nlp::Class_CUTEst, x0::Vector)
     a1 = eval_a(nlp, x0)
     d = randn(length(x0))
@@ -74,8 +76,8 @@ function mehrotra_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_a
     #@show li
 
     #@show li
-    iter_init.frac_bd_predict[li] = pars.ls.fraction_to_boundary_linear
-    iter_init.frac_bd[li] = pars.ls.fraction_to_boundary_linear
+    iter_init.frac_bd_predict[li] .= pars.ls.fraction_to_boundary_linear
+    iter_init.frac_bd[li] .= pars.ls.fraction_to_boundary_linear
 
     @assert(all(iter_init.point.s .>= 0.0))
     @assert is_feasible(iter_init,pars.ls.comp_feas)

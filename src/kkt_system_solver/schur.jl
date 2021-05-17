@@ -161,7 +161,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
       end
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement");
-      dir_x += ls_solve(kkt_solver.ls_solver, res_old, timer);
+      dir_x .+= ls_solve(kkt_solver.ls_solver, res_old, timer);
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
       jac_res = eval_jac_T_prod( fit , Σ_vec .* eval_jac_prod(fit, dir_x) )

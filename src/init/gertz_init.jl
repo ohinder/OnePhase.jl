@@ -15,7 +15,7 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     #s_thres = LinearAlgebra.norm(g - J' * y, Inf)
     #s = max(a,s_thres) #
     d_s = max(s_thres,-2.0 * minimum(a))
-    s = a + d_s
+    s = a .+ d_s
     mu = max(s_thres,-2.0 * minimum(a))
     #y = ones(ncon(nlp)) / d_s
     #y = mu ./ s
