@@ -55,9 +55,11 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 						ldltfact!(solver._factor,Symmetric(SparseMatrix,:L));
 					end
 				catch(e)
-					#The check also on PosDefException was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
-					#Not sure if this is correct way to handle that, but will continue looking into that
-					if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException
+					#PosDefException was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
+					#Because ArgumentError is not thrown anymore and it is being replaced by PosDefException
+					#This is related to (PosDefException: matrix is not positive definite; Cholesky factorization failed.)
+					#if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException
+					if typeof(e) == LinearAlgebra.PosDefException
 							inertia_status_val = 0
 					else
 							println("ERROR in saddle_solver_JULIA.ls_factor!")
@@ -102,17 +104,10 @@ end
 
 function ls_solve(solver::linear_solver_JULIA, my_rhs::AbstractArray, timer::class_advanced_timer)
     start_advanced_timer(timer, "JULIA/ls_solve")
-    try 
-	sol = solver._factor \ my_rhs;
-	return sol
-    catch e
-	if typeof(e) == MethodError
-		#FIXME
-		#Do Nothing. This whole try/catch block was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
-		#Not sure if this is correct way to handle that, but will continue looking into that
-	else
-		throw(e)
-	end
-    end
+    #Vector was added when updating from Julia 0.6.4 to Julia 0.7.0 by Fadi Hamad
+    #This is becasue my_rhs in somecases is being a SparseVector instead of being array.
+    #Due to the code in shur.jl jac_res = eval_jac_T_prod and hess_res = hess_product are returning SparseMatrix now instead of Array
+    sol = solver._factor \ Vector(my_rhs);
     pause_advanced_timer(timer, "JULIA/ls_solve")
+    return sol
 end

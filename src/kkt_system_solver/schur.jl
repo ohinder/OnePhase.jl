@@ -161,12 +161,19 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
       end
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement");
+      #println("FFFFFFFFFFFFFFFFFFFFFF", typeof(res_old))
+      #println("HHHHHHHHHHHHHHHHHHHHHH", typeof(schur_rhs))
       dir_x .+= ls_solve(kkt_solver.ls_solver, res_old, timer);
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
       jac_res = eval_jac_T_prod( fit , Σ_vec .* eval_jac_prod(fit, dir_x) )
       hess_res = hess_product(fit, dir_x) + kkt_solver.delta_x_vec .* dir_x
       res_old = schur_rhs - ( jac_res + hess_res )
+      #println("1111111111111111111111", typeof(jac_res))
+      #println("2222222222222222222222", typeof(hess_res))
+      #println("3333333333333333333333", typeof(res_old))
+      #println("3333333333333333333333", typeof(Vector(res_old)))
+
       pause_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
 
       #res_old = res
