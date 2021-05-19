@@ -46,7 +46,6 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
     if pars.output_level >= 3
         print_timer_stats(timer)
     end
-
     return iter, status, hist, t, err, timer
 end
 

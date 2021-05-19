@@ -5,7 +5,8 @@ module OnePhase
 export Class_parameters, write_pars, one_phase_solve, autotune
 export pd, rd, Eval_NaN_error, Class_CUTEst, init # utils
 
-using advanced_timer, NLPModels, Compat, JuMP, CUTEst, NLPModelsJuMP
+#using advanced_timer, NLPModels, Compat, JuMP, CUTEst, NLPModelsJuMP
+using Main.advanced_timer, NLPModels, Compat, JuMP, CUTEst, NLPModelsJuMP
 
 #BLAS.set_num_threads(1) # this is because the server i uses does not correctly measure threads
 USE_MUMPS = false

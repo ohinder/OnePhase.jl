@@ -1,5 +1,6 @@
 include("linear_system_solvers.jl")
-using advanced_timer
+#using advanced_timer
+using Main.advanced_timer
 #using SparseArrays
 
 start_advanced_timer()

@@ -64,7 +64,7 @@ function basic_tests(solver)
         @testset "quad_opt" begin
             model = quad_opt()
             setsolver(model,solver)
-            if Base.Test.Pass == @test :Optimal == solve(model)
+            if Test.Pass == @test :Optimal == solve(model)
                 check_quad_opt(model)
             end
         end

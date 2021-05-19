@@ -2,7 +2,8 @@ include("../linear_system_solvers/linear_system_solvers.jl")
 
 include("kkt_system_solver.jl")
 
-using advanced_timer
+#using advanced_timer
+using Main.advanced_timer
 
 start_advanced_timer()
 iter = toy_LP2()
