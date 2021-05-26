@@ -81,11 +81,20 @@ end
 ########################
 
 function toy_lp1()
-    model = Model()
+    #println("@@@@@@@@@@@@@@@@@@@@@", OnePhase.OnePhaseSolver())
+    #model = Model(solver = OnePhase.OnePhaseSolver())
+    #model = Model()
+    ##println("111111111111111111111111")
+    #set_optimizer(model, OnePhase.OnePhaseSolver)
+    model = Model(with_optimizer(OnePhase.OnePhaseSolver))
+    ##println("22222222222222222222222")
+    println("#########################", solver_name(model))
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, -x - 100 * y)
+    ##println("33333333333333333333333")
     @constraint(model, x + y <= 1.0)
+    ##println("44444444444444444444444")
     return model
 end
 
@@ -157,8 +166,8 @@ end
 
 function toy_lp4()
     model = Model()
-    @variable(model, x, lowerbound=0.0, upperbound=1.0)
-    @variable(model, y, lowerbound=0.0, upperbound=1.0)
+    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+    @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, 1.0 <= x + y <= 2.0)
     return model
@@ -180,8 +189,8 @@ end
 
 function toy_lp5()
     model = Model()
-    @variable(model, x, lowerbound=0.0, upperbound=1.0)
-    @variable(model, y, lowerbound=0.0, upperbound=1.0)
+    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+    @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, x + y == 1.0)
     @constraint(model, x * 32.5 + y * 32.5 == 32.5)
@@ -199,8 +208,8 @@ end
 
 function toy_lp6()
     model = Model()
-    @variable(model, x, lowerbound=0.0, upperbound=1.0)
-    @variable(model, y, lowerbound=0.0, upperbound=1.0)
+    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+    @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, x + y == 1.0)
     @constraint(model, x * 5.5 + y * 5.5 == 5.5)
@@ -217,8 +226,8 @@ end
 
 function toy_lp7()
     model = Model()
-    @variable(model, x, lowerbound=0.0, upperbound=1.0)
-    @variable(model, y, lowerbound=0.0, upperbound=1.0)
+    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+    @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, 2.0 * x + y == 1.0)
     return model
@@ -234,8 +243,8 @@ end
 
 function toy_lp8()
     model = Model()
-    @variable(model, x, lowerbound=0.0, upperbound=1.0)
-    @variable(model, y, lowerbound=0.0, upperbound=1.0)
+    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+    @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, x + y >= 1.0)
     @constraint(model, x * 5.5 + y * 5.5 <= 5.5)

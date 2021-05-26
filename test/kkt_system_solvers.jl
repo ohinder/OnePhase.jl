@@ -1,4 +1,6 @@
 #using SparseArrays
+using MathProgBase
+using NLPModels, NLPModelsJuMP
 
 function test_compute_indicies()
     @testset "test_compute_indicies" begin
@@ -57,11 +59,26 @@ end
 #####
 
 function test_kkt_solver(jump_model,pars)
-    setsolver(jump_model,OnePhase.OnePhaseSolver())
-    JuMP.build(jump_model)
-
-    nlp_raw = OnePhase.MathProgNLPModel(jump_model.internalModel)
-    nlp = OnePhase.Class_CUTEst(nlp_raw)
+    #JuMP.build(jump_model)
+    #MOI.Utilities.attach_optimizer(jump_model)
+    nlp_test = OnePhase.MathOptNLPModel(jump_model)
+    ##println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", nlp_test)
+    #MathProgBase.initialize(eval, [:Grad, :Jac, :Hess, :HessVec, :ExprGraph])
+    #onePhaseMod = MOI.RawSolver()
+    #onePhaseMod = MOI.get(jump_model, MOI.RawSolver())
+    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", onePhaseMod)
+    #nlp_raw = OnePhase.MathProgNLPModel(jump_model.internalModel)
+    ##println("1 ", bridge_constraints(jump_model))
+    ##println("1 ", typeof(jump_model))
+    #println("1 ", typeof(onePhaseMod))
+    #println("1 ", onePhaseMod.eval == nothing) 
+    #println("2 ", get_optimizer_attribute(jump_model, "inner"))
+    #nlp_raw = OnePhase.MathProgNLPModel(JuMP.internalmodel(jump_model))
+    #nlp_raw = OnePhase.MathProgNLPModel(onePhaseMod)
+    #nlp_raw = onePhaseMod
+    #nlp = OnePhase.Class_CUTEst(nlp_raw)
+    nlp = OnePhase.Class_CUTEst(nlp_test)
+    ##println("2HOHOHOHOHOHOHOHHOHOHOH")
     timer = OnePhase.class_advanced_timer()
     OnePhase.start_advanced_timer(timer)
 
