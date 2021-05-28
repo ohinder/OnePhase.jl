@@ -1,10 +1,10 @@
 function one_phase_solve(m::JuMP.Model)
-    nlp_raw = MathProgNLPModel(m);
+    nlp_raw = MathOptNLPModel(m);
     return one_phase_solve(nlp_raw)
 end
 
 function one_phase_solve(m::JuMP.Model, pars::Class_parameters)
-    nlp_raw = MathProgNLPModel(m);
+    nlp_raw = MathOptNLPModel(m);
     return one_phase_solve(nlp_raw, pars::Class_parameters)
 end
 

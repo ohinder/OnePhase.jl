@@ -12,13 +12,26 @@ end
 function test_rosenbrook1(solver)
     @testset "test_rosenbrook1" begin
         model = rosenbrook1()
-        setsolver(model,solver)
-        @test_broken solve(model) == :Optimal
+        #setsolver(model,solver)
+        ##println("############################################################", solver == nothing)
+        #model2 = Model(
+        #     optimizer_with_attributes(
+        #     OnePhase.OnePhaseSolver, "Presolve" => 0, "OutputFlag" => 1
+        #     )
+        #)
+	#model2 = Model(OnePhase.OnePhaseSolver)
+	#set_optimizer_attribute(model2, "Presolve", 0)
+	#set_optimizer_attribute(model2, "OutputFlag", 1)
+        ##println("############################################################", typeof(solver))
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test_broken optimize!(model) == :Optimal
+        ##println("############################################################")
     end
 end
 
 function rosenbrook2()
     model = Model()
+    #model = Model(with_optimizer(OnePhase.OnePhaseSolver))
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
@@ -29,8 +42,9 @@ end
 function test_rosenbrook2(solver)
     @testset "test_rosenbrook2" begin
         model = rosenbrook2()
-        setsolver(model,solver)
-        @test solve(model) == :Optimal
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test optimize!(model) == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -47,8 +61,9 @@ end
 function test_rosenbrook3(solver)
     @testset "test_rosenbrook3" begin
         model = rosenbrook3()
-        setsolver(model,solver)
-        @test solve(model) == :Optimal
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test optimize!(model) == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -64,8 +79,9 @@ end
 function test_rosenbrook4(solver)
     @testset "test_rosenbrook4" begin
         model = rosenbrook4()
-        setsolver(model,solver)
-        @test_broken solve(model) == :Optimal
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test_broken optimize!(model) == :Optimal
     end
 end
 
@@ -81,14 +97,33 @@ end
 ########################
 
 function toy_lp1()
+    ##println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+    ##solver = OnePhase.OnePhaseSolver()
+    ##x = MOI.add_variables(solver, 2)
+    ##l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(1.0))
+    ##u = MOI.add_constraint(solver, x[1], MOI.LessThan(1.0))
+    ##e = MOI.add_constraint(solver, x[2], MOI.EqualTo(1.0))
+    ##println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+    ##model_test = Model(with_optimizer(OnePhase.OnePhaseSolver))
+    #model_test = Model()
+    #set_optimizer(model_test, OnePhase.OnePhaseSolver)
+    ##@variable(model_test, x >= 0.0)
+    ##@variable(model_test, y >= 0.0)
+    ##@NLobjective(model_test, Min, -x - 100 * y)
+    ##@constraint(model_test, x + y <= 1.0)
+    ##solver.innerNLPModel = OnePhase.MathOptNLPModel(model_test)
+    ##println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+    ##JuMP.optimize!(model_test)
+    ##println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
     #println("@@@@@@@@@@@@@@@@@@@@@", OnePhase.OnePhaseSolver())
     #model = Model(solver = OnePhase.OnePhaseSolver())
     #model = Model()
     ##println("111111111111111111111111")
     #set_optimizer(model, OnePhase.OnePhaseSolver)
     model = Model(with_optimizer(OnePhase.OnePhaseSolver))
+    ##set_optimizer_attribute(model, "max_iter", 1000)
     ##println("22222222222222222222222")
-    println("#########################", solver_name(model))
+    ##println("#########################", solver_name(model))
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, -x - 100 * y)
@@ -106,8 +141,9 @@ end
 
 function test_toy_lp1(solver)
     model = toy_lp1()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp1(model)
 end
@@ -129,8 +165,9 @@ end
 
 function test_toy_lp2(solver)
     model = toy_lp2()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp2(model)
 end
@@ -152,8 +189,9 @@ end
 
 function test_toy_lp3(solver)
     model = toy_lp3()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp3(model)
 end
@@ -181,8 +219,9 @@ end
 
 function test_toy_lp4(solver)
     model = toy_lp4()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -200,8 +239,9 @@ end
 
 function test_toy_lp5(solver)
     model = toy_lp5()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -218,8 +258,9 @@ end
 
 function test_toy_lp6(solver)
     model = toy_lp6()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -235,8 +276,9 @@ end
 
 function test_toy_lp7(solver)
     model = toy_lp7()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -253,8 +295,9 @@ end
 
 function test_toy_lp8(solver)
     model = toy_lp8()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -428,8 +471,9 @@ end
 function test_unbd_feas(solver)
     println("test_unbd_feas")
     model = unbd_feas()
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     @test getvalue(model[:z]) < 1e5
 end
@@ -451,8 +495,9 @@ function test_starting_point(solver,starting_point::Float64)
         warn("don't select this as a starting point")
     end
     model = starting_point_prob(starting_point)
-    setsolver(model,solver)
-    status = solve(model)
+    #setsolver(model,solver)
+    set_optimizer(model, OnePhase.OnePhaseSolver)
+    status = optimize!(model)
     @test status == :Optimal
     if sign(starting_point) < 0.0
         @test abs(getvalue(model[:x]) - 1.0) < 1e-4

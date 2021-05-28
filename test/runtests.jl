@@ -35,36 +35,42 @@ function basic_tests(solver)
 
     @testset "infeasible" begin
         model = toy_lp_inf1()
-        setsolver(model,solver)
-        @test :Infeasible == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Infeasible == optimize!(model)
 
         model = toy_lp_inf2()
-        setsolver(model,solver)
-        @test :Infeasible == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Infeasible == optimize!(model)
 
         model = circle_nc_inf1()
-        setsolver(model,solver)
-        @test :Infeasible == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Infeasible == optimize!(model)
     end
 
     @testset "convex_nlp" begin
         @testset "circle1" begin
             model = circle1()
-            setsolver(model,solver)
-            @test :Optimal == solve(model)
+            #setsolver(model,solver)
+            set_optimizer(model, OnePhase.OnePhaseSolver)
+            @test :Optimal == optimize!(model)
             check_circle1(model)
         end
         @testset "circle2" begin
             model = circle2()
-            setsolver(model,solver)
-            @test :Optimal == solve(model)
+            #setsolver(model,solver)
+            set_optimizer(model, OnePhase.OnePhaseSolver)
+            @test :Optimal == optimize!(model)
             check_circle2(model)
         end
 
         @testset "quad_opt" begin
             model = quad_opt()
-            setsolver(model,solver)
-            if Test.Pass == @test :Optimal == solve(model)
+            #setsolver(model,solver)
+            set_optimizer(model, OnePhase.OnePhaseSolver)
+            if Test.Pass == @test :Optimal == optimize!(model)
                 check_quad_opt(model)
             end
         end
@@ -72,29 +78,34 @@ function basic_tests(solver)
 
     @testset "nonconvex" begin
         model = circle_nc1()
-        setsolver(model,solver)
-        @test :Optimal == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Optimal == optimize!(model)
         check_circle_nc1(model)
 
         model = circle_nc2()
-        setsolver(model,solver)
-        @test :Optimal == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Optimal == optimize!(model)
         check_circle_nc2(model)
     end
 
     @testset "unbounded_opt_val" begin
         model = lp_unbd()
-        setsolver(model,solver)
-        @test :Unbounded == solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        @test :Unbounded == optimize!(model)
 
         model = circle_nc_unbd()
-        setsolver(model,solver)
-        status = solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        status = optimize!(model)
         @test status == :Unbounded
 
         model = quad_unbd()
-        setsolver(model,solver)
-        status = solve(model)
+        #setsolver(model,solver)
+        set_optimizer(model, OnePhase.OnePhaseSolver)
+        status = optimize!(model)
         @test_broken status == :Unbounded
     end
 
@@ -115,7 +126,7 @@ function basic_tests()
     a_norm_penalty = 1e-4
     @testset "basic_tests" begin
         @testset "cholseky linear system solve" begin
-            solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
+            solver = OnePhase.OnePhaseSolver(max_iter=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,
             kkt!kkt_solver_type=:schur)
@@ -125,7 +136,7 @@ function basic_tests()
         println("HSL not working")
         #=
         @testset "Ma97 linear system solve" begin
-            solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
+            solver = OnePhase.OnePhaseSolver(max_iter=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,
             kkt!kkt_solver_type=:symmetric,
@@ -135,7 +146,7 @@ function basic_tests()
         end
 
         @testset "Ma97 linear system solve with clever elimination" begin
-            solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
+            solver = OnePhase.OnePhaseSolver(max_iter=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,
             kkt!kkt_solver_type=:clever_symmetric,
@@ -145,7 +156,7 @@ function basic_tests()
         =#
 
         @testset "LDLT julia linear system solve" begin
-            solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
+            solver = OnePhase.OnePhaseSolver(max_iter=max_it,
             a_norm_penalty = a_norm_penalty,
             output_level=output_level,
             kkt!kkt_solver_type=:clever_symmetric,
