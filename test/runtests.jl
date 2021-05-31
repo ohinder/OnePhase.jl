@@ -176,12 +176,12 @@ function basic_tests(options::Dict{String, Any})
 
     @testset "unbounded_feasible_region" begin
         # problems with unbounded feasible region
-        test_unbd_feas(solver)
+        test_unbd_feas(options)
     end
 
     @testset "starting point" begin
-        test_starting_point(solver,0.5)
-        test_starting_point(solver,-0.5)
+        test_starting_point(options,0.5)
+        test_starting_point(options,-0.5)
     end
 end
 

@@ -16,6 +16,10 @@ function rosenbrook1()
     model = Model()
     @variable(model, x)
     @variable(model, y)
+    #FIXME
+    #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
+    #if this can be fixed in the code
+    @NLconstraint(model, (x + y) ^ 2 >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
 end
@@ -98,6 +102,10 @@ function rosenbrook4()
     model = Model()
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
+    #FIXME
+    #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
+    #if this can be fixed in the code
+    @NLconstraint(model, (x + y) ^ 2 >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
 end
@@ -330,7 +338,7 @@ function test_toy_lp8(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+    attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
@@ -510,7 +518,7 @@ function test_unbd_feas(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+    attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal

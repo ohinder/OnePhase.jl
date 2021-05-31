@@ -183,9 +183,11 @@ mutable struct OnePhaseSolver <: MOI.AbstractOptimizer
     linear_le_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}}
     linear_ge_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.GreaterThan{Float64}}}
     linear_eq_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}}
+	linear_int_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.Interval{Float64}}}
     quadratic_le_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.LessThan{Float64}}}
     quadratic_ge_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.GreaterThan{Float64}}}
     quadratic_eq_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.EqualTo{Float64}}}
+	quadratic_int_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.Interval{Float64}}}
     nlp_dual_start::Union{Nothing, Vector{Float64}}
 	#numVar :: Int
     #numConstr :: Int
@@ -226,6 +228,8 @@ function OnePhaseSolver(; options...)
         [],
         [],
         [],
+		[],
+		[],
         nothing,
         false,
         Dict{String, Any}(),
@@ -259,9 +263,11 @@ function MOI.is_empty(model::OnePhaseSolver)
            isempty(model.linear_le_constraints) &&
            isempty(model.linear_ge_constraints) &&
            isempty(model.linear_eq_constraints) &&
+		   isempty(model.linear_int_constraints) &&
            isempty(model.quadratic_le_constraints) &&
            isempty(model.quadratic_ge_constraints) &&
-           isempty(model.quadratic_eq_constraints)
+           isempty(model.quadratic_eq_constraints) &&
+		   isempty(model.quadratic_int_constraints)
 end
 
 MOI.get(model::OnePhaseSolver, ::MOI.SolveTime) = model.solve_time
@@ -275,9 +281,11 @@ function MOI.empty!(model::OnePhaseSolver)
     empty!(model.linear_le_constraints)
     empty!(model.linear_ge_constraints)
     empty!(model.linear_eq_constraints)
+	empty!(model.linear_int_constraints)
     empty!(model.quadratic_le_constraints)
     empty!(model.quadratic_ge_constraints)
     empty!(model.quadratic_eq_constraints)
+	empty!(model.quadratic_int_constraints)
     model.nlp_dual_start = nothing
 end
 
@@ -349,6 +357,7 @@ MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float6
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.LessThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.GreaterThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.EqualTo{Float64}}) = true
+MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.Interval{Float64}}) = true
 
 function has_upper_bound(model::OnePhaseSolver, vi::MOI.VariableIndex)
     return model.variable_info[column(vi)].has_upper_bound
@@ -533,7 +542,7 @@ end
 )
 
 @define_add_constraint(
-    MOI.ScalarAffineFunction{Float64}, MOI.Interval{Float64}, linear_eq,
+    MOI.ScalarAffineFunction{Float64}, MOI.Interval{Float64}, linear_int,
 )
 
 @define_add_constraint(
@@ -546,6 +555,10 @@ end
 
 @define_add_constraint(
     MOI.ScalarQuadraticFunction{Float64}, MOI.EqualTo{Float64}, quadratic_eq,
+)
+
+@define_add_constraint(
+    MOI.ScalarQuadraticFunction{Float64}, MOI.Interval{Float64}, quadratic_int,
 )
 
 function MOI.set(
@@ -1768,6 +1781,14 @@ function MOI.set(
     MOI.throw_if_not_valid(model, vi)
     model.variable_info[column(vi)].start = value
     return
+end
+
+function MOI.get(
+    model::OnePhaseSolver, attr::MOI.VariablePrimal, vi::MOI.VariableIndex,
+)
+    MOI.check_result_index_bounds(model, attr)
+    MOI.throw_if_not_valid(model, vi)
+    return model.inner.x[column(vi)]
 end
 
 function MOI.set(model::OnePhaseSolver, ::MOI.TimeLimitSec, value::Real)
