@@ -1,9 +1,9 @@
 println("HSL library not working")
-#=print("loading HSL lib ... ")
+print("loading HSL lib ... ")
 using HSL
 println("HSL lib loaded.")
 
-type linear_solver_HSL <: abstract_linear_system_solver
+mutable struct linear_solver_HSL <: abstract_linear_system_solver
 	_factor # TO DO, give type
 	#_factor_defined::Bool
 
@@ -63,4 +63,4 @@ function ls_solve(solver::linear_solver_HSL, my_rhs::AbstractArray, timer::class
 
 	return sol
 end
-=#
+

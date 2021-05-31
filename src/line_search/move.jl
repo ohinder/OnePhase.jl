@@ -1,11 +1,11 @@
 
 function move_primal(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
     new_it = copy(it, timer)
-    println("++++++++++++++++++++++++++++++++++++", it)
-    println("++++++++++++++++++++++++++++++++++++", timer)
-    println("++++++++++++++++++++++++++++++++++++", new_it)
-    println("++++++++++++++++++++++++++++++++++++", new_it.point)
-    println("++++++++++++++++++++++++++++++++++++", new_it.point.x)
+    #println("1++++++++++++++++++++++++++++++++++++", it)
+    #println("2++++++++++++++++++++++++++++++++++++", timer)
+    #println("3++++++++++++++++++++++++++++++++++++", new_it)
+    #println("4++++++++++++++++++++++++++++++++++++", new_it.point)
+    #println("5++++++++++++++++++++++++++++++++++++", new_it.point.x)
     new_it.point.x += dir.x * step_size
 
     if !update_cons!(new_it, timer, pars)

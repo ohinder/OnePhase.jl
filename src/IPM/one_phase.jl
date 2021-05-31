@@ -15,30 +15,39 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel)
 end
 
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parameters)
+    println("0----------------------------------------------")
     nlp = Class_CUTEst(nlp_raw);
+    #println("1----------------------------------------------")
     timer = class_advanced_timer()
+    #println("2----------------------------------------------")
     start_advanced_timer(timer)
-
+    #println("3----------------------------------------------")
     start_advanced_timer(timer, "INIT")
+    #println("4----------------------------------------------")
     if pars.init.init_style == :gertz
+	#println("5---------------------------------------------")
         intial_it = gertz_init(nlp, pars, timer); # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
     elseif pars.init.init_style == :mehrotra
         intial_it = mehrotra_init(nlp, pars, timer);
+	#println("6---------------------------------------------")
     elseif pars.init.init_style == :LP
+	#println("7---------------------------------------------")
         intial_it = LP_init(nlp, pars, timer);
     else
+	#println("8---------------------------------------------")
         error("Init strategy does not exist")
     end
     pause_advanced_timer(timer, "INIT")
-
+    #println("9---------------------------------------------")
     pause_advanced_timer(timer)
     if pars.output_level >= 4
         print_timer_stats(timer)
     end
-
+    #println("10----------------------------------------------")
     start_advanced_timer(timer)
-
+    #println("11----------------------------------------------")
     @assert(is_feasible(intial_it, pars.ls.comp_feas))
+    #println("0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", intial_it)
     iter, status, hist, t, err = one_phase_IPM(intial_it, pars, timer);
 
     pause_advanced_timer(timer)
@@ -93,6 +102,11 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
       end
 
       display = pars.output_level >= 1
+      #println("1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", progress)
+      #println("2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", iter)
+      #println("3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", kkt_solver)
+      #println("4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", pars)
+      #println("5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", display)
       record_progress_first_it!(progress, iter, kkt_solver, pars, display)
       if pars.output_level >= 4
           println("")
