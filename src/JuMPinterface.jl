@@ -422,7 +422,23 @@ function MOI.add_constraint(
     model.variable_info[col].has_lower_bound = true
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(col)
 end
-
+#=
+This method was added while doing unit testing to check the reason of the segmentation fault bug in case it is because definying a macro in the code
+function MOI.add_constraint(
+    model::OnePhaseSolver, func::MOI.ScalarAffineFunction{Float64}, gt::MOI.GreaterThan{Float64},
+)
+    #linear_le_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}}
+    #linear_ge_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.GreaterThan{Float64}}}
+    #linear_eq_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}}
+    #quadratic_le_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.LessThan{Float64}}}
+    #quadratic_ge_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.GreaterThan{Float64}}}
+    #quadratic_eq_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.EqualTo{Float64}}}
+	
+    check_inbounds(model, func)
+	push!(model.linear_ge_constraints, ConstraintInfo(func, gt))
+    return MOI.ConstraintIndex{MOI.ScalarAffineFunction, MOI.GreaterThan{Float64}}(length(model.linear_ge_constraints))
+end
+=#
 function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ConstraintSet,
@@ -1881,4 +1897,3 @@ function MOI.get(model::OnePhaseSolver, attr::MOI.ObjectiveValue)
     MOI.check_result_index_bounds(model, attr)
     return model.inner.obj_val
 end
-

@@ -5,7 +5,7 @@ function attachSolverWithAttributesToJuMPModel(model:: Model, options::Dict{Stri
 	set_optimizer(model, OnePhase.OnePhaseSolver)
 	for (name, value) in options
         sname = string(name)
-		set_optimizer_attribute(model, sname, value)
+	set_optimizer_attribute(model, sname, value)
     end
 end
 
@@ -37,8 +37,10 @@ function test_rosenbrook1(options::Dict{String, Any})
         ##println("############################################################", typeof(solver))
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test_broken optimize!(model) == :Optimal
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+        @test_broken status == :Optimal
         ##println("############################################################")
     end
 end
@@ -60,8 +62,10 @@ function test_rosenbrook2(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test optimize!(model) == :Optimal
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+        @test status == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -82,8 +86,10 @@ function test_rosenbrook3(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test optimize!(model) == :Optimal
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+        @test status == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -103,8 +109,10 @@ function test_rosenbrook4(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test_broken optimize!(model) == :Optimal
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+        @test_broken status == :Optimal
     end
 end
 
@@ -140,8 +148,9 @@ function test_toy_lp1(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp1(model)
 end
@@ -167,8 +176,9 @@ function test_toy_lp2(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp2(model)
 end
@@ -194,8 +204,9 @@ function test_toy_lp3(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp3(model)
 end
@@ -227,8 +238,9 @@ function test_toy_lp4(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -250,8 +262,9 @@ function test_toy_lp5(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -272,8 +285,9 @@ function test_toy_lp6(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -293,8 +307,9 @@ function test_toy_lp7(options::Dict{String, Any})
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -316,7 +331,8 @@ function test_toy_lp8(options::Dict{String, Any})
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     check_toy_lp4(model)
 end
@@ -495,7 +511,8 @@ function test_unbd_feas(options::Dict{String, Any})
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     @test getvalue(model[:z]) < 1e5
 end
@@ -521,8 +538,9 @@ function test_starting_point(options::Dict{String, Any},starting_point::Float64)
     #setsolver(model,solver)
     ##set_optimizer(model, OnePhase.OnePhaseSolver)
     ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-    status = optimize!(model)
+    attachSolverWithAttributesToJuMPModel(model, options)
+    optimize!(model)
+    status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
     if sign(starting_point) < 0.0
         @test abs(getvalue(model[:x]) - 1.0) < 1e-4

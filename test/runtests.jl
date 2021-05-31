@@ -1,14 +1,20 @@
+#cd("/home/fah33/advanced_timer")
+Base.GC.enable(false)
+include("/home/fah33/advanced_timer/src/advanced_timer.jl")
+#cd("/home/fah33/OnePhaseOffline")
+
 #using JuMP, Test, NLPModels, NLPModelsJuMP, NLPModelsTest
-using JuMP, Test, NLPModelsTest
+#using JuMP, Test, NLPModelsTest
+using JuMP, Test
 using SparseArrays
 using LinearAlgebra
 using Statistics
 using Printf
-nlp_problems = setdiff(NLPModelsTest.nlp_problems, ["MGH01Feas"])
+#nlp_problems = setdiff(NLPModelsTest.nlp_problems, ["MGH01Feas"])
 
-for problem in lowercase.(nlp_problems)
-  include(joinpath("nlp_problems", "$problem.jl"))
-end
+#for problem in lowercase.(nlp_problems)
+#  include(joinpath("nlp_problems", "$problem.jl"))
+#end
 
 include("../src/OnePhase.jl")
 include("problems.jl")
@@ -49,22 +55,31 @@ function basic_tests(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Infeasible == optimize!(model)
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == :Infeasible
 
         model = toy_lp_inf2()
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Infeasible == optimize!(model)
+        attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == :Infeasible
 
         model = circle_nc_inf1()
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Infeasible == optimize!(model)
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == :Infeasible
     end
 
     @testset "convex_nlp" begin
@@ -73,8 +88,11 @@ function basic_tests(options::Dict{String, Any})
             #setsolver(model,solver)
             ##set_optimizer(model, OnePhase.OnePhaseSolver)
             ##set_optimizer(model, solver)
-			attachSolverWithAttributesToJuMPModel(model, options)
-            @test :Optimal == optimize!(model)
+	    attachSolverWithAttributesToJuMPModel(model, options)
+            optimize!(model)
+            status = MOI.get(model, MOI.TerminationStatus())
+
+            @test status == :Optimal
             check_circle1(model)
         end
         @testset "circle2" begin
@@ -82,8 +100,11 @@ function basic_tests(options::Dict{String, Any})
             #setsolver(model,solver)
             ##set_optimizer(model, OnePhase.OnePhaseSolver)
             ##set_optimizer(model, solver)
-			attachSolverWithAttributesToJuMPModel(model, options)
-            @test :Optimal == optimize!(model)
+	    attachSolverWithAttributesToJuMPModel(model, options)
+            optimize!(model)
+            status = MOI.get(model, MOI.TerminationStatus())
+
+            @test status == :Optimal
             check_circle2(model)
         end
 
@@ -92,8 +113,11 @@ function basic_tests(options::Dict{String, Any})
             #setsolver(model,solver)
             ##set_optimizer(model, OnePhase.OnePhaseSolver)
             ##set_optimizer(model, solver)
-			attachSolverWithAttributesToJuMPModel(model, options)
-            if Test.Pass == @test :Optimal == optimize!(model)
+	    attachSolverWithAttributesToJuMPModel(model, options)
+            optimize!(model)
+            status = MOI.get(model, MOI.TerminationStatus())
+
+            if Test.Pass == @test status == :Optimal
                 check_quad_opt(model)
             end
         end
@@ -104,16 +128,22 @@ function basic_tests(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Optimal == optimize!(model)
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == :Optimal
         check_circle_nc1(model)
 
         model = circle_nc2()
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Optimal == optimize!(model)
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == :Optimal
         check_circle_nc2(model)
     end
 
@@ -122,14 +152,16 @@ function basic_tests(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
-        @test :Unbounded == optimize!(model)
+	attachSolverWithAttributesToJuMPModel(model, options)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+        @test :Unbounded == status
 
         model = circle_nc_unbd()
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
+	attachSolverWithAttributesToJuMPModel(model, options)
         status = optimize!(model)
         @test status == :Unbounded
 
@@ -137,7 +169,7 @@ function basic_tests(options::Dict{String, Any})
         #setsolver(model,solver)
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
+	attachSolverWithAttributesToJuMPModel(model, options)
         status = optimize!(model)
         @test_broken status == :Unbounded
     end
@@ -230,10 +262,11 @@ function moi_nlp_tests()
         test_nlp1_optimal_MOI()
         test_lp1_feasible_JuMP()
         test_lp1_optimal_JuMP()
+        test_nlp1_optimal_JuMP()
     end
 end
 
 # lets run the tests!
 unit_tests()
 moi_nlp_tests()
-#basic_tests()
+basic_tests()
