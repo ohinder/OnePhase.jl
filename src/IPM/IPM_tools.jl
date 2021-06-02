@@ -35,6 +35,7 @@ function check_for_nan(point::Class_point)
   end
 
   if isbad(point.y)
+    println("!!!!!!!!!!!!!!!!!!!!!!!!", point.y)
     #@show point.y, point.s
     error("NaN in y")
   end

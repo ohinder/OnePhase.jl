@@ -65,25 +65,25 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
     end
-    δ_s = max(-2.0 * minimum(s_tilde[ais]), 0.0) + LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
+    d_s = max(-2.0 * minimum(s_tilde[ais]), 0.0) + LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
     #@show LinearAlgebra.norm(g - J' * y_tilde,Inf) / (1.0 + LinearAlgebra.norm(y_tilde,Inf))
-    δ_y = max(-2.0 * minimum(y_tilde), 0.0)
+    d_y = max(-2.0 * minimum(y_tilde), 0.0)
 
-    s_tilde[ais] = s_tilde[ais] .+ δ_s .+ 1e-8
-    y_tilde = y_tilde .+ δ_y
+    s_tilde[ais] = s_tilde[ais] .+ d_s .+ 1e-8
+    y_tilde = y_tilde .+ d_y
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
     end
 
-    δ_y_tilde = δ_y .+ 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
-    y_tilde = y_tilde .+ δ_y_tilde
+    d_y_tilde = d_y .+ 0.5 * dot(s_tilde, y_tilde) / sum(s_tilde)
+    y_tilde = y_tilde .+ d_y_tilde
     y_tilde = min.(pars.init.dual_max, max.(y_tilde, pars.init.dual_min))
 
-    δ_s_tilde = δ_s .+ 0.5 * dot(s_tilde, y_tilde) / sum(y_tilde)
-    s_tilde[ais] = s_tilde[ais] .+ δ_s_tilde
+    d_s_tilde = d_s .+ 0.5 * dot(s_tilde, y_tilde) / sum(y_tilde)
+    s_tilde[ais] = s_tilde[ais] .+ d_s_tilde
 
 
-    #@show δ_s, δ_y, LinearAlgebra.norm(g)
+    #@show d_s, d_y, LinearAlgebra.norm(g)
     #s_new, y = mehortra_guarding( deepcopy(s), deepcopy(y), threshold )
     if isbad(y_tilde)
       throw(Eval_NaN_error(getbad(y_tilde),x,"y"))
@@ -163,14 +163,14 @@ function estimate_y_tilde( J::SparseMatrixCSC{Float64,Int64}, g::Array{Float64,1
 end
 
 function mehortra_guarding( s_tilde::Array{Float64,1}, y_tilde::Array{Float64,1}, threshold::Float64 )
-    δ_s = max(-2.0 * minimum(s_tilde), threshold)
-    δ_y = max(-2.0 * minimum(y_tilde), threshold)
+    d_s = max(-2.0 * minimum(s_tilde), threshold)
+    d_y = max(-2.0 * minimum(y_tilde), threshold)
 
-    δ_s_tilde = δ_s .+ 0.5 * dot(s_tilde .+ δ_s, y_tilde .+ δ_y) / sum(y_tilde .+ δ_y)
-    δ_y_tilde = δ_y .+ 0.5 * dot(s_tilde .+ δ_s, y_tilde .+ δ_y) / sum(s_tilde .+ δ_s)
+    d_s_tilde = d_s .+ 0.5 * dot(s_tilde .+ d_s, y_tilde .+ d_y) / sum(y_tilde .+ d_y)
+    d_y_tilde = d_y .+ 0.5 * dot(s_tilde .+ d_s, y_tilde .+ d_y) / sum(s_tilde .+ d_s)
 
-    s = s_tilde .+ δ_s_tilde
-    y = y_tilde .+ δ_y_tilde
+    s = s_tilde .+ d_s_tilde
+    y = y_tilde .+ d_y_tilde
 
     return s, y
 end

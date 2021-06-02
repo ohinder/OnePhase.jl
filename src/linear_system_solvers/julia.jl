@@ -58,11 +58,12 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 					#PosDefException was added when updating Julia from 0.6.4 to 0.7.0 by Fadi Hamad
 					#Because ArgumentError is not thrown anymore and it is being replaced by PosDefException
 					#This is related to (PosDefException: matrix is not positive definite; Cholesky factorization failed.)
-					#if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException
-					if typeof(e) == LinearAlgebra.PosDefException
+					if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException || typeof(e) == ZeroPivotException
+					#if typeof(e) == LinearAlgebra.PosDefException
 							inertia_status_val = 0
 					else
 							println("ERROR in saddle_solver_JULIA.ls_factor!")
+                                                        #println("###############################", typeof(e))
 							throw(e)
 					end
 				end

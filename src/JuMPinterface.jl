@@ -1413,6 +1413,7 @@ end
 ############################
 
 function status_One_Phase_To_JuMP(status::Symbol)
+    #println("+++++++++++++++++++++++++++++++++++++++++++++", status)
     # since our status are not equal to JuMPs we need to do a conversion
     if status == :Optimal
         return :Optimal
@@ -1537,7 +1538,7 @@ function JuMP.optimize!(
 	    #MOI.optimize!(model, backend(model))
 	    m = backend(model)
 		if m.mode == MathOptInterface.Utilities.AUTOMATIC && m.state == MathOptInterface.Utilities.EMPTY_OPTIMIZER
-		    println("---------------------------------------")
+		    #println("---------------------------------------")
 			MOIU.attach_optimizer(m)
 		end
 		#if m.state == MathOptInterface.Utilities.EMPTY_OPTIMIZER
@@ -1554,10 +1555,10 @@ function JuMP.optimize!(
         nlp = MathOptNLPModel(model)
 
         pars = create_pars_JuMP(solver.options)
-        println("111111111111111111111111111111111111")
+        #println("111111111111111111111111111111111111")
 	#println("111111111111111111111111111111111111", EMPTY_OPTIMIZER)
         iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
-        println("222222222222222222222222222222222222")
+        #println("222222222222222222222222222222222222")
 		solver.inner = OnePhaseProblem()
 		
 		solver.inner.status = status_One_Phase_To_JuMP(status)
@@ -1673,14 +1674,14 @@ function MOI.optimize!(solver :: OnePhaseSolver, jumpModel:: Model)
     t = time()
     #nlp = MathProgNLPModel(m)
     nlp = MathOptNLPModel(jumpModel)
-    println("##########################", nlp)
+    #println("##########################", nlp)
     pars = create_pars_JuMP(solver.options)
 
     iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
     solver.inner = OnePhaseProblem()
     solver.inner.status = status_One_Phase_To_JuMP(status)
     solver.inner.x = get_original_x(iter)
-	println("*********************", iter.cache.fval)
+	#println("*********************", iter.cache.fval)
     solver.inner.obj_val = iter.cache.fval
     solver.inner.lambda = get_y(iter)
     solver.inner.solve_time = time() - t

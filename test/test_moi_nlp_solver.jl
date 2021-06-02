@@ -4,6 +4,8 @@
 
 function test_lp1_feasible_MOI()
     solver = OnePhase.OnePhaseSolver()
+    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
     #u = MOI.add_constraint(solver, x[2], MOI.LessThan(0.0))
@@ -42,6 +44,8 @@ end
 
 function test_lp1_optimal_MOI()
     solver = OnePhase.OnePhaseSolver()
+    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
     #u = MOI.add_constraint(solver, x[2], MOI.LessThan(0.0))
@@ -75,12 +79,14 @@ function test_lp1_optimal_MOI()
     @constraint(model_test, x + y <= 1.0)
     MOI.optimize!(solver, model_test)
     status = MOI.get(solver, MOI.TerminationStatus())
-    println("##################", MOI.get(solver, MOI.ObjectiveValue()))
+    #println("##################", MOI.get(solver, MOI.ObjectiveValue()))
     @test status == :Optimal
 end
 
 function test_nlp1_feasible_MOI()
     solver = OnePhase.OnePhaseSolver()
+    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
     u = MOI.add_constraint(solver, x[2], MOI.GreaterThan(0.0))
@@ -115,6 +121,8 @@ end
 
 function test_nlp1_optimal_MOI()
     solver = OnePhase.OnePhaseSolver()
+    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
     u = MOI.add_constraint(solver, x[2], MOI.GreaterThan(0.0))
@@ -146,7 +154,8 @@ function test_nlp1_optimal_MOI()
     @constraint(model_test, x + y >= 0.1)
     #@constraint(model_test, x >= 0.0)
     MOI.optimize!(solver, model_test)
-    println("########NLOBJECTIVE##########", MOI.get(solver, MOI.ObjectiveValue()))
+
+    #println("########NLOBJECTIVE##########", MOI.get(solver, MOI.ObjectiveValue()))
     status = MOI.get(solver, MOI.TerminationStatus())
     @test status == :Optimal
     #nlp = MathOptNLPModel(model_test)
@@ -182,7 +191,7 @@ function test_lp1_optimal_JuMP()
     @constraint(model_test, x + y <= 1.0)
     JuMP.optimize!(model_test)
     status =  MOI.get(model_test, MOI.TerminationStatus())
-    println("##################", JuMP.objective_value(model_test))
+    #println("##################", JuMP.objective_value(model_test))
     @test status == :Optimal
 end
 
@@ -198,7 +207,7 @@ function test_nlp1_optimal_JuMP()
     @constraint(model_test, x + y >= 0.1)
     JuMP.optimize!(model_test)
     status =  MOI.get(model_test, MOI.TerminationStatus())
-    println("########NLOBJECTIVE##########", JuMP.objective_value(model_test))
+    #println("########NLOBJECTIVE##########", JuMP.objective_value(model_test))
     @test status == :Optimal
 end
 
