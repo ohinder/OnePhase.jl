@@ -19,7 +19,7 @@ function rosenbrook1()
     #FIXME
     #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
     #if this can be fixed in the code
-    #@NLconstraint(model, (x + y) ^ 2 >= 0)
+    #@constraint(model , x >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
 end
@@ -42,6 +42,7 @@ function test_rosenbrook1(options::Dict{String, Any})
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
+        #optimize!(model)
         @test_broken optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test_broken status == :Optimal
@@ -67,7 +68,7 @@ function test_rosenbrook2(options::Dict{String, Any})
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
-        @test_broken optimize!(model)
+        optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         #@test status == :Optimal
         @test_broken status == :Optimal
@@ -81,7 +82,7 @@ function rosenbrook3()
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
-    @constraint(model, x^2 + y^2 >= 0.5)
+    @NLconstraint(model, x^2 + y^2 >= 0.5)
     return model
 end
 
@@ -93,9 +94,9 @@ function test_rosenbrook3(options::Dict{String, Any})
         ##set_optimizer(model, OnePhase.OnePhaseSolver)
         ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
-        @test_broken optimize!(model)
+        optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #test status == :Optimal
+        #@test status == :Optimal
 	@test_broken status == :Optimal
         check_rosenbrook(model)
     end
@@ -160,10 +161,8 @@ end
 #function test_toy_lp1(solver)
 function test_toy_lp1(options::Dict{String, Any})
     model = toy_lp1()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
+    #set_optimizer_attribute(model, "output_level", 6)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal

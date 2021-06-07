@@ -3,26 +3,17 @@ Base.GC.enable(false)
 include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
-#using JuMP, Test, NLPModels, NLPModelsJuMP, NLPModelsTest
-#using JuMP, Test, NLPModelsTest
 using JuMP, Test
 using SparseArrays
 using LinearAlgebra
 using Statistics
 using Printf
-#nlp_problems = setdiff(NLPModelsTest.nlp_problems, ["MGH01Feas"])
-
-#for problem in lowercase.(nlp_problems)
-#  include(joinpath("nlp_problems", "$problem.jl"))
-#end
 
 include("../src/OnePhase.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
 include("test_moi_nlp_solver.jl")
-#include("test_moi_nlp_model.jl")
-#include("nlp_consistency.jl")
 
 function unit_tests()
     test_compare_columns()
@@ -53,42 +44,29 @@ function basic_tests(options::Dict{String, Any})
 
     @testset "infeasible" begin
         model = toy_lp_inf1()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	    attachSolverWithAttributesToJuMPModel(model, options)
+	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Infeasible
 
         model = toy_lp_inf2()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
         attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Infeasible
 
         model = circle_nc_inf1()
-        #setsolver(model,solver)
-        #set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-		attachSolverWithAttributesToJuMPModel(model, options)
+	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         #println("--------------------------------------", status)
         @test status == :Infeasible
-	#println("--------------------PASSED------------------")
     end
 
     @testset "convex_nlp" begin
         @testset "circle1" begin
             model = circle1()
-            #setsolver(model,solver)
-            ##set_optimizer(model, OnePhase.OnePhaseSolver)
-            ##set_optimizer(model, solver)
-	    attachSolverWithAttributesToJuMPModel(model, options)
+            attachSolverWithAttributesToJuMPModel(model, options)
             optimize!(model)
             status = MOI.get(model, MOI.TerminationStatus())
 
@@ -97,10 +75,7 @@ function basic_tests(options::Dict{String, Any})
         end
         @testset "circle2" begin
             model = circle2()
-            #setsolver(model,solver)
-            ##set_optimizer(model, OnePhase.OnePhaseSolver)
-            ##set_optimizer(model, solver)
-	    attachSolverWithAttributesToJuMPModel(model, options)
+            attachSolverWithAttributesToJuMPModel(model, options)
             optimize!(model)
             status = MOI.get(model, MOI.TerminationStatus())
 
@@ -110,9 +85,6 @@ function basic_tests(options::Dict{String, Any})
 
         @testset "quad_opt" begin
             model = quad_opt()
-            #setsolver(model,solver)
-            ##set_optimizer(model, OnePhase.OnePhaseSolver)
-            ##set_optimizer(model, solver)
 	    attachSolverWithAttributesToJuMPModel(model, options)
             optimize!(model)
             status = MOI.get(model, MOI.TerminationStatus())
@@ -125,9 +97,6 @@ function basic_tests(options::Dict{String, Any})
 
     @testset "nonconvex" begin
         model = circle_nc1()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
@@ -136,9 +105,6 @@ function basic_tests(options::Dict{String, Any})
         check_circle_nc1(model)
 
         model = circle_nc2()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
@@ -148,32 +114,26 @@ function basic_tests(options::Dict{String, Any})
     end
 
     @testset "unbounded_opt_val" begin
+
         model = lp_unbd()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+        attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test :Unbounded == status
 
         model = circle_nc_unbd()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
+        set_optimizer_attribute(model, "output_level", 0)
         optimize!(model)
-		status = MOI.get(model, MOI.TerminationStatus())
+	status = MOI.get(model, MOI.TerminationStatus())
         #@test status == :Unbounded
-		@test_broken status == :Unbounded
+	@test_broken status == :Unbounded
 
         model = quad_unbd()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
 	attachSolverWithAttributesToJuMPModel(model, options)
         status = optimize!(model)
         @test_broken status == :Unbounded
+
     end
 
     @testset "unbounded_feasible_region" begin
@@ -201,11 +161,11 @@ function basic_tests()
             #output_level=output_level,
             #kkt!kkt_solver_type=:schur)
             #basic_tests(solver)
-			options = Dict{String, Any}("term!max_it"=>max_it, 
-			"a_norm_penalty"=>a_norm_penalty,
+	    options = Dict{String, Any}("term!max_it"=>max_it, 
+	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:schur)
-			basic_tests(options)
+	    basic_tests(options)
         end
 
         println("HSL not working")
@@ -217,12 +177,12 @@ function basic_tests()
             #kkt!kkt_solver_type=:symmetric,
             #kkt!linear_solver_type=:HSL)
             #basic_tests(solver)
-			options = Dict{String, Any}("term!max_it"=>max_it, 
-			"a_norm_penalty"=>a_norm_penalty,
+	    options = Dict{String, Any}("term!max_it"=>max_it, 
+	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:symmetric,
             "kkt!linear_solver_type"=>:HSL)
-			basic_tests(options)
+	    basic_tests(options)
         end
 
         @testset "Ma97 linear system solve with clever elimination" begin
@@ -232,12 +192,12 @@ function basic_tests()
             #kkt!kkt_solver_type=:clever_symmetric,
             #kkt!linear_solver_type=:HSL)
             #basic_tests(solver)
-			options = Dict{String, Any}("term!max_it"=>max_it, 
-			"a_norm_penalty"=>a_norm_penalty,
+	    options = Dict{String, Any}("term!max_it"=>max_it, 
+	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:clever_symmetric,
             "kkt!linear_solver_type"=>:HSL)
-			basic_tests(options)
+	    basic_tests(options)
         end
         =#
 
@@ -248,14 +208,14 @@ function basic_tests()
             #kkt!kkt_solver_type=:clever_symmetric,
             #kkt!linear_solver_type=:julia)
             #basic_tests(solver)
-			options = Dict{String, Any}("term!max_it"=>max_it, 
-			"a_norm_penalty"=>a_norm_penalty,
+	    options = Dict{String, Any}("term!max_it"=>max_it, 
+	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:clever_symmetric,
             "kkt!linear_solver_type"=>:julia)
-			basic_tests(options)
-        end
-        
+	    basic_tests(options)
+        end       
+
     end
 end
 

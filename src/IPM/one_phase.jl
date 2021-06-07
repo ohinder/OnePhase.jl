@@ -179,6 +179,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            tot_num_fac = inertia_num_fac
                            old_delta = get_delta(iter)
                            set_delta(iter, new_delta)
+			   #println("#########################################new_delta", new_delta)
                            pause_advanced_timer(timer, "ipopt_strategy")
 
                            if fact_succeed != :success
@@ -189,7 +190,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            start_advanced_timer(timer, "STEP/first")
 
                            if pars.output_level >= 5
-                             println(pd("**"), pd("status"), pd("delta"), pd("α_P"), pd("dx"), pd("dy"), pd("ds"))
+                             println(pd("**"), pd("status"), pd("delta"), pd("a_P"), pd("dx"), pd("dy"), pd("ds"))
                            end
 
                            for k = 1:100

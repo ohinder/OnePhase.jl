@@ -84,6 +84,9 @@ end
 
 function eval_J_T_J(it::Class_iterate, diag_vals::Vector)
     #return it.cache.J_T * spdiagm(diag_vals) * it.cache.J
+    #println("----------------", it.cache.J_T)
+    #println("----------------", sparse(Diagonal(diag_vals)))
+    #println("----------------", it.cache.J)
     return it.cache.J_T * sparse(Diagonal(diag_vals)) * it.cache.J
 end
 

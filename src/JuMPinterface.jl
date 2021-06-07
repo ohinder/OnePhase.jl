@@ -76,7 +76,7 @@ VariableInfo() = VariableInfo(-Inf, false, nothing, Inf, false, nothing, false, 
 
 mutable struct OnePhaseProblem
     status::Symbol  # Final status
-
+    #status::MOI.TerminationStatusCode
     # For MathProgBase
     x::Vector{Float64}  # Starting and final solution
     lambda::Vector{Float64}
@@ -1230,11 +1230,13 @@ function cons!(nlp :: MathProgNLPModel, x :: Array{Float64}, c :: Array{Float64}
 end
 =#
 function cons!(nlp :: MathOptNLPModel, x :: Array{Float64}, c :: Array{Float64})
+  #println("-------------------------($x)---------------------($c)")
   #NLPModels.increment!(nlp, :neval_cons)
   #MOI.eval_constraint(nlp.eval, c, x)
   #return c
   NLPModels.increment!(nlp, :neval_cons)
   if nlp.meta.nlin > 0
+    #println("1###############")
     coo_prod!(
       nlp.lincon.jacobian.rows,
       nlp.lincon.jacobian.cols,
@@ -1244,7 +1246,13 @@ function cons!(nlp :: MathOptNLPModel, x :: Array{Float64}, c :: Array{Float64})
     )
   end
   if nlp.meta.nnln > 0
+    #println("2###############")
     MOI.eval_constraint(nlp.eval, view(c, nlp.meta.nln), x)
+  end
+  #println("3#########################($c): ", typeof(c))
+  if c == Float64[]
+      #println("------------------------------")
+      return zeros(1)
   end
   return c
 end
@@ -1408,6 +1416,7 @@ function hprod!(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64
   return hv
 end
 =#
+
 ############################
 ## END ModelReader CODE
 ############################
@@ -1553,14 +1562,14 @@ function JuMP.optimize!(
         solver = m.optimizer.model
         t = time()
         nlp = MathOptNLPModel(model)
-
+        #println("****************************************", nlp)
         pars = create_pars_JuMP(solver.options)
         #println("111111111111111111111111111111111111")
 	#println("111111111111111111111111111111111111", EMPTY_OPTIMIZER)
         iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
         #println("222222222222222222222222222222222222")
 		solver.inner = OnePhaseProblem()
-		
+		#println("----------------------", status)
 		solver.inner.status = status_One_Phase_To_JuMP(status)
 		solver.inner.x = get_original_x(iter)
 		solver.inner.obj_val = iter.cache.fval
@@ -1679,6 +1688,7 @@ function MOI.optimize!(solver :: OnePhaseSolver, jumpModel:: Model)
 
     iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
     solver.inner = OnePhaseProblem()
+    #println("---------------------------", status)
     solver.inner.status = status_One_Phase_To_JuMP(status)
     solver.inner.x = get_original_x(iter)
 	#println("*********************", iter.cache.fval)
@@ -1694,6 +1704,17 @@ end
 
 function MOI.optimize!(solver :: OnePhaseSolver)
     println("----------------------------------------------- REACHED HERE --------------------------------------------")
+end
+
+function MOI.get(
+    model::MathOptInterface.Utilities.CachingOptimizer,
+    attr::MOI.TerminationStatus,
+)
+    #if MOI.Utilities.state(model) == MOI.NO_OPTIMIZER
+        #return MOI.OPTIMIZE_NOT_CALLED
+#		return :Error
+ #   end
+    return MOI.get(model.optimizer, attr)
 end
 
 function check_inbounds(model::OnePhaseSolver, var::MOI.SingleVariable)

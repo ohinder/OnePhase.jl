@@ -11,16 +11,20 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
       x = projection_onto_bounds_ipopt_style( nlp, pars, x0 )
     end
     pause_advanced_timer(timer, "INIT/x")
-    #println("4'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-    y = ones(ncon(nlp))
+    y = ones(1)
+    if ncon(nlp) > 0
+      y = ones(ncon(nlp))
+    end
     #println("5'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     a, J, g = eval_init(nlp, pars, timer, x)
+    
     #println("6'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     #s = max(a, ones(ncon(nlp)))
     s_thres = 1e-4
     #println("1''HHHHHHHHHHHHH,$s_thres,HHHHHHHHHHH,$a,HHHHHHHHHH,$minimum(a)")
     #s_thres = LinearAlgebra.norm(g - J' * y, Inf)
     #s = max(a,s_thres) #
+    #println("!!!!!!!!!!!!!!!!!!!!!!!!!!!($a)")
     d_s = max(s_thres,-2.0 * minimum(a))
     #println("2''HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     s = a .+ d_s
