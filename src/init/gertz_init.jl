@@ -42,6 +42,7 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     initialize!(kkt_solver, iter)
     #println("10'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     form_system!(kkt_solver, iter, timer)
+    #println("H--------------------------------", Matrix(kkt_solver.Q))
     #println("11'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     fact_succeed, inertia_num_fac, new_delta = ipopt_strategy!(iter, kkt_solver, pars, timer)
     #println("12'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")

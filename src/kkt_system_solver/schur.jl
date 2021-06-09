@@ -52,6 +52,9 @@ function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, ti
 
     # TODO build specialized schur complement code.
     kkt_solver.Q = eval_J_T_J(iter, iter.point.y ./ iter.point.s) + get_lag_hess(iter);
+    #println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", Matrix(eval_J_T_J(iter, iter.point.y ./ iter.point.s)))
+    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", Matrix(kkt_solver.Q))
+    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", Matrix(get_lag_hess(iter)))
     kkt_solver.schur_diag = diag(kkt_solver.Q)
     kkt_solver.factor_it = iter;
     kkt_solver.ready = :system_formed

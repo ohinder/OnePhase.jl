@@ -1365,37 +1365,95 @@ function hess(nlp :: MathProgNLPModel, x :: Array{Float64};
 end
 =#
 
+function append_to_hessian_sparsity!(
+    ::Any,
+    ::Union{MOI.SingleVariable,MOI.ScalarAffineFunction},
+)
+    return nothing
+end
+
+function append_to_hessian_sparsity!(
+    hessian_sparsity,
+    quad::MOI.ScalarQuadraticFunction,
+)
+    for term in quad.quadratic_terms
+        push!(
+            hessian_sparsity,
+            (term.variable_index_1.value, term.variable_index_2.value),
+        )
+    end
+end
+
+function hessian_lagrangian_structure(model::OnePhaseSolver, nlp :: MathOptNLPModel)
+    hessian_sparsity = Tuple{Int64,Int64}[]
+    if model.objective !== nothing
+        append_to_hessian_sparsity!(hessian_sparsity, model.obj)
+    end
+    for info in model.quadratic_le_constraints
+        append_to_hessian_sparsity!(hessian_sparsity, info.func)
+    end
+    for info in model.quadratic_ge_constraints
+        append_to_hessian_sparsity!(hessian_sparsity, info.func)
+    end
+    for info in model.quadratic_eq_constraints
+        append_to_hessian_sparsity!(hessian_sparsity, info.func)
+    end
+    nlp_hessian_sparsity =
+        MOI.hessian_lagrangian_structure(nlp.eval)
+    append!(hessian_sparsity, nlp_hessian_sparsity)
+    return hessian_sparsity
+end
+
 function hess_coord(nlp :: MathOptNLPModel, x :: Array{Float64};
   obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
   NLPModels.increment!(nlp, :neval_hess)
   MOI.eval_hessian_lagrangian(nlp.eval, nlp.obj.hessian.vals, x, obj_weight, y)
-  return (nlp.obj.hessian.rows, nlp.obj.hessian.cols, nlp.obj.hessian.vals)
+  #println("**************************************************nlp.obj: ", nlp.obj)
+  #println("6++++++++++++++++++++++++++++++++nlp.obj.hessian.rows: ", nlp.obj.hessian.rows)
+  #println("7++++++++++++++++++++++++++++++++nlp.obj.hessian.cols: ", nlp.obj.hessian.cols)
+  #println("8++++++++++++++++++++++++++++++++nlp.obj.hessian.vals: ", nlp.obj.hessian.vals)
+  #println("9++++++++++++++++++++++++++++++++hess_coord: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
+  #println("6++++++++++++++++++++++++++++++++nlp.hrows: ", NLPModels.hess_structure(nlp)[1])
+  #println("7++++++++++++++++++++++++++++++++nlp.hcols: ", NLPModels.hess_structure(nlp)[2])
+  #println("8++++++++++++++++++++++++++++++++nlp.hvals: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
+
+  return (NLPModels.hess_structure(nlp)[1], NLPModels.hess_structure(nlp)[2], NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
+  #return (nlp.obj.hessian.rows, nlp.obj.hessian.cols, nlp.obj.hessian.vals)
 end
 
-function NLPModels.hess_coord!(
+function NLPModels.hess_structure!(
   nlp::MathOptNLPModel,
-  x::AbstractVector,
-  vals::AbstractVector;
-  obj_weight::Float64 = 1.0,
+  rows::AbstractVector{<:Integer},
+  cols::AbstractVector{<:Integer},
 )
-  println("**********************************************************************8")
-  increment!(nlp, :neval_hess)
-  if nlp.obj.type == "LINEAR"
-    vals .= 0.0
-  end
   if nlp.obj.type == "QUADRATIC"
-    vals[1:(nlp.obj.nnzh)] .= obj_weight .* nlp.obj.hessian.vals
-    vals[(nlp.obj.nnzh + 1):(nlp.meta.nnzh)] .= 0.0
+    for index = 1:(nlp.obj.nnzh)
+      rows[index] = nlp.obj.hessian.rows[index]
+      cols[index] = nlp.obj.hessian.cols[index]
+    end
   end
-  if nlp.obj.type == "NONLINEAR"
-    MOI.eval_hessian_lagrangian(nlp.eval, vals, x, obj_weight, zeros(nlp.meta.nnln))
+  if (nlp.obj.type == "NONLINEAR") || (nlp.meta.nnln > 0)
+    hesslag_struct = MOI.hessian_lagrangian_structure(nlp.eval)
+    for index = (nlp.obj.nnzh + 1):(nlp.meta.nnzh)
+      shift_index = index - nlp.obj.nnzh
+      rows[index] = hesslag_struct[shift_index][1]
+      cols[index] = hesslag_struct[shift_index][2]
+    end
   end
-
-  return vals
+  return rows, cols
 end
 
 function hess(nlp :: MathOptNLPModel, x :: Array{Float64};
     obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
+  #println("1++++++++++++++++++++++++++++++++x: ", x)
+  #println("2++++++++++++++++++++++++++++++++obj_weight: ", obj_weight)
+  #println("3++++++++++++++++++++++++++++++++y: ", y)
+  #println("4++++++++++++++++++++++++++++++++nlp.meta.nvar: ", nlp.meta.nvar)
+  #println("5+++++++++++++++++++++++++++++++NLPModels.hess(nlp, x):", NLPModels.hess(nlp, x, obj_weight = obj_weight, y))
+  #println("y+++++++++++++++++++++++++++++++(rows):", NLPModels.hess_structure(nlp)[1])
+  #println("y+++++++++++++++++++++++++++++++(rows):", NLPModels.hess_structure(nlp)[2])
+ hess_structure
+  #return NLPModels.hess(nlp, x, y, obj_weight)
   return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
   #return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
 end
@@ -1562,7 +1620,18 @@ function JuMP.optimize!(
         solver = m.optimizer.model
         t = time()
         nlp = MathOptNLPModel(model)
-        #println("****************************************", nlp)
+		##evaluator = nlp.eval
+		##features = MOI.features_available(evaluator)
+		##has_hessian = (:Hess in features)
+		##init_feat = [:Grad]
+        ##has_hessian && push!(init_feat, :Hess)
+		#num_nlp_constraints = length(model.nlp_data.constraint_bounds)
+        #if num_nlp_constraints > 0
+        #    push!(init_feat, :Jac)
+        #end
+		##MOI.initialize(evaluator, init_feat)
+		##hessian_sparsity = has_hessian ? hessian_lagrangian_structure(solver, nlp) : []
+        ##println("****************************************hessian_sparsity: ", hessian_sparsity)
         pars = create_pars_JuMP(solver.options)
         #println("111111111111111111111111111111111111")
 	#println("111111111111111111111111111111111111", EMPTY_OPTIMIZER)
@@ -1940,3 +2009,4 @@ function MOI.get(model::OnePhaseSolver, attr::MOI.ObjectiveValue)
     MOI.check_result_index_bounds(model, attr)
     return model.inner.obj_val
 end
+

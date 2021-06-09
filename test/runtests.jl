@@ -1,6 +1,6 @@
 #cd("/home/fah33/advanced_timer")
 Base.GC.enable(false)
-include("/home/fah33/advanced_timer/src/advanced_timer.jl")
+#include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
 using JuMP, Test
@@ -126,8 +126,8 @@ function basic_tests(options::Dict{String, Any})
         set_optimizer_attribute(model, "output_level", 0)
         optimize!(model)
 	status = MOI.get(model, MOI.TerminationStatus())
-        #@test status == :Unbounded
-	@test_broken status == :Unbounded
+        @test status == :Unbounded
+	#@test_broken status == :Unbounded
 
         model = quad_unbd()
 	attachSolverWithAttributesToJuMPModel(model, options)
@@ -149,8 +149,7 @@ function basic_tests(options::Dict{String, Any})
 end
 
 function basic_tests()
-    max_it = 300
-    #max_it = 100
+    max_it = 100
     output_level = 0
     a_norm_penalty = 1e-4
     @testset "basic_tests" begin

@@ -84,9 +84,10 @@ end
 
 function eval_J_T_J(it::Class_iterate, diag_vals::Vector)
     #return it.cache.J_T * spdiagm(diag_vals) * it.cache.J
-    #println("----------------", it.cache.J_T)
-    #println("----------------", sparse(Diagonal(diag_vals)))
-    #println("----------------", it.cache.J)
+    #println("1----------------it.cache.J_T: ", Matrix(it.cache.J_T))
+    #println("2----------------spdiagm(diag_vals): ", Matrix(spdiagm(diag_vals)))
+    #println("3----------------it.cache.J: ", Matrix(it.cache.J))
+    #println("4----------------return: ", Matrix(it.cache.J_T * sparse(Diagonal(diag_vals)) * it.cache.J))
     return it.cache.J_T * sparse(Diagonal(diag_vals)) * it.cache.J
 end
 
@@ -134,6 +135,7 @@ end
 
 
 function get_lag_hess(it::Class_iterate)
+    #println("-------------------------------it.cache.H: ", Matrix(it.cache.H))
     return it.cache.H # remember this is a triangular matrix!!!!
 end
 

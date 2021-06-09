@@ -35,6 +35,7 @@ function int_bisection(f::Function, a::Int64, b::Int64)
 end
 
 function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_solver, pars::Class_parameters, timer::class_advanced_timer)
+    #println("#########################")
     step_info = Blank_ls_info()
 
     MAX_IT = 500
@@ -42,6 +43,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     #DELTA_MIN = iter.point.mu * LinearAlgebra.norm(iter.point.y,Inf) / 100.0 #
     DELTA_MIN = pars.delta.min
     DELTA_MAX = pars.delta.max
+    #println("1------------------Reached Here----------------------")
 
     #Q = get_lag_hess(iter)
     #@show dist_diag_dom(Q)
@@ -50,8 +52,9 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
 
     inertia = 0
     status = :none
-
+    #println("------------------Reached Here---------------------- kkt_solver: ", kkt_solver)
     tau = 1.5 * diag_min(kkt_solver)
+    #println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^tau: ", tau) 
     #Q = Symmetric(kkt_solver.M,:L)
     #eigvals,vec, = eigs(Q,nev=1,which=:SR,maxiter=10,tol=1e4)
     #@show eigvals
@@ -59,21 +62,22 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
     #v = v /LinearAlgebra.norm(v,2)
     #@show dot(v,Q * v)
     delta = DELTA_ZERO
-
+    #println("3------------------Reached Here----------------------")
     # see if we can succeed with delta = DELTA_ZERO
     if tau > 0.0
       tau = 0.0
       inertia = factor!( kkt_solver, delta, timer )
       num_fac += 1
+      #println("*********************************************inertia: ", inertia)
       if inertia == 1
         return :success, num_fac, delta
       end
     end
-
+    #println("4------------------Reached Here----------------------")
     if pars.output_level >= 4
         println(pd("delta"), pd("inertia"))
     end
-
+    #println("5------------------Reached Here----------------------")
     for i = 1:MAX_IT
         if pars.output_level >= 4
           println("delta=",rd(delta), "inertia=", pd(inertia))
@@ -93,6 +97,8 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         num_fac += 1
 
         n = length(iter.point.x)
+        #println("###############################inertia: ", inertia)
+        #println("###############################is_diag_dom: ", is_diag_dom(kkt_solver.Q[1:n,1:n]))
         if inertia == 1
           return :success, num_fac, delta
         elseif is_diag_dom(kkt_solver.Q[1:n,1:n])

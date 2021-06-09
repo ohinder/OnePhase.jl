@@ -16,8 +16,8 @@ where the functions ![f : R^n -> R](misc/f.gif) and ![a : R^n -> R^m](misc/a.gif
 ## How to install
 
 ```julia
-Pkg.clone("https://github.com/ohinder/advanced_timer.jl")
-Pkg.clone("https://github.com/ohinder/OnePhase.git")
+add https://github.com/ohinder/advanced_timer.jl
+add https://github.com/ohinder/OnePhase.git
 ```
 
 ## How to use with JuMP

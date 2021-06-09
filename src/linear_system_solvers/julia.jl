@@ -31,6 +31,7 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				try
 					if !solver.recycle || !solver._factor_defined
 						#solver._factor = cholfact(Symmetric(SparseMatrix,:L));
+                                                #println("---------------------", Matrix(Symmetric(SparseMatrix,:L)))  
 						solver._factor = cholesky(Symmetric(SparseMatrix,:L));
 						solver._factor_defined = true
 					else

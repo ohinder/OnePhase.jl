@@ -15,7 +15,7 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel)
 end
 
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parameters)
-    #println("0----------------------------------------------")
+    #println("0----------------------------------------------", pars.init.init_style)
     nlp = Class_CUTEst(nlp_raw);
     #println("1----------------------------------------------")
     timer = class_advanced_timer()

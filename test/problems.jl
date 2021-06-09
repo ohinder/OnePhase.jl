@@ -70,8 +70,8 @@ function test_rosenbrook2(options::Dict{String, Any})
 	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #@test status == :Optimal
-        @test_broken status == :Optimal
+        @test status == :Optimal
+        #@test_broken status == :Optimal
         
         check_rosenbrook(model)
     end
@@ -96,8 +96,8 @@ function test_rosenbrook3(options::Dict{String, Any})
 	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #@test status == :Optimal
-	@test_broken status == :Optimal
+        @test status == :Optimal
+	##@test_broken status == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -124,18 +124,19 @@ function test_rosenbrook4(options::Dict{String, Any})
 	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        @test_broken status == :Optimal
+        #@test_broken status == :Optimal
+        @test status == :Optimal
     end
 end
 
 
 function check_rosenbrook(model)
     tol = 1e-3
-    #@test abs(getvalue(model[:x]) - 2.0) < tol
-    #@test abs(getvalue(model[:y]) - 4.0) < tol
+    @test abs(getvalue(model[:x]) - 2.0) < tol
+    @test abs(getvalue(model[:y]) - 4.0) < tol
     
-    @test_broken abs(getvalue(model[:x]) - 2.0) < tol
-    @test_broken abs(getvalue(model[:y]) - 4.0) < tol
+    ##@test_broken abs(getvalue(model[:x]) - 2.0) < tol
+    ##@test_broken abs(getvalue(model[:y]) - 4.0) < tol
 
 end
 
