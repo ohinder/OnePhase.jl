@@ -131,8 +131,10 @@ function basic_tests(options::Dict{String, Any})
 
         model = quad_unbd()
 	attachSolverWithAttributesToJuMPModel(model, options)
-        status = optimize!(model)
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
         @test_broken status == :Unbounded
+        #@test status == :Unbounded
 
     end
 
@@ -149,7 +151,8 @@ function basic_tests(options::Dict{String, Any})
 end
 
 function basic_tests()
-    max_it = 100
+    #max_it = 100
+    max_it = 81
     output_level = 0
     a_norm_penalty = 1e-4
     @testset "basic_tests" begin
