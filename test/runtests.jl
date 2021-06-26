@@ -16,9 +16,9 @@ include("linear_system_solvers.jl")
 include("test_moi_nlp_solver.jl")
 
 function unit_tests()
-    test_compare_columns()
-    test_compute_indicies()
-    test_linear_solvers()
+    #test_compare_columns()
+    #test_compute_indicies()
+    #test_linear_solvers()
     test_kkt_solvers()
 end
 
@@ -235,5 +235,5 @@ end
 
 # lets run the tests!
 unit_tests()
-moi_nlp_tests()
-basic_tests()
+#moi_nlp_tests()
+#basic_tests()
