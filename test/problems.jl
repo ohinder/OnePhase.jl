@@ -20,7 +20,7 @@ function rosenbrook1()
     #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
     #if this can be fixed in the code
     #@constraint(model , x >= 0)
-    @NLconstraint(model , (x + y)^2 >= 0)
+    #@NLconstraint(model , (x + y)^2 >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
 end
@@ -506,7 +506,7 @@ end
 
 function quad_unbd()
     model = Model()
-    @variable(model, x, start = 0.1)
+    @variable(model, x)
     @variable(model, y)
     @NLobjective(model, Min, x)
     @NLconstraint(model, x^2 <= y)
