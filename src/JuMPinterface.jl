@@ -1266,11 +1266,18 @@ end
 #=
 function jac_coord(nlp :: MathOptNLPModel, x :: Array{Float64})
   NLPModels.increment!(nlp, :neval_jac)
-  MOI.eval_constraint_jacobian(nlp.eval, nlp.lincon.jacobian.vals, x)
-  return (nlp.lincon.jacobian.rows, nlp.lincon.jacobian.cols, nlp.lincon.jacobian.vals)
+  #println("++++++++++++++++++++++++++++++++++++nlp.lincon: ", nlp.lincon)
+  #println("+++++++++++++++++++++++++++nlp.lincon.jacobian: ", nlp.lincon.jacobian)
+  #println("++++++++++++++++++++++nlp.lincon.jacobian.vals: ", nlp.lincon.jacobian.vals)
+  println("++++++++++++++++++++++++++++++++++++nlp.jrows: ", NLPModels.jac_structure(nlp)[1])
+  println("+++++++++++++++++++++++++++nlp.jcols: ", NLPModels.jac_structure(nlp)[2])
+  println("++++++++++++++++++++++nlp.jvals: ", NLPModels.jac_coord(nlp, x))
+  MOI.eval_constraint_jacobian(nlp.eval, NLPModels.jac_coord(nlp, x), x)
+  return (NLPModels.jac_structure(nlp)[1], NLPModels.jac_structure(nlp)[2], NLPModels.jac_coord(nlp, x))
 end
-=#
+
 function NLPModels.jac_coord!(nlp::MathOptNLPModel, x::AbstractVector, vals::AbstractVector)
+  println("1*************************HERE**************************")
   increment!(nlp, :neval_jac)
   if nlp.meta.nlin > 0
     vals[1:(nlp.lincon.nnzj)] .= nlp.lincon.jacobian.vals[1:(nlp.lincon.nnzj)]
@@ -1280,7 +1287,7 @@ function NLPModels.jac_coord!(nlp::MathOptNLPModel, x::AbstractVector, vals::Abs
   end
   return vals
 end
-#=
+
 function jac(nlp :: MathOptNLPModel, x :: Array{Float64})
   return SparseArrays.sparse(jac_coord(nlp, x)..., nlp.meta.ncon, nlp.meta.nvar)
 end
@@ -1413,6 +1420,8 @@ function hess_coord(nlp :: MathOptNLPModel, x :: Array{Float64};
   #println("7++++++++++++++++++++++++++++++++nlp.obj.hessian.cols: ", nlp.obj.hessian.cols)
   #println("8++++++++++++++++++++++++++++++++nlp.obj.hessian.vals: ", nlp.obj.hessian.vals)
   #println("9++++++++++++++++++++++++++++++++hess_coord: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
+  #println("4++++++++++++++++++++++++++++++++++++++++x: ", x)
+  #println("5++++++++++++++++++++++++++++++++++++++++y: ", y)
   #println("6++++++++++++++++++++++++++++++++nlp.hrows: ", NLPModels.hess_structure(nlp)[1])
   #println("7++++++++++++++++++++++++++++++++nlp.hcols: ", NLPModels.hess_structure(nlp)[2])
   #println("8++++++++++++++++++++++++++++++++nlp.hvals: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))

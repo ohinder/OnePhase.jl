@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 #println("HSL library not working")
+=======
+println("HSL library not working")
+
+>>>>>>> 3ec239fb3ac9f2d2ae0be2c3544248c566977de2
 print("loading HSL lib ... ")
 using HSL
 println("HSL lib loaded.")

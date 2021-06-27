@@ -19,7 +19,7 @@ mutable struct Parallel_row_group
 end
 
 # find and detect all parrell constraints
-# e.g., a' * x and θ * a' * x
+# e.g., a' * x and ? * a' * x
 # not only eliminate duplicate bound constraints
 # algorithm: scale all vectors so first element is one and sort list
 mutable struct Clever_Symmetric_KKT_solver <: abstract_KKT_system_solver
@@ -339,6 +339,12 @@ end
 
 
 function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_iterate, timer::class_advanced_timer)
+    #iter.point.x = [0.7172101662159924]
+    #iter.point.x = [0.2780016069742466]
+    #iter.point.x = [0.0]
+    #iter.point.y = [1.4998500149985006]
+    #iter.point.s = [11.489889426994338]
+
     k = kkt_solver
     start_advanced_timer(timer, "symmetric/form_system");
     J = get_jac(iter) #.cache.J
@@ -395,6 +401,14 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     kkt_solver.schur_diag = compute_schur_diag(iter)
     kkt_solver.true_x_diag = diag(M)[1:dim(iter)]
     kkt_solver.ready = :system_formed
+    #println("#############################################kkt_solver.Q: ", Matrix(kkt_solver.Q))
+    #println("#####################################kkt_solver.factor_it: ", kkt_solver.factor_it)
+    #println("####################################kkt_solver.schur_diag: ", kkt_solver.schur_diag)
+
+    println("#############################################iter.point.x: ", iter.point.x)
+    println("#####################################iter.point.y: ", iter.point.y)
+    println("####################################iter.point.s: ", iter.point.s)
+
     pause_advanced_timer(timer, "symmetric/allocate");
 
 end
@@ -426,9 +440,15 @@ function compute_direction_implementation!(kkt_solver::Clever_Symmetric_KKT_solv
     y_org = get_y(kkt_solver.factor_it)
     s_org = get_s(kkt_solver.factor_it)
     rhs = kkt_solver.rhs;
+    println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
+    println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
 
     start_advanced_timer(timer, "symmetric/rhs_clever")
     symmetric_primal_rhs = rhs.primal_r + rhs.comp_r ./ y_org
+    println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
+    println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
+    println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
+    println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
 
     m = length(kkt_solver.para_row_info)
     clever_symmetric_primal_rhs = zeros(m)

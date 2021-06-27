@@ -35,7 +35,10 @@ function kkt_associate_rhs!(kkt_solver::abstract_schur_solver, iter::Class_itera
     start_advanced_timer(timer, "KKT/rhs");
 
     kkt_solver.rhs = System_rhs(iter, reduct_factors)
+    println("#####################################kkt_solver.rhs: ", kkt_solver.rhs)
     kkt_solver.dir.mu = -(1.0 - reduct_factors.mu) * get_mu(iter)
+    println("++++++++++++++++++++++++++++++++++++kkt_solver.dir.mu: ", kkt_solver.dir.mu)
+    println("++++++++++++++++++++++++++++++++++++get_mu(iter): ", get_mu(iter))
     kkt_solver.dir.primal_scale = -(1.0 - reduct_factors.P) * iter.point.primal_scale
 
     kkt_solver.reduct_factors = reduct_factors
@@ -46,7 +49,8 @@ end
 
 function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, timer::class_advanced_timer)
     # form the matrix before we factorize it
-
+    #iter.point.x = [0.2780016069742466]
+    #iter.point.x = [0.0]
     start_advanced_timer(timer, "SCHUR")
     start_advanced_timer(timer, "SCHUR/form_system");
 
@@ -58,6 +62,13 @@ function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, ti
     kkt_solver.schur_diag = diag(kkt_solver.Q)
     kkt_solver.factor_it = iter;
     kkt_solver.ready = :system_formed
+    #println("#############################################kkt_solver.Q: ", Matrix(kkt_solver.Q))
+    #println("#####################################kkt_solver.factor_it: ", kkt_solver.factor_it)
+    #println("####################################kkt_solver.schur_diag: ", kkt_solver.schur_diag)
+
+    println("#############################################iter.point.x: ", iter.point.x)
+    println("#####################################iter.point.y: ", iter.point.y)
+    println("####################################iter.point.s: ", iter.point.s)
 
     pause_advanced_timer(timer, "SCHUR/form_system");
     pause_advanced_timer(timer, "SCHUR");
@@ -93,17 +104,24 @@ function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::
     start_advanced_timer(timer, "SCHUR")
 
     factor_it = kkt_solver.factor_it
-    #∇a_org = get_jac(factor_it);
+    #?a_org = get_jac(factor_it);
     y_org = get_y(factor_it);
     s_org = get_s(factor_it);
-
+    println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
+    println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
     rhs = kkt_solver.rhs
 
-    #r1 + ∇a_org' * (( r3 + (r2 .* y_org) ) ./ s_org)
+    #r1 + ?a_org' * (( r3 + (r2 .* y_org) ) ./ s_org)
     start_advanced_timer(timer, "SCHUR/rhs");
     symmetric_primal_rhs = rhs.primal_r + rhs.comp_r ./ y_org
-    Σ_vec = ( y_org ./ s_org )
-    y_ = (rhs.primal_r .* Σ_vec + rhs.comp_r ./ s_org )
+    println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
+    println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
+    println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
+    println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
+    println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r - rhs.comp_r ./ y_org)
+    println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r + rhs.comp_r ./ y_org)
+    S_vec = ( y_org ./ s_org )
+    y_ = (rhs.primal_r .* S_vec + rhs.comp_r ./ s_org )
     schur_rhs = rhs.dual_r + eval_jac_T_prod(factor_it, y_)
     pause_advanced_timer(timer, "SCHUR/rhs");
 
@@ -113,8 +131,8 @@ function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::
     # there are two ways to update s and y
     if true
       #J = get_jac(kkt_solver.current_it)
-      dir.y = -(eval_jac_prod(factor_it,dir.x) - symmetric_primal_rhs) .* Σ_vec
-      #dir.y = -(J * dir.x - symmetric_primal_rhs) .* Σ_vec
+      dir.y = -(eval_jac_prod(factor_it,dir.x) - symmetric_primal_rhs) .* S_vec
+      #dir.y = -(J * dir.x - symmetric_primal_rhs) .* S_vec
       #dir.s = ( rhs.comp_r - dir.y .* s_org ) ./ y_org
       dir.s = eval_jac_prod(factor_it,dir.x) - rhs.primal_r
     else
@@ -136,15 +154,15 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
   # The main purpose of this function is to do iterative refinement.
 
   fit = kkt_solver.factor_it
-  #∇a_org = get_jac(factor_it);
+  #?a_org = get_jac(factor_it);
   y_org = get_y(fit);
   s_org = get_s(fit);
-  #(symmetric_primal_rhs .* Σ_vec);Σ
+  #(symmetric_primal_rhs .* S_vec);S
   dir = kkt_solver.dir;
   pars = kkt_solver.pars
 
-  Σ_vec = ( y_org ./ s_org )
-  sqrt_Σ_vec = sqrt.( y_org ./ s_org )
+  S_vec = ( y_org ./ s_org )
+  sqrt_S_vec = sqrt.( y_org ./ s_org )
 
   # generalize!!!
   output_level = pars.output_level
@@ -169,7 +187,7 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
       dir_x .+= ls_solve(kkt_solver.ls_solver, res_old, timer);
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
-      jac_res = eval_jac_T_prod( fit , Σ_vec .* eval_jac_prod(fit, dir_x) )
+      jac_res = eval_jac_T_prod( fit , S_vec .* eval_jac_prod(fit, dir_x) )
       hess_res = hess_product(fit, dir_x) + kkt_solver.delta_x_vec .* dir_x
       res_old = schur_rhs - ( jac_res + hess_res )
       #println("1111111111111111111111", typeof(jac_res))
