@@ -235,5 +235,5 @@ end
 
 # lets run the tests!
 unit_tests()
-#moi_nlp_tests()
-#basic_tests()
+moi_nlp_tests()
+basic_tests()

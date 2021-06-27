@@ -35,10 +35,10 @@ function kkt_associate_rhs!(kkt_solver::abstract_schur_solver, iter::Class_itera
     start_advanced_timer(timer, "KKT/rhs");
 
     kkt_solver.rhs = System_rhs(iter, reduct_factors)
-    println("#####################################kkt_solver.rhs: ", kkt_solver.rhs)
+    #println("#####################################kkt_solver.rhs: ", kkt_solver.rhs)
     kkt_solver.dir.mu = -(1.0 - reduct_factors.mu) * get_mu(iter)
-    println("++++++++++++++++++++++++++++++++++++kkt_solver.dir.mu: ", kkt_solver.dir.mu)
-    println("++++++++++++++++++++++++++++++++++++get_mu(iter): ", get_mu(iter))
+    #println("++++++++++++++++++++++++++++++++++++kkt_solver.dir.mu: ", kkt_solver.dir.mu)
+    #println("++++++++++++++++++++++++++++++++++++get_mu(iter): ", get_mu(iter))
     kkt_solver.dir.primal_scale = -(1.0 - reduct_factors.P) * iter.point.primal_scale
 
     kkt_solver.reduct_factors = reduct_factors
@@ -66,9 +66,9 @@ function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, ti
     #println("#####################################kkt_solver.factor_it: ", kkt_solver.factor_it)
     #println("####################################kkt_solver.schur_diag: ", kkt_solver.schur_diag)
 
-    println("#############################################iter.point.x: ", iter.point.x)
-    println("#####################################iter.point.y: ", iter.point.y)
-    println("####################################iter.point.s: ", iter.point.s)
+    #println("#############################################iter.point.x: ", iter.point.x)
+    #println("#####################################iter.point.y: ", iter.point.y)
+    #println("####################################iter.point.s: ", iter.point.s)
 
     pause_advanced_timer(timer, "SCHUR/form_system");
     pause_advanced_timer(timer, "SCHUR");
@@ -107,19 +107,19 @@ function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::
     #?a_org = get_jac(factor_it);
     y_org = get_y(factor_it);
     s_org = get_s(factor_it);
-    println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
-    println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
+    #println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
+    #println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
     rhs = kkt_solver.rhs
 
     #r1 + ?a_org' * (( r3 + (r2 .* y_org) ) ./ s_org)
     start_advanced_timer(timer, "SCHUR/rhs");
     symmetric_primal_rhs = rhs.primal_r + rhs.comp_r ./ y_org
-    println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
-    println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
-    println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
-    println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
-    println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r - rhs.comp_r ./ y_org)
-    println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r + rhs.comp_r ./ y_org)
+    #println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
+    #println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
+    #println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
+    #println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
+    #println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r - rhs.comp_r ./ y_org)
+    #println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r + rhs.comp_r ./ y_org)
     S_vec = ( y_org ./ s_org )
     y_ = (rhs.primal_r .* S_vec + rhs.comp_r ./ s_org )
     schur_rhs = rhs.dual_r + eval_jac_T_prod(factor_it, y_)

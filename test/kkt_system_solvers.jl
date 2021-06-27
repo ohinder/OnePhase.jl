@@ -113,13 +113,8 @@ function test_kkt_solvers(jump_model)
 
 #Original Code
     dir_schur = test_kkt_solver(jump_model,pars)
-<<<<<<< HEAD
     #@test_broken begin
     begin
-=======
-#=
-    @test_broken begin
->>>>>>> 3ec239fb3ac9f2d2ae0be2c3544248c566977de2
         pars.kkt.kkt_solver_type=:symmetric
         pars.kkt.linear_solver_type=:HSL
 
@@ -129,7 +124,7 @@ function test_kkt_solvers(jump_model)
         @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
         @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
     end
-=#
+
 #Updated Code
 
     begin
@@ -137,26 +132,22 @@ function test_kkt_solvers(jump_model)
         pars.kkt.linear_solver_type=:julia
 
         dir_sym = test_kkt_solver(jump_model,pars)
-        println("----------------------------dir_schur.x: ", dir_schur.x)
-        println("------------------------------dir_sym.x: ", dir_sym.x)
-        println("----------------------------dir_schur.y: ", dir_schur.y)
-        println("------------------------------dir_sym.y: ", dir_sym.y)
-        println("----------------------------dir_schur.s: ", dir_schur.s)
-        println("------------------------------dir_sym.s: ", dir_sym.s)
+        #println("----------------------------dir_schur.x: ", dir_schur.x)
+        #println("------------------------------dir_sym.x: ", dir_sym.x)
+        #println("----------------------------dir_schur.y: ", dir_schur.y)
+        #println("------------------------------dir_sym.y: ", dir_sym.y)
+        #println("----------------------------dir_schur.s: ", dir_schur.s)
+        #println("------------------------------dir_sym.s: ", dir_sym.s)
 
-<<<<<<< HEAD
     #@test_broken begin
-    begin
-=======
         @test LinearAlgebra.norm(dir_schur.x - dir_sym.x,2)<1e-6
         @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
         @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
     end
 
 #Original Code
-#=
-    @test_broken begin
->>>>>>> 3ec239fb3ac9f2d2ae0be2c3544248c566977de2
+    #@test_broken 
+    begin
         pars.kkt.kkt_solver_type=:clever_symmetric
         pars.kkt.linear_solver_type=:HSL
 
@@ -166,7 +157,7 @@ function test_kkt_solvers(jump_model)
         @test LinearAlgebra.norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
         @test LinearAlgebra.norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
     end
-=#
+
 #Updated Code
 
     begin
@@ -175,11 +166,11 @@ function test_kkt_solvers(jump_model)
 
         dir_clever_sym =test_kkt_solver(jump_model,pars)
         #println("----------------------------dir_schur.x: ", dir_schur.x)
-        println("-----------------------dir_clever_sym.x: ", dir_clever_sym.x)
+        #println("-----------------------dir_clever_sym.x: ", dir_clever_sym.x)
         #println("----------------------------dir_schur.y: ", dir_schur.y)
-        println("-----------------------dir_clever_sym.y: ", dir_clever_sym.y)
+        #println("-----------------------dir_clever_sym.y: ", dir_clever_sym.y)
         #println("----------------------------dir_schur.s: ", dir_schur.s)
-        println("-----------------------dir_clever_sym.s: ", dir_clever_sym.s)
+        #println("-----------------------dir_clever_sym.s: ", dir_clever_sym.s)
         @test LinearAlgebra.norm(dir_schur.x - dir_clever_sym.x,2)<1e-6
         @test LinearAlgebra.norm(dir_clever_sym.y - dir_schur.y,2)<1e-6
         @test LinearAlgebra.norm(dir_clever_sym.s - dir_schur.s,2)<1e-6
@@ -191,7 +182,7 @@ function test_kkt_solvers()
     @testset "test_kkt_solvers" begin
 	jump_model = toy_lp0()
         test_kkt_solvers(jump_model)
-#=
+
         jump_model = toy_lp1()
         test_kkt_solvers(jump_model)
 
@@ -215,7 +206,7 @@ function test_kkt_solvers()
 
         jump_model = toy_lp8()
         test_kkt_solvers(jump_model)
-=#
+
     end
 end
 

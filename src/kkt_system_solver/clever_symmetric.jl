@@ -405,9 +405,9 @@ function form_system!(kkt_solver::Clever_Symmetric_KKT_solver, iter::Class_itera
     #println("#####################################kkt_solver.factor_it: ", kkt_solver.factor_it)
     #println("####################################kkt_solver.schur_diag: ", kkt_solver.schur_diag)
 
-    println("#############################################iter.point.x: ", iter.point.x)
-    println("#####################################iter.point.y: ", iter.point.y)
-    println("####################################iter.point.s: ", iter.point.s)
+    #println("#############################################iter.point.x: ", iter.point.x)
+    #println("#####################################iter.point.y: ", iter.point.y)
+    #println("####################################iter.point.s: ", iter.point.s)
 
     pause_advanced_timer(timer, "symmetric/allocate");
 
@@ -440,15 +440,15 @@ function compute_direction_implementation!(kkt_solver::Clever_Symmetric_KKT_solv
     y_org = get_y(kkt_solver.factor_it)
     s_org = get_s(kkt_solver.factor_it)
     rhs = kkt_solver.rhs;
-    println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
-    println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
+    #println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
+    #println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
 
     start_advanced_timer(timer, "symmetric/rhs_clever")
     symmetric_primal_rhs = rhs.primal_r + rhs.comp_r ./ y_org
-    println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
-    println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
-    println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
-    println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
+    #println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
+    #println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
+    #println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
+    #println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
 
     m = length(kkt_solver.para_row_info)
     clever_symmetric_primal_rhs = zeros(m)
