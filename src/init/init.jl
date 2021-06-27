@@ -19,7 +19,6 @@ end
 function mehrotra_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_timer)
     start_advanced_timer(timer, "INIT/x")
     x0 = suggested_starting_point(nlp)
-    x0 += rand(length(x0)) * 1.0
 
     if pars.init.start_satisfying_bounds
       x = projection_onto_bounds_ipopt_style( nlp, pars, x0 )
