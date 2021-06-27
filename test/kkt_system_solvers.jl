@@ -106,7 +106,8 @@ function test_kkt_solvers(jump_model)
     pars.output_level = 0
 
     dir_schur = test_kkt_solver(jump_model,pars)
-    @test_broken begin
+    #@test_broken begin
+    begin
         pars.kkt.kkt_solver_type=:symmetric
         pars.kkt.linear_solver_type=:HSL
 
@@ -117,7 +118,8 @@ function test_kkt_solvers(jump_model)
         @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
     end
 
-    @test_broken begin
+    #@test_broken begin
+    begin
         pars.kkt.kkt_solver_type=:clever_symmetric
         pars.kkt.linear_solver_type=:HSL
 
