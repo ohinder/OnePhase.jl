@@ -44,7 +44,7 @@ end
 function test_ma57(A,b,n,m,inertia,timer)
     safe = false
     recycle = false
-    solver_julia = OnePhase.linear_solver_HSL(:symmetric, safe, recycle)
+    solver_julia = OnePhase.linear_solver_HSL(:symmetric, safe, recycle, 0.0)
     OnePhase.initialize!(solver_julia)
     @test inertia == OnePhase.ls_factor!(solver_julia, A, n, m, timer)
     res1 = zeros(length(b))
@@ -66,10 +66,10 @@ function run_linear_solvers(A,b,n,m,inertia)
     dir_julia_chol = test_julia_chol(A,b,n,m,inertia,timer)
     @test LinearAlgebra.norm(dir_julia_sym - dir_julia_chol) < tol
 
-    @test_broken dir_ma57 = test_ma57(A,b,n,m,inertia,timer)
-    @test_broken LinearAlgebra.norm(dir_ma57 - dir_julia_chol) < tol
-    #@test dir_ma57 = test_ma57(A,b,n,m,inertia,timer)
-    #@test LinearAlgebra.norm(dir_ma57 - dir_julia_chol) < tol
+    #@test_broken dir_ma57 = test_ma57(A,b,n,m,inertia,timer)
+    #@test_broken LinearAlgebra.norm(dir_ma57 - dir_julia_chol) < tol
+    dir_ma57 = test_ma57(A,b,n,m,inertia,timer)
+    @test LinearAlgebra.norm(dir_ma57 - dir_julia_chol) < tol
 
     A_2 = (A + A')
     for i = 1:size(A,1)
@@ -82,10 +82,10 @@ function run_linear_solvers(A,b,n,m,inertia)
     @test LinearAlgebra.norm(dir_julia_sym - dir_julia_sym_2) < tol
     dir_julia_chol_2 = test_julia_chol(A_2,b,n,m,inertia,timer)
     @test LinearAlgebra.norm(dir_julia_chol - dir_julia_chol_2) < tol
-    @test_broken dir_ma57_2 = test_ma57(A_2,b,n,m,inertia,timer)
-    @test_broken LinearAlgebra.norm(dir_ma57 - dir_ma57_2) < tol
-    #@test dir_ma57_2 = test_ma57(A_2,b,n,m,inertia,timer)
-    #@test LinearAlgebra.norm(dir_ma57 - dir_ma57_2) < tol
+    #@test_broken dir_ma57_2 = test_ma57(A_2,b,n,m,inertia,timer)
+    #@test_broken LinearAlgebra.norm(dir_ma57 - dir_ma57_2) < tol
+    dir_ma57_2 = test_ma57(A_2,b,n,m,inertia,timer)
+    @test LinearAlgebra.norm(dir_ma57 - dir_ma57_2) < tol
 
     OnePhase.pause_advanced_timer(timer)
 end
