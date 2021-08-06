@@ -10,6 +10,7 @@ using Statistics
 using Printf
 
 include("../src/OnePhase.jl")
+@show OnePhase.USE_HSL
 include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
