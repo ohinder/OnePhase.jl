@@ -1,5 +1,5 @@
 #cd("/home/fah33/advanced_timer")
-Base.GC.enable(false)
+#Base.GC.enable(false)
 #include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
