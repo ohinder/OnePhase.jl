@@ -11,6 +11,8 @@ using Printf
 
 include("../src/OnePhase.jl")
 @show OnePhase.USE_HSL
+TEST_MOI = false
+include("CUTEst.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
@@ -42,10 +44,9 @@ function basic_tests(options::Dict{String, Any})
         test_toy_lp6(options)
         test_toy_lp7(options)
     end
-
     @testset "infeasible" begin
         model = toy_lp_inf1()
-	attachSolverWithAttributesToJuMPModel(model, options)
+	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Infeasible
@@ -57,7 +58,7 @@ function basic_tests(options::Dict{String, Any})
         @test status == :Infeasible
 
         model = circle_nc_inf1()
-	attachSolverWithAttributesToJuMPModel(model, options)
+	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         #println("--------------------------------------", status)
@@ -86,7 +87,7 @@ function basic_tests(options::Dict{String, Any})
 
         @testset "quad_opt" begin
             model = quad_opt()
-	    attachSolverWithAttributesToJuMPModel(model, options)
+	        attachSolverWithAttributesToJuMPModel(model, options)
             optimize!(model)
             status = MOI.get(model, MOI.TerminationStatus())
 
@@ -98,7 +99,7 @@ function basic_tests(options::Dict{String, Any})
 
     @testset "nonconvex" begin
         model = circle_nc1()
-	attachSolverWithAttributesToJuMPModel(model, options)
+    	attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
@@ -106,7 +107,7 @@ function basic_tests(options::Dict{String, Any})
         check_circle_nc1(model)
 
         model = circle_nc2()
-	attachSolverWithAttributesToJuMPModel(model, options)
+	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
@@ -115,7 +116,6 @@ function basic_tests(options::Dict{String, Any})
     end
 
     @testset "unbounded_opt_val" begin
-
         model = lp_unbd()
         attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
@@ -123,20 +123,17 @@ function basic_tests(options::Dict{String, Any})
         @test :Unbounded == status
 
         model = circle_nc_unbd()
-	attachSolverWithAttributesToJuMPModel(model, options)
+	    attachSolverWithAttributesToJuMPModel(model, options)
         set_optimizer_attribute(model, "output_level", 0)
         optimize!(model)
-	status = MOI.get(model, MOI.TerminationStatus())
+	    status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Unbounded
-	#@test_broken status == :Unbounded
 
         model = quad_unbd()
-	attachSolverWithAttributesToJuMPModel(model, options)
+	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test_broken status == :Unbounded
-        #@test status == :Unbounded
-
     end
 
     @testset "unbounded_feasible_region" begin
@@ -236,5 +233,13 @@ end
 
 # lets run the tests!
 unit_tests()
+cutest_tests()
 moi_nlp_tests()
 basic_tests()
+
+x0 = [-1.2; 1.0]
+model = Model() # No solver is required
+@variable(model, x[i=1:2], start=x0[i])
+@NLobjective(model, Min, (x[1] - 1)^2 + 100 * (x[2] - x[1]^2)^2)
+@NLconstraint(model, x[1]^2 + x[2] <= 1.0)
+result = OnePhase.one_phase_solve(model)
