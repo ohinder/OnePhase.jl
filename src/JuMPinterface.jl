@@ -1,4 +1,4 @@
-#using MathProgBase 
+#using MathProgBase
 import MathOptInterface
 #using SparseArrays
 
@@ -173,7 +173,7 @@ mutable struct OnePhaseSolver <: MOI.AbstractOptimizer
     #inner::OnePhaseProblem
 	inner::Union{OnePhaseProblem, Nothing}
 	#inner::Union{Model, Nothing}
-	
+
     # Problem data.
     #eval :: Union{MOI.AbstractNLPEvaluator, Nothing}
 	variable_info::Vector{VariableInfo}
@@ -200,18 +200,18 @@ mutable struct OnePhaseSolver <: MOI.AbstractOptimizer
     #status :: Symbol
     #nlp_loaded::Bool
     #number_solved::Int
-	
+
 	# Parameters.
 	silent::Bool
 	options::Dict{String, Any}
-	
+
 	# Solution attributes.
     solve_time::Float64
 end
 
 function OnePhaseSolver(; options...)
 	options_dict = Dict{String, Any}()
-    
+
 	for (name, value) in options
         options_dict[string(name)] = value
     end
@@ -236,7 +236,7 @@ function OnePhaseSolver(; options...)
         NaN,
     )
     set_options(onePhaseSolverModel, options)
-	
+
 	return onePhaseSolverModel
 end
 
@@ -442,7 +442,7 @@ function MOI.add_constraint(
     #quadratic_le_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.LessThan{Float64}}}
     #quadratic_ge_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.GreaterThan{Float64}}}
     #quadratic_eq_constraints::Vector{ConstraintInfo{MOI.ScalarQuadraticFunction{Float64}, MOI.EqualTo{Float64}}}
-	
+
     check_inbounds(model, func)
 	push!(model.linear_ge_constraints, ConstraintInfo(func, gt))
     return MOI.ConstraintIndex{MOI.ScalarAffineFunction, MOI.GreaterThan{Float64}}(length(model.linear_ge_constraints))
@@ -1187,10 +1187,12 @@ function grad!(nlp :: MathProgNLPModel, x :: Array{Float64}, g :: Array{Float64}
   return g
 end
 =#
+#=
 function grad(nlp :: MathOptNLPModel, x :: Array{Float64})
   g = zeros(nlp.meta.nvar)
   return grad!(nlp, x, g)
 end
+=#
 #=
 function grad!(nlp :: MathOptNLPModel, x :: Array{Float64}, g :: Array{Float64})
   NLPModels.increment!(nlp, :neval_grad)
@@ -1198,6 +1200,7 @@ function grad!(nlp :: MathOptNLPModel, x :: Array{Float64}, g :: Array{Float64})
   return g
 end
 =#
+#=
 function NLPModels.grad!(nlp::MathOptNLPModel, x::AbstractVector, g::AbstractVector)
   increment!(nlp, :neval_grad)
   if nlp.obj.type == "LINEAR"
@@ -1212,16 +1215,21 @@ function NLPModels.grad!(nlp::MathOptNLPModel, x::AbstractVector, g::AbstractVec
   end
   return g
 end
+=#
 #=
 function cons(nlp :: MathProgNLPModel, x :: Array{Float64})
   c = zeros(nlp.meta.ncon)
   return cons!(nlp, x, c)
 end
 =#
-function cons(nlp :: MathOptNLPModel, x :: Array{Float64})
+#=
+function cons(nlp :: NLPModels.AbstractNLPModel, x :: Array{Float64})
+  println("1******************************HERE************************")
   c = zeros(nlp.meta.ncon)
+  println("2******************************HERE************************")
   return cons!(nlp, x, c)
 end
+=#
 #=
 function cons!(nlp :: MathProgNLPModel, x :: Array{Float64}, c :: Array{Float64})
   NLPModels.increment!(nlp, :neval_cons)
@@ -1229,14 +1237,18 @@ function cons!(nlp :: MathProgNLPModel, x :: Array{Float64}, c :: Array{Float64}
   return c
 end
 =#
-function cons!(nlp :: MathOptNLPModel, x :: Array{Float64}, c :: Array{Float64})
+#=
+function cons!(nlp :: NLPModels.AbstractNLPModel, x :: Array{Float64}, c :: Array{Float64})
   #println("-------------------------($x)---------------------($c)")
   #NLPModels.increment!(nlp, :neval_cons)
   #MOI.eval_constraint(nlp.eval, c, x)
   #return c
   NLPModels.increment!(nlp, :neval_cons)
   if nlp.meta.nlin > 0
-    #println("1###############")
+    println("1###############")
+    try
+   # println("1###############", nlp.lincon.jacobian.rows)
+    println("1###############", nlp.eval)
     coo_prod!(
       nlp.lincon.jacobian.rows,
       nlp.lincon.jacobian.cols,
@@ -1244,18 +1256,22 @@ function cons!(nlp :: MathOptNLPModel, x :: Array{Float64}, c :: Array{Float64})
       x,
       view(c, nlp.meta.lin),
     )
+    catch e
+        println(e)
+    end
   end
   if nlp.meta.nnln > 0
-    #println("2###############")
+    println("2###############")
     MOI.eval_constraint(nlp.eval, view(c, nlp.meta.nln), x)
   end
-  #println("3#########################($c): ", typeof(c))
+  println("3#########################($c): ", typeof(c))
   if c == Float64[]
       #println("------------------------------")
       return zeros(1)
   end
   return c
 end
+=#
 #=
 function jac_coord(nlp :: MathProgNLPModel, x :: Array{Float64})
   NLPModels.increment!(nlp, :neval_jac)
@@ -1451,7 +1467,7 @@ function NLPModels.hess_structure!(
   end
   return rows, cols
 end
-
+#=
 function hess(nlp :: MathOptNLPModel, x :: Array{Float64};
     obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
   #println("1++++++++++++++++++++++++++++++++x: ", x)
@@ -1466,7 +1482,7 @@ function hess(nlp :: MathOptNLPModel, x :: Array{Float64};
   return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
   #return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
 end
-
+=#
 #=
 function hprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64};
     obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
@@ -2018,4 +2034,3 @@ function MOI.get(model::OnePhaseSolver, attr::MOI.ObjectiveValue)
     MOI.check_result_index_bounds(model, attr)
     return model.inner.obj_val
 end
-

@@ -1,5 +1,5 @@
 #cd("/home/fah33/advanced_timer")
-#Base.GC.enable(false)
+Base.GC.enable(false)
 #include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
@@ -233,9 +233,9 @@ end
 
 # lets run the tests!
 unit_tests()
-cutest_tests()
 moi_nlp_tests()
 basic_tests()
+cutest_tests()
 
 x0 = [-1.2; 1.0]
 model = Model() # No solver is required

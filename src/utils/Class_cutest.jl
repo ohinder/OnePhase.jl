@@ -239,7 +239,9 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     y_cons[m.bcon.l_i] -= y_l_con(y, m)
     y_cons[m.bcon.u_i] += y_u_con(y, m)
 
-    H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
+    #H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
+    #H = hess(m.nlp, _cute_x(m, x), y=y_cons; obj_weight=w);
+    H = hess(m.nlp, _cute_x(m, x), y_cons; obj_weight=w);
     #H = hess(m.nlp, _cute_x(m, x), w, y_cons);
     #@show typeof(H)
 
