@@ -73,7 +73,7 @@ function test_rosenbrook2(options::Dict{String, Any})
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Optimal
         #@test_broken status == :Optimal
-        
+
         check_rosenbrook(model)
     end
 end
@@ -135,7 +135,7 @@ function check_rosenbrook(model)
     tol = 1e-3
     @test abs(getvalue(model[:x]) - 2.0) < tol
     @test abs(getvalue(model[:y]) - 4.0) < tol
-    
+
     ##@test_broken abs(getvalue(model[:x]) - 2.0) < tol
     ##@test_broken abs(getvalue(model[:y]) - 4.0) < tol
 
@@ -169,7 +169,6 @@ function check_toy_lp1(model)
     @test abs(getvalue(model[:y]) - 1.0) < tol
 end
 
-#function test_toy_lp1(solver)
 function test_toy_lp1(options::Dict{String, Any})
     model = toy_lp1()
     attachSolverWithAttributesToJuMPModel(model, options)
