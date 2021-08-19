@@ -1,4 +1,4 @@
-@compat abstract type abstract_alg_history end
+abstract type abstract_alg_history end
 
 export abstract_alg_history, get_col, generic_alg_history, alg_history2
 

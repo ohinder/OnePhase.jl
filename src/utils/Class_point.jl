@@ -1,4 +1,3 @@
-using Calculus
 
 mutable struct Class_point
     x::Array{Float64,1}

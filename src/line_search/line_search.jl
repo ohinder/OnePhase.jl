@@ -1,4 +1,4 @@
-@compat abstract type abstract_ls_info end
+abstract type abstract_ls_info end
 
 include("frac_boundary.jl")
 include("move.jl")

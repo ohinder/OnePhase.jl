@@ -1,6 +1,6 @@
 #importall CUTEst
 #using SparseArrays
-import CUTEst
+#import CUTEst
 
 export get_original_x, get_y
 

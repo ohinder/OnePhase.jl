@@ -7,7 +7,7 @@
 ## - symmetric.jl forms a symmetric system which can be solved using LDL
 ################################################################################
 
-@compat abstract type abstract_KKT_system_solver
+abstract type abstract_KKT_system_solver
     # list variables
 end
 # The following functions should be defined for any KKT_solver <: abstract_KKT_system_solver:
@@ -16,7 +16,7 @@ end
 # - compute_direction_implementation!(kkt_solver::KKT_solver, timer::class_advanced_timer)
 # - update_delta_vecs!(kkt_solver::KKT_solver, delta_x_vec::Array{Float64,1}, delta_s_vec::Array{Float64,1}, timer::class_advanced_timer)
 
-@compat abstract type abstract_schur_solver <: abstract_KKT_system_solver end
+abstract type abstract_schur_solver <: abstract_KKT_system_solver end
 
 function initialize!(kkt_solver::abstract_KKT_system_solver, intial_it::Class_iterate)
     # call this before running using the kkt_solver
@@ -139,13 +139,13 @@ function factor_at_approx_min_eigenvalue!(kkt_solver::abstract_KKT_system_solver
           break
         end
       end
-      
+
       counter_j = 1
       for j = 1:max_it
 	counter_j = j
-        
+
         inertia = factor!(kkt_solver, get_delta(iter))
-        
+
         if inertia == 1
             break
         else

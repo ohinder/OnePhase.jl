@@ -1,5 +1,5 @@
-@compat abstract type abstract_reduct_factors end
-@compat abstract type abstract_pars end
+abstract type abstract_reduct_factors end
+abstract type abstract_pars end
 
 mutable struct Class_kkt_solver_options <: abstract_pars
     ItRefine_Num::Int64

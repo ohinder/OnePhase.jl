@@ -8,10 +8,10 @@ using LinearAlgebra
 ################################################################################
 
 println("Loading linear_system_solvers ... ")
-@compat abstract type abstract_linear_system_solver end
+abstract type abstract_linear_system_solver end
 
 include("julia.jl")
-USE_HSL = true
+USE_HSL = false
 if USE_HSL
 	try
 		include("hsl.jl")
