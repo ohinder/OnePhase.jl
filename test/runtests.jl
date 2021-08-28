@@ -1,5 +1,5 @@
 #cd("/home/fah33/advanced_timer")
-Base.GC.enable(false)
+#Base.GC.enable(false)
 #include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
@@ -12,7 +12,7 @@ using Printf
 include("../src/OnePhase.jl")
 @show OnePhase.USE_HSL
 TEST_MOI = false
-include("CUTEst.jl")
+#include("CUTEst.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
@@ -155,61 +155,37 @@ function basic_tests()
     a_norm_penalty = 1e-4
     @testset "basic_tests" begin
         @testset "cholseky linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(max_iter=max_it,
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:schur)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
+	    	"a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:schur)
 	    basic_tests(options)
         end
 
-        println("HSL not working")
-        #=
-        @testset "Ma97 linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:symmetric,
-            #kkt!linear_solver_type=:HSL)
-            #basic_tests(solver)
-	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
-            "output_level"=>output_level,
-            "kkt!kkt_solver_type"=>:symmetric,
-            "kkt!linear_solver_type"=>:HSL)
-	    basic_tests(options)
-        end
+        #println("HSL not working")
+        if OnePhase.USE_HSL
+	        @testset "Ma97 linear system solve" begin
+		    options = Dict{String, Any}("term!max_it"=>max_it,
+		    	"a_norm_penalty"=>a_norm_penalty,
+	            "output_level"=>output_level,
+	            "kkt!kkt_solver_type"=>:symmetric,
+	            "kkt!linear_solver_type"=>:HSL)
+		    basic_tests(options)
+	        end
 
-        @testset "Ma97 linear system solve with clever elimination" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:clever_symmetric,
-            #kkt!linear_solver_type=:HSL)
-            #basic_tests(solver)
-	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
-            "output_level"=>output_level,
-            "kkt!kkt_solver_type"=>:clever_symmetric,
-            "kkt!linear_solver_type"=>:HSL)
-	    basic_tests(options)
-        end
-        =#
+	        @testset "Ma97 linear system solve with clever elimination" begin
+		    options = Dict{String, Any}("term!max_it"=>max_it,
+		    	"a_norm_penalty"=>a_norm_penalty,
+	            "output_level"=>output_level,
+	            "kkt!kkt_solver_type"=>:clever_symmetric,
+	            "kkt!linear_solver_type"=>:HSL)
+		    basic_tests(options)
+	        end
+		end
 
         @testset "LDLT julia linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:clever_symmetric,
-            #kkt!linear_solver_type=:julia)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
+	    	"a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:clever_symmetric,
             "kkt!linear_solver_type"=>:julia)
@@ -235,11 +211,16 @@ end
 unit_tests()
 moi_nlp_tests()
 basic_tests()
-cutest_tests()
+#cutest_tests()
 
+#=
 x0 = [-1.2; 1.0]
 model = Model() # No solver is required
 @variable(model, x[i=1:2], start=x0[i])
 @NLobjective(model, Min, (x[1] - 1)^2 + 100 * (x[2] - x[1]^2)^2)
 @NLconstraint(model, x[1]^2 + x[2] <= 1.0)
-result = OnePhase.one_phase_solve(model)
+pars = OnePhase.Class_parameters()
+pars.output_level = 0
+iter, status, hist, t, err, timer = OnePhase.one_phase_solve(model, pars)
+println(status)
+=#
