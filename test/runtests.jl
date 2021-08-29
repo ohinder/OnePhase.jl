@@ -208,10 +208,15 @@ function moi_nlp_tests()
 end
 
 # lets run the tests!
-unit_tests()
-moi_nlp_tests()
-basic_tests()
-#cutest_tests()
+@time begin
+  unit_tests()
+  moi_nlp_tests()
+  basic_tests()
+  #cutest_tests()
+  #executeCUTEST_Models()
+  #executeCUTEST_Models_benchmark()
+end
+
 
 #=
 x0 = [-1.2; 1.0]
