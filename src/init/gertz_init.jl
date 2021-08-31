@@ -11,13 +11,10 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
       x = projection_onto_bounds_ipopt_style( nlp, pars, x0 )
     end
     pause_advanced_timer(timer, "INIT/x")
-    y = ones(1)
-    if ncon(nlp) > 0
-      y = ones(ncon(nlp))
-    end
+    y = ones(ncon(nlp))
     #println("5'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     a, J, g = eval_init(nlp, pars, timer, x)
-    
+
     #println("6'HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     #s = max(a, ones(ncon(nlp)))
     s_thres = 1e-4

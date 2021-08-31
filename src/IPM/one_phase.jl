@@ -17,6 +17,9 @@ end
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parameters)
     #println("0----------------------------------------------", pars.init.init_style)
     nlp = Class_CUTEst(nlp_raw);
+	if ncon(nlp) == 0
+		throw(ErrorException("Unconstrained minimization problems are unsupported"))
+	end
     #println("1----------------------------------------------")
     timer = class_advanced_timer()
     #println("2----------------------------------------------")

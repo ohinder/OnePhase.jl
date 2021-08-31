@@ -16,11 +16,6 @@ function rosenbrook1()
     model = Model()
     @variable(model, x)
     @variable(model, y)
-    #FIXME
-    #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
-    #if this can be fixed in the code
-    #@constraint(model , x >= 0)
-    #@NLconstraint(model , (x + y)^2 >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
 end
@@ -29,31 +24,15 @@ end
 function test_rosenbrook1(options::Dict{String, Any})
     @testset "test_rosenbrook1" begin
         model = rosenbrook1()
-        #setsolver(model,solver)
-        ##println("############################################################", solver == nothing)
-        #model2 = Model(
-        #     optimizer_with_attributes(
-        #     OnePhase.OnePhaseSolver, "Presolve" => 0, "OutputFlag" => 1
-        #     )
-        #)
-	#model2 = Model(OnePhase.OnePhaseSolver)
-	#set_optimizer_attribute(model2, "Presolve", 0)
-	#set_optimizer_attribute(model2, "OutputFlag", 1)
-        ##println("############################################################", typeof(solver))
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
-        #optimize!(model)
+		attachSolverWithAttributesToJuMPModel(model, options)
         @test_broken optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test_broken status == :Optimal
-        ##println("############################################################")
     end
 end
 
 function rosenbrook2()
     model = Model()
-    #model = Model(with_optimizer(OnePhase.OnePhaseSolver))
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
@@ -65,15 +44,10 @@ end
 function test_rosenbrook2(options::Dict{String, Any})
     @testset "test_rosenbrook2" begin
         model = rosenbrook2()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+		attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Optimal
-        #@test_broken status == :Optimal
-
         check_rosenbrook(model)
     end
 end
@@ -91,14 +65,10 @@ end
 function test_rosenbrook3(options::Dict{String, Any})
     @testset "test_rosenbrook3" begin
         model = rosenbrook3()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+		attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
         @test status == :Optimal
-	##@test_broken status == :Optimal
         check_rosenbrook(model)
     end
 end
@@ -108,8 +78,6 @@ function rosenbrook4()
     @variable(model, x >= 0.0)
     @variable(model, y >= 0.0)
     #FIXME
-    #This was added because of the new error (ArgumentError: reducing over an empty collection is not allowed). Need to check if no need if that and
-    #if this can be fixed in the code
     @NLconstraint(model, (x + y) ^ 2 >= 0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     return model
@@ -119,13 +87,9 @@ end
 function test_rosenbrook4(options::Dict{String, Any})
     @testset "test_rosenbrook4" begin
         model = rosenbrook4()
-        #setsolver(model,solver)
-        ##set_optimizer(model, OnePhase.OnePhaseSolver)
-        ##set_optimizer(model, solver)
-	attachSolverWithAttributesToJuMPModel(model, options)
+		attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #@test_broken status == :Optimal
         @test status == :Optimal
     end
 end
@@ -133,12 +97,8 @@ end
 
 function check_rosenbrook(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 2.0) < tol
-    @test abs(getvalue(model[:y]) - 4.0) < tol
-
-    ##@test_broken abs(getvalue(model[:x]) - 2.0) < tol
-    ##@test_broken abs(getvalue(model[:y]) - 4.0) < tol
-
+    @test abs(JuMP.value.(model[:x]) - 2.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 4.0) < tol
 end
 
 ########################
@@ -148,7 +108,6 @@ function toy_lp0()
     model = Model()
     @variable(model, x)
     @objective(model, Min, x)
-    #@NLconstraint(model, (x + 1) ^ 2 <= 4.0)
     @NLconstraint(model, x >= 4.0)
     return model
 end
@@ -165,14 +124,13 @@ end
 
 function check_toy_lp1(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 1.0) < tol
 end
 
 function test_toy_lp1(options::Dict{String, Any})
     model = toy_lp1()
     attachSolverWithAttributesToJuMPModel(model, options)
-    #set_optimizer_attribute(model, "output_level", 6)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
@@ -190,16 +148,13 @@ end
 
 function check_toy_lp2(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 1.0) < tol
-    @test abs(getvalue(model[:y]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 1.0) < tol
 end
 
 #function test_toy_lp2(solver)
 function test_toy_lp2(options::Dict{String, Any})
     model = toy_lp2()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -218,16 +173,13 @@ end
 
 function check_toy_lp3(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 1.0) < tol
 end
 
 #function test_toy_lp3(solver)
 function test_toy_lp3(options::Dict{String, Any})
     model = toy_lp3()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -237,8 +189,8 @@ end
 
 function check_toy_lp4(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 1.0) < tol
 end
 
 function toy_lp4()
@@ -252,16 +204,13 @@ end
 
 function check_toy_lp4(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 1.0) < tol
 end
 
 #function test_toy_lp4(solver)
 function test_toy_lp4(options::Dict{String, Any})
     model = toy_lp4()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -280,12 +229,8 @@ function toy_lp5()
     return model
 end
 
-#function test_toy_lp5(solver)
 function test_toy_lp5(options::Dict{String, Any})
     model = toy_lp5()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -303,12 +248,8 @@ function toy_lp6()
     return model
 end
 
-#function test_toy_lp6(solver)
 function test_toy_lp6(options::Dict{String, Any})
     model = toy_lp6()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -325,12 +266,8 @@ function toy_lp7()
     return model
 end
 
-#function test_toy_lp7(solver)
 function test_toy_lp7(options::Dict{String, Any})
     model = toy_lp7()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -348,12 +285,8 @@ function toy_lp8()
     return model
 end
 
-#function test_toy_lp8(solver)
 function test_toy_lp8(options::Dict{String, Any})
     model = toy_lp8()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -401,8 +334,8 @@ end
 
 function check_circle1(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 1.0) < tol
-    @test abs(getvalue(model[:y]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 0.0) < tol
 end
 
 function circle2()
@@ -416,8 +349,8 @@ end
 
 function check_circle2(model)
     tol = 1e-2
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 0.0) < tol
 end
 
 function quad_opt()
@@ -432,8 +365,8 @@ end
 
 function check_quad_opt(model)
     tol = 1e-2
-    @test abs(getvalue(model[:x]) - 0.0) < tol
-    @test abs(getvalue(model[:y]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 0.0) < tol
 end
 
 ##########################
@@ -451,8 +384,8 @@ end
 
 function check_circle_nc1(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) - 1.0) < tol
-    @test abs(getvalue(model[:y]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:x]) - 1.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 0.0) < tol
 end
 
 
@@ -467,8 +400,8 @@ end
 
 function check_circle_nc2(model)
     tol = 1e-3
-    @test abs(getvalue(model[:x]) + 1.0) < tol
-    @test abs(getvalue(model[:y]) - 0.0) < tol
+    @test abs(JuMP.value.(model[:x]) + 1.0) < tol
+    @test abs(JuMP.value.(model[:y]) - 0.0) < tol
 end
 
 function circle_nc_inf1()
@@ -527,18 +460,14 @@ function unbd_feas()
     return model
 end
 
-#function test_unbd_feas(solver)
 function test_unbd_feas(options::Dict{String, Any})
     println("test_unbd_feas")
     model = unbd_feas()
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
-    @test getvalue(model[:z]) < 1e5
+    @test JuMP.value.(model[:z]) < 1e5
 end
 
 ###########################
@@ -553,23 +482,19 @@ function starting_point_prob(start::Float64)
     return model
 end
 
-#function test_starting_point(solver,starting_point::Float64)
 function test_starting_point(options::Dict{String, Any},starting_point::Float64)
     if starting_point == 0.0
         warn("don't select this as a starting point")
     end
     model = starting_point_prob(starting_point)
-    #setsolver(model,solver)
-    ##set_optimizer(model, OnePhase.OnePhaseSolver)
-    ##set_optimizer(model, solver)
     attachSolverWithAttributesToJuMPModel(model, options)
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
     @test status == :Optimal
 
     if sign(starting_point) < 0.0
-        @test abs(getvalue(model[:x]) - 1.0) < 1e-4
+        @test abs(JuMP.value.(model[:x]) - 1.0) < 1e-4
     else
-        @test abs(getvalue(model[:x]) + 1.0) < 1e-4
+        @test abs(JuMP.value.(model[:x]) + 1.0) < 1e-4
     end
 end

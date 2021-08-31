@@ -59,39 +59,20 @@ end
 #####
 
 function test_kkt_solver(jump_model,pars)
-    #JuMP.build(jump_model)
-    #MOI.Utilities.attach_optimizer(jump_model)
     nlp_raw = OnePhase.MathOptNLPModel(jump_model)
-    ##println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", nlp_raw)
-    #MathProgBase.initialize(eval, [:Grad, :Jac, :Hess, :HessVec, :ExprGraph])
-    #onePhaseMod = MOI.RawSolver()
-    #onePhaseMod = MOI.get(jump_model, MOI.RawSolver())
-    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", onePhaseMod)
-    #nlp_raw = OnePhase.MathProgNLPModel(jump_model.internalModel)
-    ##println("1 ", bridge_constraints(jump_model))
-    ##println("1 ", typeof(jump_model))
-    #println("1 ", typeof(onePhaseMod))
-    #println("1 ", onePhaseMod.eval == nothing)
-    #println("2 ", get_optimizer_attribute(jump_model, "inner"))
-    #nlp_raw = OnePhase.MathProgNLPModel(JuMP.internalmodel(jump_model))
-    #nlp_raw = OnePhase.MathProgNLPModel(onePhaseMod)
-    #nlp_raw = onePhaseMod
-    #nlp = OnePhase.Class_CUTEst(nlp_raw)
     nlp = OnePhase.Class_CUTEst(nlp_raw)
-    ##println("2HOHOHOHOHOHOHOHHOHOHOH")
     timer = OnePhase.class_advanced_timer()
     OnePhase.start_advanced_timer(timer)
 
     iter = OnePhase.mehrotra_init(nlp, pars, timer);
     OnePhase.update!(iter, timer, pars) # is this necessary ????
 
-    @show iter.point.x
-    @show iter.point.y
-    @show iter.point.mu
-    @show iter.point.s
+    #@show iter.point.x
+    #@show iter.point.y
+    #@show iter.point.mu
+    #@show iter.point.s
 
     kkt_solver = OnePhase.pick_KKT_solver(pars);
-    #println("+++++++++++++++++++++kkt_solver: ", kkt_solver)
     OnePhase.initialize!(kkt_solver, iter)
     OnePhase.form_system!(kkt_solver, iter, timer)
     OnePhase.factor!(kkt_solver, 1e-8, timer)
@@ -133,12 +114,6 @@ function test_kkt_solvers(jump_model)
         pars.kkt.linear_solver_type=:julia
 
         dir_sym = test_kkt_solver(jump_model,pars)
-        #println("----------------------------dir_schur.x: ", dir_schur.x)
-        #println("------------------------------dir_sym.x: ", dir_sym.x)
-        #println("----------------------------dir_schur.y: ", dir_schur.y)
-        #println("------------------------------dir_sym.y: ", dir_sym.y)
-        #println("----------------------------dir_schur.s: ", dir_schur.s)
-        #println("------------------------------dir_sym.s: ", dir_sym.s)
 
         @test LinearAlgebra.norm(dir_schur.x - dir_sym.x,2)<1e-6
         @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
@@ -166,12 +141,6 @@ function test_kkt_solvers(jump_model)
         pars.kkt.linear_solver_type=:julia
 
         dir_clever_sym =test_kkt_solver(jump_model,pars)
-        #println("----------------------------dir_schur.x: ", dir_schur.x)
-        #println("-----------------------dir_clever_sym.x: ", dir_clever_sym.x)
-        #println("----------------------------dir_schur.y: ", dir_schur.y)
-        #println("-----------------------dir_clever_sym.y: ", dir_clever_sym.y)
-        #println("----------------------------dir_schur.s: ", dir_schur.s)
-        #println("-----------------------dir_clever_sym.s: ", dir_clever_sym.s)
         @test LinearAlgebra.norm(dir_schur.x - dir_clever_sym.x,2)<1e-6
         @test LinearAlgebra.norm(dir_clever_sym.y - dir_schur.y,2)<1e-6
         @test LinearAlgebra.norm(dir_clever_sym.s - dir_schur.s,2)<1e-6
