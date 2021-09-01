@@ -3,6 +3,9 @@ using CSV
 optimal_problems = []
 infeasible_problems = []
 unbounded_problems = []
+max_delta_problems = []
+iteration_limit_problems = []
+max_time_problems = []
 error_problems = []
 
 function cutest_tests()
@@ -39,13 +42,20 @@ function runModelFromProblem(cutest_problem, output_results_to_file)
 		end
 
         @test true
+
 		if status == :Optimal
-            push!(optimal_problems, cutest_problem)
-        elseif status == :Infeasible
-	    	push!(infeasible_problems, cutest_problem)
-        else
-            push!(unbounded_problems, cutest_problem)
-        end
+			push!(optimal_problems, cutest_problem)
+	    elseif status == :primal_infeasible
+	        push!(infeasible_problems, cutest_problem)
+	    elseif status == :dual_infeasible
+	        push!(unbounded_problems, cutest_problem)
+	    elseif status == :MAX_IT
+	        push!(iteration_limit_problems, cutest_problem)
+	    elseif status === :MAX_TIME
+	        push!(max_time_problems, cutest_problem)
+		else
+			push!(max_delta_problems, cutest_problem)
+	    end
     catch e
         push!(error_problems, cutest_problem)
         @test false
@@ -64,6 +74,7 @@ function executeCUTEST_Models()
 	    	println(e)
     	end
     end
+
     println("------------RUNNING CUTEST TEST SET SUMMARY------------")
     println("----------------------------------------------Total: ", length(problems))
     println("--------------------------------------------OPTIMAL: ", length(optimal_problems))
@@ -72,6 +83,12 @@ function executeCUTEST_Models()
     println("-----------------------------------------INFEASIBLE: ", infeasible_problems)
     println("------------------------------------------UNBOUNDED: ", length(unbounded_problems))
     println("------------------------------------------UNBOUNDED: ", unbounded_problems)
+	println("------------------------------------ITERATION_LIMIT: ", length(iteration_limit_problems))
+	println("------------------------------------ITERATION_LIMIT: ", iteration_limit_problems)
+	println("-------------------------------------------MAX_TIME: ", length(max_time_problems))
+	println("-------------------------------------------MAX_TIME: ", max_time_problems)
+	println("------------------------------------------MAX_DELTA: ", length(max_delta_problems))
+	println("------------------------------------------MAX_DELTA: ", max_delta_problems)
     println("----------------------------------------------ERROR: ", length(error_problems))
     println("----------------------------------------------ERROR: ", error_problems)
 end
@@ -84,7 +101,7 @@ function executeCUTEST_Models_benchmark()
     for problem in problems
         runModelFromProblem(problem, true)
     end
-    println("------------RUNNING CUTEST TEST SET SUMMARY------------")
+	println("------------RUNNING CUTEST TEST SET SUMMARY------------")
     println("----------------------------------------------Total: ", length(problems))
     println("--------------------------------------------OPTIMAL: ", length(optimal_problems))
     println("--------------------------------------------OPTIMAL: ", optimal_problems)
@@ -92,6 +109,12 @@ function executeCUTEST_Models_benchmark()
     println("-----------------------------------------INFEASIBLE: ", infeasible_problems)
     println("------------------------------------------UNBOUNDED: ", length(unbounded_problems))
     println("------------------------------------------UNBOUNDED: ", unbounded_problems)
+	println("------------------------------------ITERATION_LIMIT: ", length(iteration_limit_problems))
+	println("------------------------------------ITERATION_LIMIT: ", iteration_limit_problems)
+	println("-------------------------------------------MAX_TIME: ", length(max_time_problems))
+	println("-------------------------------------------MAX_TIME: ", max_time_problems)
+	println("------------------------------------------MAX_DELTA: ", length(max_delta_problems))
+	println("------------------------------------------MAX_DELTA: ", max_delta_problems)
     println("----------------------------------------------ERROR: ", length(error_problems))
     println("----------------------------------------------ERROR: ", error_problems)
 
@@ -100,7 +123,7 @@ end
 
 function outputResultsToCSVFile(cutest_problem, hist)
     current_dir = pwd()
-    CSV.write("$current_dir/test/cutest_outputs/$cutest_problem.csv", hist, header = true)
+    CSV.write("$current_dir/cutest_outputs/$cutest_problem.csv", hist, header = true)
 end
 
 function outputTotalResultsToFile(problems, optimal_problems, infeasible_problems, unbounded_problems, error_problems)
@@ -109,8 +132,12 @@ function outputTotalResultsToFile(problems, optimal_problems, infeasible_problem
     total_optimal = length(optimal_problems)
     total_infeasible = length(infeasible_problems)
     total_unbounded = length(unbounded_problems)
-    total_erros = length(error_problems)
-    open("$current_dir/test/cutest_outputs/total_results.txt" , "w") do file
+    total_iteration_limit = length(iteration_limit_problems)
+	total_max_time = length(max_time_problems)
+	total_max_delta = length(max_delta_problems)
+	total_erros = length(error_problems)
+
+    open("$current_dir/cutest_outputs/total_results.txt" , "w") do file
 	write(file, "----------------------------------------------Total: $total\n")
 	write(file, "--------------------------------------------OPTIMAL: $total_optimal\n")
 	write(file, "--------------------------------------------OPTIMAL: $optimal_problems\n")
@@ -118,6 +145,12 @@ function outputTotalResultsToFile(problems, optimal_problems, infeasible_problem
 	write(file, "-----------------------------------------INFEASIBLE: $infeasible_problems\n")
 	write(file, "------------------------------------------UNBOUNDED: $total_unbounded\n")
 	write(file, "------------------------------------------UNBOUNDED: $unbounded_problems\n")
+	write(file, "------------------------------------ITERATION_LIMIT: $total_iteration_limitn\n")
+	write(file, "------------------------------------ITERATION_LIMIT: $iteration_limit_problems\n")
+	write(file, "-------------------------------------------MAX_TIME: $total_max_time\n")
+	write(file, "-------------------------------------------MAX_TIME: $max_time_problems\n")
+	write(file, "------------------------------------------MAX_DELTA: $total_max_delta")
+	write(file, "------------------------------------------MAX_DELTA: $max_delta_problems\n")
 	write(file, "----------------------------------------------ERROR: $total_erros\n")
 	write(file, "----------------------------------------------ERROR: $error_problems")
     end
