@@ -5,7 +5,6 @@ function eval_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advan
     if a == Float64[]
       a = zeros(1)
     end
-    #println("****************************($a)")
     J = eval_jac(nlp, x)
     g = eval_grad_f(nlp, x)
 

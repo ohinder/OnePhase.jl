@@ -1,11 +1,6 @@
 
 function move_primal(it::Class_iterate, dir::Class_point, step_size::Float64, pars::Class_parameters, timer::class_advanced_timer)
     new_it = copy(it, timer)
-    #println("1++++++++++++++++++++++++++++++++++++", it)
-    #println("2++++++++++++++++++++++++++++++++++++", timer)
-    #println("3++++++++++++++++++++++++++++++++++++", new_it)
-    #println("4++++++++++++++++++++++++++++++++++++", new_it.point)
-    #println("5++++++++++++++++++++++++++++++++++++", new_it.point.x)
     new_it.point.x += dir.x * step_size
 
     if !update_cons!(new_it, timer, pars)
@@ -70,22 +65,6 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         if lb < ub
           mu_lb = (y[i] + lb * dy[i]) * s
           mu_ub = (y[i] + ub * dy[i]) * s
-
-          #if mu_lb > mu / comp_feas
-          #    println("HERE1")
-          #end
-
-          if mu_ub > mu / comp_feas
-            println("HERE2")
-          end
-
-          #if mu_ub < mu * comp_feas
-          #  println("HERE3")
-          #end
-
-          if mu_lb < mu * comp_feas
-            println("HERE4")
-          end
         end
     end
 
@@ -101,10 +80,8 @@ end
 
 function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64, lb::Float64, ub::Float64, pars::Class_parameters, timer::class_advanced_timer)
     if pars.ls.move_primal_seperate_to_dual
-      #println("---------------------1-------------------")
       small_step = max(lb,min(ub,step_size_P))
       if pars.ls.dual_ls == 2
-        #println("---------------------2-------------------")
         scale = dual_scale(new_it, pars)
         old_y = deepcopy(new_it.point.y)
         intial_value = eval_kkt_err(new_it, pars)
@@ -121,7 +98,6 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
 
         new_it.point.y = old_y
       elseif pars.ls.dual_ls == 1 || pars.ls.dual_ls == 3
-        #println("---------------------3-------------------")
         scale_D = dual_scale(new_it, pars)
         scale_mu = dual_scale(new_it, pars)
         #scale = 1.0;
@@ -133,21 +109,15 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
         #@show get_delta(new_it)
         #@show isbad(q), isbad(dual_res), isbad(comp(new_it)), isbad(ub), isbad(small_step)
         res = [scale_D * dual_res; -scale_mu * comp(new_it)]
-        #println("-----------($res)-------------($q)-----------($dir)")
         step_size_D = sum(res .* q) / sum(q.^2)
-        #println("-------------($step_size_D)---------------($ub)-------------($small_step)----------")
         step_size_D = min(step_size_D,ub)
         step_size_D = max(step_size_D,small_step)
       else
-        #println("---------------------4-------------------")
         step_size_D = ub
       end
     else
-      #println("---------------------5-------------------")
       step_size_D = step_size_P
     end
-    #println("#################step_size_D#######################:", step_size_D)
-    #println("#################dir.y#######################:", dir.y)
     new_it.point.y += dir.y * step_size_D
 
     if !is_feasible(new_it, pars.ls.comp_feas)

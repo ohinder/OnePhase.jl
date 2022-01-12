@@ -11,7 +11,7 @@ println("Loading linear_system_solvers ... ")
 abstract type abstract_linear_system_solver end
 
 include("julia.jl")
-global USE_HSL = true
+global USE_HSL = false
 setUSE_HSL(use_hsl) = (global USE_HSL = use_hsl)
 
 export USE_HSL, setUSE_HSL, loadHSL

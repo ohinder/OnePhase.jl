@@ -145,7 +145,6 @@ function eval_a(m::Class_CUTEst, x::Array{Float64,1})
     if a == Float64[]
       a = zeros(1)
     end
-    #println("-----------------------------($a)------------------", typeof(a))
     return [lb(a, m.bcon); ub(a, m.bcon); lb(x, m.bvar); ub(x, m.bvar)];
 end
 

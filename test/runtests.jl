@@ -10,13 +10,13 @@ using Statistics
 using Printf
 
 include("../src/OnePhase.jl")
-#Uncomment the below three line of codes when working with HSL is needed
-OnePhase.setUSE_HSL(true)
+#Uncomment the below two line of codes when working with HSL is needed
+#OnePhase.setUSE_HSL(true)
 @show OnePhase.USE_HSL
-OnePhase.loadHSL("../src/linear_system_solvers/")
+#OnePhase.loadHSL("../src/linear_system_solvers/")
 
 TEST_MOI = false
-include("CUTEst.jl")
+#include("CUTEst.jl")
 include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
@@ -65,7 +65,6 @@ function basic_tests(options::Dict{String, Any})
 	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #println("--------------------------------------", status)
         @test status == :Infeasible
     end
 
@@ -159,20 +158,14 @@ function basic_tests()
     a_norm_penalty = 1e-4
     @testset "basic_tests" begin
         @testset "cholseky linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(max_iter=max_it,
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:schur)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
+	    	"a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:schur)
 	    basic_tests(options)
         end
-if OnePhase.USE_HSL
-        println("HSL not working")
+
+    if OnePhase.USE_HSL
         @testset "Ma97 linear system solve" begin
             #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             #a_norm_penalty = a_norm_penalty,
@@ -202,16 +195,11 @@ if OnePhase.USE_HSL
             "kkt!linear_solver_type"=>:HSL)
 	    basic_tests(options)
         end
-end
+    end
+
         @testset "LDLT julia linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:clever_symmetric,
-            #kkt!linear_solver_type=:julia)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
-	    "a_norm_penalty"=>a_norm_penalty,
+	    	"a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
             "kkt!kkt_solver_type"=>:clever_symmetric,
             "kkt!linear_solver_type"=>:julia)
@@ -234,16 +222,11 @@ function moi_nlp_tests()
 end
 
 # lets run the tests!
-unit_tests()
-moi_nlp_tests()
-basic_tests()
-#cutest_tests()
-#executeCUTEST_Models()
-#=
-x0 = [-1.2; 1.0]
-model = Model() # No solver is required
-@variable(model, x[i=1:2], start=x0[i])
-@NLobjective(model, Min, (x[1] - 1)^2 + 100 * (x[2] - x[1]^2)^2)
-@NLconstraint(model, x[1]^2 + x[2] <= 1.0)
-result = OnePhase.one_phase_solve(model)
-=#
+@time begin
+  unit_tests()
+  moi_nlp_tests()
+  basic_tests()
+  #cutest_tests()
+  #executeCUTEST_Models()
+  #executeCUTEST_Models_benchmark()
+end

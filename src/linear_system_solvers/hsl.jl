@@ -58,8 +58,6 @@ end
 
 function ls_solve(solver::linear_solver_HSL, my_rhs::AbstractArray, timer::class_advanced_timer)
 	start_advanced_timer(timer, "JULIA/ls_solve")
-    #println("---------------------------------------typeof(my_rhs): ", typeof(my_rhs))
-    #println("-----------------------------------------------my_rhs: ", my_rhs)
     if typeof(my_rhs) == SparseVector{Float64, Int64}
          my_rhs = Vector(my_rhs)
     end
@@ -68,4 +66,3 @@ function ls_solve(solver::linear_solver_HSL, my_rhs::AbstractArray, timer::class
 
 	return sol
 end
-

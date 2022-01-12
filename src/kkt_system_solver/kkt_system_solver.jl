@@ -169,10 +169,7 @@ function kkt_associate_rhs!(kkt_solver::abstract_KKT_system_solver, iter::Class_
     start_advanced_timer(timer, "KKT/rhs");
 
     kkt_solver.rhs = System_rhs(iter, eta)
-    #println("#####################################kkt_solver.rhs: ", kkt_solver.rhs)
     kkt_solver.dir.mu = -(1.0 - eta.mu) * get_mu(iter)
-    #println("++++++++++++++++++++++++++++++++++++kkt_solver.dir.mu: ", kkt_solver.dir.mu)
-    #println("++++++++++++++++++++++++++++++++++++get_mu(iter): ", get_mu(iter))
     kkt_solver.dir.primal_scale = -(1.0 - eta.P) * iter.point.primal_scale
 
     pause_advanced_timer(timer, "KKT/rhs");
