@@ -1,5 +1,5 @@
 #cd("/home/fah33/advanced_timer")
-Base.GC.enable(false)
+#Base.GC.enable(false)
 #include("/home/fah33/advanced_timer/src/advanced_timer.jl")
 #cd("/home/fah33/OnePhaseOffline")
 
@@ -10,7 +10,11 @@ using Statistics
 using Printf
 
 include("../src/OnePhase.jl")
+#Uncomment the below three line of codes when working with HSL is needed
+OnePhase.setUSE_HSL(true)
 @show OnePhase.USE_HSL
+OnePhase.loadHSL("../src/linear_system_solvers/")
+
 TEST_MOI = false
 include("CUTEst.jl")
 include("problems.jl")
@@ -167,9 +171,8 @@ function basic_tests()
             "kkt!kkt_solver_type"=>:schur)
 	    basic_tests(options)
         end
-
+if OnePhase.USE_HSL
         println("HSL not working")
-        #=
         @testset "Ma97 linear system solve" begin
             #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             #a_norm_penalty = a_norm_penalty,
@@ -184,7 +187,7 @@ function basic_tests()
             "kkt!linear_solver_type"=>:HSL)
 	    basic_tests(options)
         end
-
+	
         @testset "Ma97 linear system solve with clever elimination" begin
             #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             #a_norm_penalty = a_norm_penalty,
@@ -199,8 +202,7 @@ function basic_tests()
             "kkt!linear_solver_type"=>:HSL)
 	    basic_tests(options)
         end
-        =#
-
+end
         @testset "LDLT julia linear system solve" begin
             #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
             #a_norm_penalty = a_norm_penalty,
@@ -235,11 +237,13 @@ end
 unit_tests()
 moi_nlp_tests()
 basic_tests()
-cutest_tests()
-
+#cutest_tests()
+#executeCUTEST_Models()
+#=
 x0 = [-1.2; 1.0]
 model = Model() # No solver is required
 @variable(model, x[i=1:2], start=x0[i])
 @NLobjective(model, Min, (x[1] - 1)^2 + 100 * (x[2] - x[1]^2)^2)
 @NLconstraint(model, x[1]^2 + x[2] <= 1.0)
 result = OnePhase.one_phase_solve(model)
+=#

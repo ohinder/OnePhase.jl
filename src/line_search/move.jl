@@ -92,7 +92,7 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
     #boundary = min(0.01 * y, abs(dy) .* abs(dy) ./ it.point.s
     #ub = min(ub, simple_max_step(y, dy, 10.0^(-3.0) * y))
     if isbad(lb) || isbad(ub)
-      warn("lb or ub for dual step size is bad")
+      @warn("lb or ub for dual step size is bad")
       return 0.0, -1.0
     else
       return lb, ub

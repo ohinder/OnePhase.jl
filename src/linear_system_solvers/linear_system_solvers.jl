@@ -11,18 +11,27 @@ println("Loading linear_system_solvers ... ")
 abstract type abstract_linear_system_solver end
 
 include("julia.jl")
-USE_HSL = false
-export USE_HSL
+global USE_HSL = true
+setUSE_HSL(use_hsl) = (global USE_HSL = use_hsl)
 
-if USE_HSL
+export USE_HSL, setUSE_HSL, loadHSL
+
+function loadHSL(hsl_dir)
+    if USE_HSL
 	try
-		include("hsl.jl")
+		hsl_code_location = string(hsl_dir, "hsl.jl")
+		include(hsl_code_location)
 	catch (e)
 		println("Loading HSL failed:")
-		warn(e)
+		@warn(e)
 		println("Continuing although you will not be able to choose HSL as a linear solver ...")
 	end
+    end
+    
 end
+
+loadHSL("./")
+
 #include("matlab.jl")
 if USE_MUMPS
 	include("mumps_wrapper.jl")
