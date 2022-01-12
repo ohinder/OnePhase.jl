@@ -575,116 +575,6 @@ function MOI.set(
     return
 end
 
-########################################################
-## BEGIN ModelReader CODE (with minor edits)
-########################################################
-
-#mutable struct OnePhaseMathProgModel <: MathProgBase.AbstractMathProgModel
-#mutable struct OnePhaseMathProgModel
-#=
-mutable struct OnePhaseMathProgModel <: MathProgBase.AbstractMathProgModel
-  options
-  inner::OnePhaseProblem
-
-  eval :: Union{MOI.AbstractNLPEvaluator, Nothing}
-  numVar :: Int
-  numConstr :: Int
-  x :: Vector{Float64}
-  y :: Vector{Float64}
-  lvar :: Vector{Float64}
-  uvar :: Vector{Float64}
-  lcon :: Vector{Float64}
-  ucon :: Vector{Float64}
-  sense :: Symbol
-  status :: Symbol
-end
-=#
-
-#=
-MOI.NonlinearModel(solver :: OnePhaseSolver) = OnePhaseMathProgModel(solver.options,OnePhaseProblem(),nothing,
-                                                                   0,
-                                                                   0,
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   :Min,
-                                                                   :Uninitialized)
-=#
-#=
-MathProgBase.NonlinearModel(solver :: OnePhaseSolver) = OnePhaseMathProgModel(solver.options,OnePhaseProblem(),nothing,
-                                                                   0,
-                                                                   0,
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   :Min,
-                                                                   :Uninitialized)
-=#
-#println("########################################", modelTrial)
-#=
-MOI.RawSolver() = OnePhaseMathProgModel(this.options,OnePhaseProblem(),nothing,
-                                                                   0,
-                                                                   0,
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   Float64[],
-                                                                   :Min,
-                                                                   :Uninitialized)
-
-=#
-#=
-function MPB.loadproblem!(m :: OnePhaseMathProgModel,
-                                   numVar, numConstr,
-                                   l, u, lb, ub,
-                                   sense,
-                                   eval :: MOI.AbstractNLPEvaluator)
-
-  # TODO: :JacVec is not yet available.
-  # [:Grad, :Jac, :JacVec, :Hess, :HessVec, :ExprGraph]
-  MPB.initialize(eval, [:Grad, :Jac, :Hess, :HessVec, :ExprGraph])
-  m.numVar = numVar
-  m.numConstr = numConstr
-  m.x = zeros(numVar)
-  m.y = zeros(numConstr)
-  m.eval = eval
-  m.lvar = l
-  m.uvar = u
-  m.lcon = lb
-  m.ucon = ub
-  m.sense = sense
-end
-=#
-#=
-MPB.setwarmstart!(m :: OnePhaseSolver, x) = (m.x = x)
-MPB.status(m :: OnePhaseSolver) = m.inner.status
-MPB.getsolution(m :: OnePhaseSolver) = m.inner.x
-MPB.getobjval(m :: OnePhaseMathProgModel) = m.inner.iter.cache.fval
-MPB.eval_f(m.eval, m.x)
-=#
-#=
-mutable struct MathProgNLPModel <: AbstractNLPModel
-  meta :: NLPModelMeta
-  mpmodel :: OnePhaseMathProgModel
-  counters :: Counters      # Evaluation counters.
-
-  jrows :: Vector{Int}      # Jacobian sparsity pattern.
-  jcols :: Vector{Int}
-  jvals :: Vector{Float64}  # Room for the constraints Jacobian.
-
-  hrows :: Vector{Int}      # Hessian sparsity pattern.
-  hcols :: Vector{Int}
-  hvals :: Vector{Float64}  # Room for the Lagrangian Hessian.
-end
-=#
 #Utilities Begin Here
 """
     parser_SAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_ucon)
@@ -749,7 +639,6 @@ end
 Parse linear constraints of a `MOI.ModelLike`.
 """
 function parser_MOI(moimodel)
-  println("-----------------------HERE-------------------------------")
   # Variables associated to linear constraints
   nlin = 0
   linrows = Int[]
@@ -788,7 +677,6 @@ function parser_MOI(moimodel)
 end
 
 function NLPModelsJuMP.parser_MOI(moimodel)
-  #println("-----------------------HERE-------------------------------")
   # Variables associated to linear constraints
   nlin = 0
   linrows = Int[]
@@ -1031,116 +919,6 @@ end
 
 #Utilities End Here
 
-
-#=
-"Construct a `MathProgNLPModel` from a `OnePhaseMathProgModel`."
-function MathProgNLPModel(mpmodel :: OnePhaseMathProgModel; name :: String="Generic")
-
-  nvar = mpmodel.numVar
-  lvar = mpmodel.lvar
-  uvar = mpmodel.uvar
-
-  nlin = length(mpmodel.eval.m.linconstr)         # Number of linear constraints.
-  nquad = length(mpmodel.eval.m.quadconstr)       # Number of quadratic constraints.
-  nnln = length(mpmodel.eval.m.nlpdata.nlconstr)  # Number of nonlinear constraints.
-  ncon = mpmodel.numConstr                        # Total number of constraints.
-  lcon = mpmodel.lcon
-  ucon = mpmodel.ucon
-
-  jrows, jcols = MathProgBase.jac_structure(mpmodel.eval)
-  hrows, hcols = MathProgBase.hesslag_structure(mpmodel.eval)
-  nnzj = length(jrows)
-  nnzh = length(hrows)
-
-  meta = NLPModelMeta(nvar,
-                      x0=mpmodel.x,
-                      lvar=lvar,
-                      uvar=uvar,
-                      ncon=ncon,
-                      y0=zeros(ncon),
-                      lcon=lcon,
-                      ucon=ucon,
-                      nnzj=nnzj,
-                      nnzh=nnzh,
-                      lin=collect(1:nlin),  # linear constraints appear first in MPB
-                      nln=collect(nlin+1:ncon),
-                      minimize=(mpmodel.sense == :Min),
-                      islp=MOI.isobjlinear(mpmodel.eval) & (nlin == ncon),
-                      name=name,
-                      )
-
-  return MathProgNLPModel(meta,
-                      mpmodel,
-                      Counters(),
-                      jrows,
-                      jcols,
-                      zeros(nnzj),  # jvals
-                      hrows,
-                      hcols,
-                      zeros(nnzh),  # hvals
-                      )
-end
-=#
-#=
-"""
-    MathOptNLPModel(model, name="Generic")
-Construct a `MathOptNLPModel` from a `JuMP` model.
-"""
-function MathOptNLPModel(jmodel::JuMP.Model; name::String = "Generic")
-  println("HHEEEEEEEEEEEEEERRRRRRRRRRRRRRRRRREEEEEEEEEEEEEEEEEE", name)
-  nvar, lvar, uvar, x0 = parser_JuMP(jmodel)
-
-  nnln = num_nl_constraints(jmodel)
-
-  nl_lcon = nnln == 0 ? Float64[] : map(nl_con -> nl_con.lb, jmodel.nlp_data.nlconstr)
-  nl_ucon = nnln == 0 ? Float64[] : map(nl_con -> nl_con.ub, jmodel.nlp_data.nlconstr)
-
-  eval = jmodel.nlp_data == nothing ? nothing : NLPEvaluator(jmodel)
-  (eval != nothing) && MOI.initialize(eval, [:Grad, :Jac, :Hess, :HessVec])  # Add :JacVec when available
-
-  nl_nnzj = nnln == 0 ? 0 : sum(length(nl_con.grad_sparsity) for nl_con in eval.constraints)
-  nl_nnzh =
-    (((eval != nothing) && eval.has_nlobj) ? length(eval.objective.hess_I) : 0) +
-    (nnln == 0 ? 0 : sum(length(nl_con.hess_I) for nl_con in eval.constraints))
-
-  moimodel = backend(jmodel)
-  nlin, lincon, lin_lcon, lin_ucon = parser_MOI(moimodel)
-
-  if (eval != nothing) && eval.has_nlobj
-    obj = Objective("NONLINEAR", 0.0, spzeros(Float64, nvar), COO(), 0)
-  else
-    obj = parser_objective_MOI(moimodel, nvar)
-  end
-
-  ncon = nlin + nnln
-  lcon = vcat(lin_lcon, nl_lcon)
-  ucon = vcat(lin_ucon, nl_ucon)
-  nnzj = lincon.nnzj + nl_nnzj
-  nnzh = obj.nnzh + nl_nnzh
-
-  meta = NLPModelMeta(
-    nvar,
-    x0 = x0,
-    lvar = lvar,
-    uvar = uvar,
-    ncon = ncon,
-    nlin = nlin,
-    nnln = nnln,
-    y0 = zeros(ncon),
-    lcon = lcon,
-    ucon = ucon,
-    nnzj = nnzj,
-    nnzh = nnzh,
-    lin = collect(1:nlin),
-    nln = collect((nlin + 1):ncon),
-    minimize = objective_sense(jmodel) == MOI.MIN_SENSE,
-    islp = (obj.type == "LINEAR") && (nnln == 0),
-    name = name,
-  )
-
-  return MathOptNLPModel(meta, eval, lincon, obj, Counters())
-end
-=#
 function NLPModels.obj(nlp::MathOptNLPModel, x::AbstractVector)
   NLPModels.increment!(nlp, :neval_obj)
   if nlp.obj.type == "LINEAR"
@@ -1157,236 +935,6 @@ function NLPModels.obj(nlp::MathOptNLPModel, x::AbstractVector)
   end
   return res
 end
-
-#=
-import Base.show
-show(nlp :: MathProgNLPModel) = show(nlp.mpmodel)
-=#
-#=
-function obj(nlp :: MathProgNLPModel, x :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_obj)
-  return MathProgBase.eval_f(nlp.mpmodel.eval, x)
-end
-=#
-#=
-function obj(nlp :: MathOptNLPModel, x :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_obj)
-  return MOI.eval_objective(nlp.eval, x)
-end
-=#
-#=
-function grad(nlp :: MathProgNLPModel, x :: Array{Float64})
-  g = zeros(nlp.meta.nvar)
-  return grad!(nlp, x, g)
-end
-=#
-#=
-function grad!(nlp :: MathProgNLPModel, x :: Array{Float64}, g :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_grad)
-  MathProgBase.eval_grad_f(nlp.mpmodel.eval, g, x)
-  return g
-end
-=#
-#=
-function grad(nlp :: MathOptNLPModel, x :: Array{Float64})
-  g = zeros(nlp.meta.nvar)
-  return grad!(nlp, x, g)
-end
-=#
-#=
-function grad!(nlp :: MathOptNLPModel, x :: Array{Float64}, g :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_grad)
-  MOI.eval_objective_gradient(nlp.eval, g, x)
-  return g
-end
-=#
-#=
-function NLPModels.grad!(nlp::MathOptNLPModel, x::AbstractVector, g::AbstractVector)
-  increment!(nlp, :neval_grad)
-  if nlp.obj.type == "LINEAR"
-    g .= nlp.obj.gradient
-  end
-  if nlp.obj.type == "QUADRATIC"
-    coo_sym_prod!(nlp.obj.hessian.rows, nlp.obj.hessian.cols, nlp.obj.hessian.vals, x, g)
-    g .+= nlp.obj.gradient
-  end
-  if nlp.obj.type == "NONLINEAR"
-    MOI.eval_objective_gradient(nlp.eval, g, x)
-  end
-  return g
-end
-=#
-#=
-function cons(nlp :: MathProgNLPModel, x :: Array{Float64})
-  c = zeros(nlp.meta.ncon)
-  return cons!(nlp, x, c)
-end
-=#
-#=
-function cons(nlp :: NLPModels.AbstractNLPModel, x :: Array{Float64})
-  println("1******************************HERE************************")
-  c = zeros(nlp.meta.ncon)
-  println("2******************************HERE************************")
-  return cons!(nlp, x, c)
-end
-=#
-#=
-function cons!(nlp :: MathProgNLPModel, x :: Array{Float64}, c :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_cons)
-  MathProgBase.eval_g(nlp.mpmodel.eval, c, x)
-  return c
-end
-=#
-#=
-function cons!(nlp :: NLPModels.AbstractNLPModel, x :: Array{Float64}, c :: Array{Float64})
-  #println("-------------------------($x)---------------------($c)")
-  #NLPModels.increment!(nlp, :neval_cons)
-  #MOI.eval_constraint(nlp.eval, c, x)
-  #return c
-  NLPModels.increment!(nlp, :neval_cons)
-  if nlp.meta.nlin > 0
-    println("1###############")
-    try
-   # println("1###############", nlp.lincon.jacobian.rows)
-    println("1###############", nlp.eval)
-    coo_prod!(
-      nlp.lincon.jacobian.rows,
-      nlp.lincon.jacobian.cols,
-      nlp.lincon.jacobian.vals,
-      x,
-      view(c, nlp.meta.lin),
-    )
-    catch e
-        println(e)
-    end
-  end
-  if nlp.meta.nnln > 0
-    println("2###############")
-    MOI.eval_constraint(nlp.eval, view(c, nlp.meta.nln), x)
-  end
-  println("3#########################($c): ", typeof(c))
-  if c == Float64[]
-      #println("------------------------------")
-      return zeros(1)
-  end
-  return c
-end
-=#
-#=
-function jac_coord(nlp :: MathProgNLPModel, x :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_jac)
-  MOI.eval_jac_g(nlp.mpmodel.eval, nlp.jvals, x)
-  return (nlp.jrows, nlp.jcols, nlp.jvals)
-end
-=#
-#=
-function jac_coord(nlp :: MathOptNLPModel, x :: Array{Float64})
-  NLPModels.increment!(nlp, :neval_jac)
-  #println("++++++++++++++++++++++++++++++++++++nlp.lincon: ", nlp.lincon)
-  #println("+++++++++++++++++++++++++++nlp.lincon.jacobian: ", nlp.lincon.jacobian)
-  #println("++++++++++++++++++++++nlp.lincon.jacobian.vals: ", nlp.lincon.jacobian.vals)
-  println("++++++++++++++++++++++++++++++++++++nlp.jrows: ", NLPModels.jac_structure(nlp)[1])
-  println("+++++++++++++++++++++++++++nlp.jcols: ", NLPModels.jac_structure(nlp)[2])
-  println("++++++++++++++++++++++nlp.jvals: ", NLPModels.jac_coord(nlp, x))
-  MOI.eval_constraint_jacobian(nlp.eval, NLPModels.jac_coord(nlp, x), x)
-  return (NLPModels.jac_structure(nlp)[1], NLPModels.jac_structure(nlp)[2], NLPModels.jac_coord(nlp, x))
-end
-
-function NLPModels.jac_coord!(nlp::MathOptNLPModel, x::AbstractVector, vals::AbstractVector)
-  println("1*************************HERE**************************")
-  increment!(nlp, :neval_jac)
-  if nlp.meta.nlin > 0
-    vals[1:(nlp.lincon.nnzj)] .= nlp.lincon.jacobian.vals[1:(nlp.lincon.nnzj)]
-  end
-  if nlp.meta.nnln > 0
-    MOI.eval_constraint_jacobian(nlp.eval, view(vals, (nlp.lincon.nnzj + 1):(nlp.meta.nnzj)), x)
-  end
-  return vals
-end
-
-function jac(nlp :: MathOptNLPModel, x :: Array{Float64})
-  return SparseArrays.sparse(jac_coord(nlp, x)..., nlp.meta.ncon, nlp.meta.nvar)
-end
-=#
-#=
-function jac(nlp :: MathProgNLPModel, x :: Array{Float64})
-  return SparseArrays.sparse(jac_coord(nlp, x)..., nlp.meta.ncon, nlp.meta.nvar)
-end
-=#
-#=
-function jprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64})
-  Jv = zeros(nlp.meta.ncon)
-  return jprod!(nlp, x, v, Jv)
-end
-=#
-#=
-function jprod!(nlp :: MathProgNLPModel,
-                x :: Array{Float64},
-                v :: Array{Float64},
-                Jv :: Array{Float64})
-  nlp.counters.neval_jac -= 1
-  NLPModels.increment!(nlp, :neval_jprod)
-  Jv[:] = jac(nlp, x) * v
-  return Jv
-end
-=#
-#=
-function jtprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64})
-  Jtv = zeros(nlp.meta.nvar)
-  return jtprod!(nlp, x, v, Jtv)
-end
-=#
-#=
-function jtprod!(nlp :: MathProgNLPModel,
-                x :: Array{Float64},
-                v :: Array{Float64},
-                Jtv :: Array{Float64})
-  nlp.counters.neval_jac -= 1
-  NLPModels.increment!(nlp, :neval_jtprod)
-  Jtv[1:nlp.meta.nvar] = jac(nlp, x)' * v
-  return Jtv
-end
-=#
-# Uncomment if/when :JacVec becomes available in MPB.
-# "Evaluate the Jacobian-vector product at `x`."
-# function jprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64})
-#   jv = zeros(nlp.meta.ncon)
-#   return jprod!(nlp, x, v, jv)
-# end
-#
-# "Evaluate the Jacobian-vector product at `x` in place."
-# function jprod!(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64}, jv :: Array{Float64})
-#   NLPModels.increment!(nlp, :neval_jprod)
-#   MOI.eval_jac_prod(nlp.mpmodel.eval, jv, x, v)
-#   return jv
-# end
-#
-# "Evaluate the transposed-Jacobian-vector product at `x`."
-# function jtprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64})
-#   jtv = zeros(nlp.meta.nvar)
-#   return jtprod!(nlp, x, v, jtv)
-# end
-#
-# "Evaluate the transposed-Jacobian-vector product at `x` in place."
-# function jtprod!(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64}, jtv :: Array{Float64})
-#   NLPModels.increment!(nlp, :neval_jtprod)
-#   MathProgBase.eval_jac_prod_t(nlp.mpmodel.eval, jtv, x, v)
-#   return jtv
-# end
-#=
-function hess_coord(nlp :: MathProgNLPModel, x :: Array{Float64};
-    obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  NLPModels.increment!(nlp, :neval_hess)
-  MOI.eval_hesslag(nlp.mpmodel.eval, nlp.hvals, x, obj_weight, y)
-  return (nlp.hrows, nlp.hcols, nlp.hvals)
-end
-=#
-#=
-function hess(nlp :: MathProgNLPModel, x :: Array{Float64};
-    obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
-end
-=#
 
 function append_to_hessian_sparsity!(
     ::Any,
@@ -1431,16 +979,6 @@ function hess_coord(nlp :: MathOptNLPModel, x :: Array{Float64};
   obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
   NLPModels.increment!(nlp, :neval_hess)
   MOI.eval_hessian_lagrangian(nlp.eval, nlp.obj.hessian.vals, x, obj_weight, y)
-  #println("**************************************************nlp.obj: ", nlp.obj)
-  #println("6++++++++++++++++++++++++++++++++nlp.obj.hessian.rows: ", nlp.obj.hessian.rows)
-  #println("7++++++++++++++++++++++++++++++++nlp.obj.hessian.cols: ", nlp.obj.hessian.cols)
-  #println("8++++++++++++++++++++++++++++++++nlp.obj.hessian.vals: ", nlp.obj.hessian.vals)
-  #println("9++++++++++++++++++++++++++++++++hess_coord: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
-  #println("4++++++++++++++++++++++++++++++++++++++++x: ", x)
-  #println("5++++++++++++++++++++++++++++++++++++++++y: ", y)
-  #println("6++++++++++++++++++++++++++++++++nlp.hrows: ", NLPModels.hess_structure(nlp)[1])
-  #println("7++++++++++++++++++++++++++++++++nlp.hcols: ", NLPModels.hess_structure(nlp)[2])
-  #println("8++++++++++++++++++++++++++++++++nlp.hvals: ", NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
 
   return (NLPModels.hess_structure(nlp)[1], NLPModels.hess_structure(nlp)[2], NLPModels.hess_coord(nlp, x, y, obj_weight=obj_weight))
   #return (nlp.obj.hessian.rows, nlp.obj.hessian.cols, nlp.obj.hessian.vals)
@@ -1467,45 +1005,12 @@ function NLPModels.hess_structure!(
   end
   return rows, cols
 end
-#=
-function hess(nlp :: MathOptNLPModel, x :: Array{Float64};
-    obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  #println("1++++++++++++++++++++++++++++++++x: ", x)
-  #println("2++++++++++++++++++++++++++++++++obj_weight: ", obj_weight)
-  #println("3++++++++++++++++++++++++++++++++y: ", y)
-  #println("4++++++++++++++++++++++++++++++++nlp.meta.nvar: ", nlp.meta.nvar)
-  #println("5+++++++++++++++++++++++++++++++NLPModels.hess(nlp, x):", NLPModels.hess(nlp, x, obj_weight = obj_weight, y))
-  #println("y+++++++++++++++++++++++++++++++(rows):", NLPModels.hess_structure(nlp)[1])
-  #println("y+++++++++++++++++++++++++++++++(rows):", NLPModels.hess_structure(nlp)[2])
- hess_structure
-  #return NLPModels.hess(nlp, x, y, obj_weight)
-  return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
-  #return SparseArrays.sparse(hess_coord(nlp, x, y=y, obj_weight=obj_weight)..., nlp.meta.nvar, nlp.meta.nvar)
-end
-=#
-#=
-function hprod(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64};
-    obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  hv = zeros(nlp.meta.nvar)
-  return hprod!(nlp, x, v, hv, obj_weight=obj_weight, y=y)
-end
-=#
-#=
-function hprod!(nlp :: MathProgNLPModel, x :: Array{Float64}, v :: Array{Float64},
-    hv :: Array{Float64};
-    obj_weight :: Float64=1.0, y :: Array{Float64}=zeros(nlp.meta.ncon))
-  NLPModels.increment!(nlp, :neval_hprod)
-  MOI.eval_hesslag_prod(nlp.mpmodel.eval, hv, x, v, obj_weight, y)
-  return hv
-end
-=#
 
 ############################
 ## END ModelReader CODE
 ############################
 
 function status_One_Phase_To_JuMP(status::Symbol)
-    #println("+++++++++++++++++++++++++++++++++++++++++++++", status)
     # since our status are not equal to JuMPs we need to do a conversion
     if status == :Optimal
         return :Optimal
@@ -1537,54 +1042,7 @@ function create_pars_JuMP(options )
 
     return pars
 end
-#=
-function MathProgBase.optimize!(m :: OnePhaseMathProgModel)
-    t = time()
-    nlp = MathProgNLPModel(m)
 
-    pars = create_pars_JuMP(m.options)
-
-    iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
-
-    m.inner.status = status_One_Phase_To_JuMP(status)
-    m.inner.x = get_original_x(iter)
-    m.inner.obj_val = iter.cache.fval
-    m.inner.lambda = get_y(iter)
-    m.inner.solve_time = time() - t
-
-    # custom one phase features
-    m.inner.pars = pars
-    m.inner.iter = iter
-    m.inner.hist = hist
-end
-=#
-#=
-MOI.getconstrsolution(m::OnePhaseMathProgModel) = m.inner.g
-MOI.getrawsolver(m::OnePhaseMathProgModel) = m.inner
-MOI.getsolvetime(m::OnePhaseMathProgModel) = m.inner.solve_time
-
-function MOI.getreducedcosts(m::OnePhaseMathProgModel)
-    return get_reducedcosts(m.inner.iter)
-end
-
-function MOI.getconstrduals(m::OnePhaseMathProgModel)
-    return get_constrduals(m.inner.iter)
-end
-=#
-#setvartype!(m::OnePhaseMathProgModel, typ::Vector{Symbol}) =
-#    (m.varType = map(t->rev_var_type_map[t], typ))
-#=
-function MOI.freemodel!(m::OnePhaseMathProgModel)
-    # TO DO
-end
-=#
-#=
-function free(model::OnePhaseMathProgModel)
-    if model.inner != nothing
-        KN_free(model.inner)
-    end
-end
-=#
 MOI.get(model::OnePhaseSolver, ::MOI.RawSolver) = model
 
 function JuMP.optimize!(
@@ -1596,7 +1054,6 @@ function JuMP.optimize!(
     ignore_optimize_hook = (model.optimize_hook === nothing),
     kwargs...,
 )
-    ##println("AM I HERE ??????????????????????????????????????????????????????")
     # The nlp_data is not kept in sync, so re-set it here.
     # TODO: Consider how to handle incremental solves.
     if model.nlp_data !== nothing
@@ -1627,43 +1084,23 @@ function JuMP.optimize!(
     end
 
     try
-	    #MOI.optimize!(model, backend(model))
 	    m = backend(model)
 		if m.mode == MathOptInterface.Utilities.AUTOMATIC && m.state == MathOptInterface.Utilities.EMPTY_OPTIMIZER
-		    #println("---------------------------------------")
 			MOIU.attach_optimizer(m)
 		end
-		#if m.state == MathOptInterface.Utilities.EMPTY_OPTIMIZER
-		#    println("---------------------------------------", m.mode)
-		#	println("---------------------------------------", m.mode == MathOptInterface.Utilities.AUTOMATIC)
-		#	println("***************************************", m.state == EMPTY_OPTIMIZER)
-		#	println("---------------------------------------", m.mode == AUTOMATIC && m.state == EMPTY_OPTIMIZER)
-		#    MOIU.attach_optimizer(m)
-		#end
+
 		# TODO: better error message if no optimizer is set
 		@assert m.state == MathOptInterface.Utilities.ATTACHED_OPTIMIZER
         solver = m.optimizer.model
         t = time()
         nlp = MathOptNLPModel(model)
-		##evaluator = nlp.eval
-		##features = MOI.features_available(evaluator)
-		##has_hessian = (:Hess in features)
-		##init_feat = [:Grad]
-        ##has_hessian && push!(init_feat, :Hess)
-		#num_nlp_constraints = length(model.nlp_data.constraint_bounds)
-        #if num_nlp_constraints > 0
-        #    push!(init_feat, :Jac)
-        #end
-		##MOI.initialize(evaluator, init_feat)
-		##hessian_sparsity = has_hessian ? hessian_lagrangian_structure(solver, nlp) : []
-        ##println("****************************************hessian_sparsity: ", hessian_sparsity)
+
         pars = create_pars_JuMP(solver.options)
-        #println("111111111111111111111111111111111111")
-	#println("111111111111111111111111111111111111", EMPTY_OPTIMIZER)
+
         iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
-        #println("222222222222222222222222222222222222")
+
 		solver.inner = OnePhaseProblem()
-		#println("----------------------", status)
+
 		solver.inner.status = status_One_Phase_To_JuMP(status)
 		solver.inner.x = get_original_x(iter)
 		solver.inner.obj_val = iter.cache.fval
@@ -1691,101 +1128,15 @@ function JuMP.optimize!(
     return
 end
 
-#=
-function JuMP.optimize!(
-    model::Model,
-    # TODO: Remove the optimizer_factory and bridge_constraints
-    # arguments when the deprecation error below is removed.
-    optimizer_factory = nothing;
-    bridge_constraints::Bool = true,
-    ignore_optimize_hook = (model.optimize_hook === nothing),
-    kwargs...,
-)
-    ##println("AM I HERE ??????????????????????????????????????????????????????")
-    # The nlp_data is not kept in sync, so re-set it here.
-    # TODO: Consider how to handle incremental solves.
-    if model.nlp_data !== nothing
-        MOI.set(model, MOI.NLPBlock(), JuMP._create_nlp_block_data(model))
-        empty!(model.nlp_data.nlconstr_duals)
-    end
-
-    if optimizer_factory !== nothing
-        # This argument was deprecated in JuMP 0.21.
-        error(
-            "The optimizer factory argument is no longer accepted by " *
-            "`optimize!`. Call `set_optimizer` before `optimize!`.",
-        )
-    end
-
-    # If the user or an extension has provided an optimize hook, call
-    # that instead of solving the model ourselves
-    if !ignore_optimize_hook
-        return model.optimize_hook(model; kwargs...)
-    end
-
-    isempty(kwargs) || error(
-        "Unrecognized keyword arguments: $(join([k[1] for k in kwargs], ", "))",
-    )
-
-    if mode(model) != DIRECT && MOIU.state(backend(model)) == MOIU.NO_OPTIMIZER
-        throw(NoOptimizer())
-    end
-
-    try
-        #MOI.optimize!(model, backend(model))
-	##println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^", typeof(backend(model)))
-	MOI.optimize!(model, backend(model))
-    catch err
-        # TODO: This error also be thrown also in MOI.set() if the solver is
-        # attached. Currently we catch only the more common case. More generally
-        # JuMP is missing a translation layer from MOI errors to JuMP errors.
-        if err isa MOI.UnsupportedAttribute{MOI.NLPBlock}
-            error(
-                "The solver does not support nonlinear problems " *
-                "(i.e., NLobjective and NLconstraint).",
-            )
-        else
-            rethrow(err)
-        end
-    end
-
-    return
-end
-=#
-#=
-function MOI.optimize!(jumpModel:: Model, m::MathOptInterface.Utilities.CachingOptimizer)
-    if m.mode == AUTOMATIC && m.state == EMPTY_OPTIMIZER
-        attach_optimizer(m)
-    end
-    # TODO: better error message if no optimizer is set
-    ##println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^", typeof(m.optimizer))
-    ##println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^", typeof(m.state))
-    ##println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^", m.state)
-    @assert m.state == MathOptInterface.Utilities.ATTACHED_OPTIMIZER
-    return MOI.optimize!(m.optimizer, jumpModel)
-end
-=#
-#=
-MOI.optimize!(b::MathOptInterface.Bridges.AbstractBridgeOptimizer, jumpModel:: Model) = MOI.optimize!(b.model, jumpModel)
-=#
-
 function MOI.optimize!(solver :: OnePhaseSolver, jumpModel:: Model)
-    ##println("111111111111111111111111111111111111111111111111111")
-    ##println(typeof(solver))
-    ##println(typeof(solver.inner))
-    ##println("111111111111111111111111111111111111111111111111111")
     t = time()
-    #nlp = MathProgNLPModel(m)
     nlp = MathOptNLPModel(jumpModel)
-    #println("##########################", nlp)
     pars = create_pars_JuMP(solver.options)
 
     iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
     solver.inner = OnePhaseProblem()
-    #println("---------------------------", status)
     solver.inner.status = status_One_Phase_To_JuMP(status)
     solver.inner.x = get_original_x(iter)
-	#println("*********************", iter.cache.fval)
     solver.inner.obj_val = iter.cache.fval
     solver.inner.lambda = get_y(iter)
     solver.inner.solve_time = time() - t
@@ -1797,17 +1148,13 @@ function MOI.optimize!(solver :: OnePhaseSolver, jumpModel:: Model)
 end
 
 function MOI.optimize!(solver :: OnePhaseSolver)
-    println("----------------------------------------------- REACHED HERE --------------------------------------------")
+
 end
 
 function MOI.get(
     model::MathOptInterface.Utilities.CachingOptimizer,
     attr::MOI.TerminationStatus,
 )
-    #if MOI.Utilities.state(model) == MOI.NO_OPTIMIZER
-        #return MOI.OPTIMIZE_NOT_CALLED
-#		return :Error
- #   end
     return MOI.get(model.optimizer, attr)
 end
 
@@ -1930,45 +1277,6 @@ function MOI.get(model::OnePhaseSolver, ::MOI.TerminationStatus)
     #status = ApplicationReturnStatus[model.inner.status]
 	status = model.inner.status
 	return status
-	#=
-    if status == :Solve_Succeeded || status == :Feasible_Point_Found
-        return MOI.LOCALLY_SOLVED
-    elseif status == :Infeasible_Problem_Detected
-        return MOI.LOCALLY_INFEASIBLE
-    elseif status == :Solved_To_Acceptable_Level
-        return MOI.ALMOST_LOCALLY_SOLVED
-    elseif status == :Search_Direction_Becomes_Too_Small
-        return MOI.NUMERICAL_ERROR
-    elseif status == :Diverging_Iterates
-        return MOI.NORM_LIMIT
-    elseif status == :User_Requested_Stop
-        return MOI.INTERRUPTED
-    elseif status == :Maximum_Iterations_Exceeded
-        return MOI.ITERATION_LIMIT
-    elseif status == :Maximum_CpuTime_Exceeded
-        return MOI.TIME_LIMIT
-    elseif status == :Restoration_Failed
-        return MOI.NUMERICAL_ERROR
-    elseif status == :Error_In_Step_Computation
-        return MOI.NUMERICAL_ERROR
-    elseif status == :Invalid_Option
-        return MOI.INVALID_OPTION
-    elseif status == :Not_Enough_Degrees_Of_Freedom
-        return MOI.INVALID_MODEL
-    elseif status == :Invalid_Problem_Definition
-        return MOI.INVALID_MODEL
-    elseif status == :Invalid_Number_Detected
-        return MOI.INVALID_MODEL
-    elseif status == :Unrecoverable_Exception
-        return MOI.OTHER_ERROR
-    elseif status == :NonIpopt_Exception_Thrown
-        return MOI.OTHER_ERROR
-    elseif status == :Insufficient_Memory
-        return MOI.MEMORY_LIMIT
-    else
-        error("Unrecognized Ipopt status $status")
-    end
-	=#
 end
 
 function MOI.get(model::OnePhaseSolver, ::MOI.RawStatusString)
@@ -1985,49 +1293,17 @@ function MOI.get(model::OnePhaseSolver, attr::MOI.PrimalStatus)
     if !(1 <= attr.N <= MOI.get(model, MOI.ResultCount()))
         return MOI.NO_SOLUTION
     end
-    #status = ApplicationReturnStatus[model.inner.status]
+
 	status = model.inner.status
 	return status
-	#=
-    if status == :Solve_Succeeded
-        return MOI.FEASIBLE_POINT
-    elseif status == :Feasible_Point_Found
-        return MOI.FEASIBLE_POINT
-    elseif status == :Solved_To_Acceptable_Level
-        # Solutions are only guaranteed to satisfy the "acceptable" convergence
-        # tolerances.
-        return MOI.NEARLY_FEASIBLE_POINT
-    elseif status == :Infeasible_Problem_Detected
-        return MOI.INFEASIBLE_POINT
-    else
-        return MOI.UNKNOWN_RESULT_STATUS
-    end
-	=#
 end
 
 function MOI.get(model::OnePhaseSolver, attr::MOI.DualStatus)
     if !(1 <= attr.N <= MOI.get(model, MOI.ResultCount()))
         return MOI.NO_SOLUTION
     end
-    #status = ApplicationReturnStatus[model.inner.status]
 	status = model.inner.status
 	return status
-	#=
-    if status == :Solve_Succeeded
-        return MOI.FEASIBLE_POINT
-    elseif status == :Feasible_Point_Found
-        return MOI.FEASIBLE_POINT
-    elseif status == :Solved_To_Acceptable_Level
-        # Solutions are only guaranteed to satisfy the "acceptable" convergence
-        # tolerances.
-        return MOI.NEARLY_FEASIBLE_POINT
-    elseif status == :Infeasible_Problem_Detected
-        # TODO: What is the interpretation of the dual in this case?
-        return MOI.UNKNOWN_RESULT_STATUS
-    else
-        return MOI.UNKNOWN_RESULT_STATUS
-    end
-	=#
 end
 
 function MOI.get(model::OnePhaseSolver, attr::MOI.ObjectiveValue)

@@ -35,10 +35,7 @@ function kkt_associate_rhs!(kkt_solver::abstract_schur_solver, iter::Class_itera
     start_advanced_timer(timer, "KKT/rhs");
 
     kkt_solver.rhs = System_rhs(iter, reduct_factors)
-    #println("#####################################kkt_solver.rhs: ", kkt_solver.rhs)
     kkt_solver.dir.mu = -(1.0 - reduct_factors.mu) * get_mu(iter)
-    #println("++++++++++++++++++++++++++++++++++++kkt_solver.dir.mu: ", kkt_solver.dir.mu)
-    #println("++++++++++++++++++++++++++++++++++++get_mu(iter): ", get_mu(iter))
     kkt_solver.dir.primal_scale = -(1.0 - reduct_factors.P) * iter.point.primal_scale
 
     kkt_solver.reduct_factors = reduct_factors
@@ -56,19 +53,9 @@ function form_system!(kkt_solver::abstract_schur_solver, iter::Class_iterate, ti
 
     # TODO build specialized schur complement code.
     kkt_solver.Q = eval_J_T_J(iter, iter.point.y ./ iter.point.s) + get_lag_hess(iter);
-    #println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", Matrix(eval_J_T_J(iter, iter.point.y ./ iter.point.s)))
-    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", Matrix(kkt_solver.Q))
-    #println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", Matrix(get_lag_hess(iter)))
     kkt_solver.schur_diag = diag(kkt_solver.Q)
     kkt_solver.factor_it = iter;
     kkt_solver.ready = :system_formed
-    #println("#############################################kkt_solver.Q: ", Matrix(kkt_solver.Q))
-    #println("#####################################kkt_solver.factor_it: ", kkt_solver.factor_it)
-    #println("####################################kkt_solver.schur_diag: ", kkt_solver.schur_diag)
-
-    #println("#############################################iter.point.x: ", iter.point.x)
-    #println("#####################################iter.point.y: ", iter.point.y)
-    #println("####################################iter.point.s: ", iter.point.s)
 
     pause_advanced_timer(timer, "SCHUR/form_system");
     pause_advanced_timer(timer, "SCHUR");
@@ -107,19 +94,11 @@ function compute_direction_implementation!(kkt_solver::Schur_KKT_solver, timer::
     #?a_org = get_jac(factor_it);
     y_org = get_y(factor_it);
     s_org = get_s(factor_it);
-    #println("+++++++++++++++++++++++++++++++++++y_org: ", y_org)
-    #println("+++++++++++++++++++++++++++++++++++s_org: ", s_org)
     rhs = kkt_solver.rhs
 
     #r1 + ?a_org' * (( r3 + (r2 .* y_org) ) ./ s_org)
     start_advanced_timer(timer, "SCHUR/rhs");
     symmetric_primal_rhs = rhs.primal_r + rhs.comp_r ./ y_org
-    #println("+++++++++++++++++++++++++++++++++++rhs.primal_r: ", rhs.primal_r)
-    #println("+++++++++++++++++++++++++++++++++++rhs.dual_r: ", rhs.dual_r)
-    #println("+++++++++++++++++++++++++++++++++++rhs.comp_r: ", rhs.comp_r)
-    #println("+++++++++++++++++++++++++symmetric_primal_rhs: ", symmetric_primal_rhs)
-    #println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r - rhs.comp_r ./ y_org)
-    #println("+++++++++++++++++++++++++++++++++++++++++++++rhs.primal_r-y^-1*rhs.comp_r: ", rhs.primal_r + rhs.comp_r ./ y_org)
     S_vec = ( y_org ./ s_org )
     y_ = (rhs.primal_r .* S_vec + rhs.comp_r ./ s_org )
     schur_rhs = rhs.dual_r + eval_jac_T_prod(factor_it, y_)
@@ -182,18 +161,12 @@ function solver_schur_rhs(schur_rhs::Vector, kkt_solver::abstract_schur_solver, 
       end
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement");
-      #println("FFFFFFFFFFFFFFFFFFFFFF", typeof(res_old))
-      #println("HHHHHHHHHHHHHHHHHHHHHH", typeof(schur_rhs))
       dir_x .+= ls_solve(kkt_solver.ls_solver, res_old, timer);
 
       start_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
       jac_res = eval_jac_T_prod( fit , S_vec .* eval_jac_prod(fit, dir_x) )
       hess_res = hess_product(fit, dir_x) + kkt_solver.delta_x_vec .* dir_x
       res_old = schur_rhs - ( jac_res + hess_res )
-      #println("1111111111111111111111", typeof(jac_res))
-      #println("2222222222222222222222", typeof(hess_res))
-      #println("3333333333333333333333", typeof(res_old))
-      #println("3333333333333333333333", typeof(Vector(res_old)))
 
       pause_advanced_timer(timer, "SCHUR/iterative_refinement/residual");
 

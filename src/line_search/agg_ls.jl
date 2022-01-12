@@ -42,7 +42,6 @@ function accept_func!(accept::Class_agg_ls, intial_it::Class_iterate, candidate:
       #@show get_mu(candidate) / get_mu(intial_it), tau
       return :success, step_size
     else
-      #println("failure")
       suggested_step_size = max(max_thres^2, accept.step_size_P * tau^2)
       return :not_enough_progress, suggested_step_size
     end

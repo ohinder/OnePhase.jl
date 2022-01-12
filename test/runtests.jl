@@ -61,7 +61,6 @@ function basic_tests(options::Dict{String, Any})
 	    attachSolverWithAttributesToJuMPModel(model, options)
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
-        #println("--------------------------------------", status)
         @test status == :Infeasible
     end
 
@@ -216,16 +215,3 @@ end
   #executeCUTEST_Models()
   #executeCUTEST_Models_benchmark()
 end
-
-
-#=
-x0 = [-1.2; 1.0]
-model = Model() # No solver is required
-@variable(model, x[i=1:2], start=x0[i])
-@NLobjective(model, Min, (x[1] - 1)^2 + 100 * (x[2] - x[1]^2)^2)
-@NLconstraint(model, x[1]^2 + x[2] <= 1.0)
-pars = OnePhase.Class_parameters()
-pars.output_level = 0
-iter, status, hist, t, err, timer = OnePhase.one_phase_solve(model, pars)
-println(status)
-=#

@@ -7,10 +7,6 @@ mutable struct Class_point
     primal_scale::Float64
 
     function Class_point(x::Array{Float64,1},y::Array{Float64,1},s::Array{Float64,1},mu::Float64)
-        #println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", s)
-        #println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", length(s))
-        #println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", y)
-        #println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", length(y))
         @assert(length(s) == length(y))
         return new(x, y, s, mu, 1.0)
     end

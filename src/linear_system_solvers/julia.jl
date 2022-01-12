@@ -31,7 +31,6 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 				try
 					if !solver.recycle || !solver._factor_defined
 						#solver._factor = cholfact(Symmetric(SparseMatrix,:L));
-                                                #println("---------------------", Matrix(Symmetric(SparseMatrix,:L)))  
 						solver._factor = cholesky(Symmetric(SparseMatrix,:L));
 						solver._factor_defined = true
 					else
@@ -41,8 +40,8 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 					if typeof(e) == LinearAlgebra.PosDefException
 						inertia_status_val = 0
 					else
-							println("ERROR in linear_solver_JULIA.ls_factor!")
-							throw(e)
+						println("ERROR in linear_solver_JULIA.ls_factor!")
+						throw(e)
 					end
 				end
 			elseif solver.sym == :symmetric
@@ -61,11 +60,10 @@ function ls_factor!(solver::linear_solver_JULIA, SparseMatrix::SparseMatrixCSC{F
 					#This is related to (PosDefException: matrix is not positive definite; Cholesky factorization failed.)
 					if typeof(e) == ArgumentError || typeof(e) == LinearAlgebra.PosDefException || typeof(e) == ZeroPivotException
 					#if typeof(e) == LinearAlgebra.PosDefException
-							inertia_status_val = 0
+						inertia_status_val = 0
 					else
-							println("ERROR in saddle_solver_JULIA.ls_factor!")
-                                                        #println("###############################", typeof(e))
-							throw(e)
+						println("ERROR in saddle_solver_JULIA.ls_factor!")
+						throw(e)
 					end
 				end
 
