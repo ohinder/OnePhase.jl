@@ -1,8 +1,10 @@
-importall CUTEst
+#importall CUTEst
+#using SparseArrays
+#import CUTEst
 
 export get_original_x, get_y
 
-type Class_bounds
+mutable struct Class_bounds
     l_i::Array{Int64,1}
     u_i::Array{Int64,1}
     l::Array{Float64,1}
@@ -33,7 +35,7 @@ function _i_not_fixed(m::NLPModels.AbstractNLPModel)
     return (1:m.meta.nvar)[m.meta.lvar .!= m.meta.uvar]
 end
 
-type Class_CUTEst <: abstract_nlp
+mutable struct Class_CUTEst <: abstract_nlp
     nlp::NLPModels.AbstractNLPModel
 
     bcon::Class_bounds
@@ -79,7 +81,7 @@ end
 
 function linear_cons(m::Class_CUTEst)
     is_linear = zeros(m.nlp.meta.ncon)
-    is_linear[m.nlp.meta.lin] = 1.0
+    is_linear[m.nlp.meta.lin] .= 1.0
     vec = [is_linear[m.bcon.l_i]; is_linear[m.bcon.u_i]; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
@@ -87,7 +89,7 @@ end
 
 function ineq_cons(m::Class_CUTEst)
     is_ineq = zeros(m.nlp.meta.ncon)
-    is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] = 1.0
+    is_ineq[m.nlp.meta.lcon .== m.nlp.meta.ucon] .= 1.0
     vec = [is_ineq[m.bcon.l_i]; is_ineq[m.bcon.u_i]; ones(nbounds_orginal(m))]
 
     return 1.0 .== vec
@@ -140,6 +142,9 @@ end
 
 function eval_a(m::Class_CUTEst, x::Array{Float64,1})
     a = cons(m.nlp, _cute_x(m, x) )
+    if a == Float64[]
+      a = zeros(1)
+    end
     return [lb(a, m.bcon); ub(a, m.bcon); lb(x, m.bvar); ub(x, m.bvar)];
 end
 
@@ -161,9 +166,10 @@ function eval_jac(m::Class_CUTEst, x::Array{Float64,1})
     cute_x = _cute_x(m, x)
     J_full_T = jac(m.nlp, cute_x)'
     J_T = J_full_T[_i_not_fixed(m.nlp),:];
-    my_eye = speye(length(x))
+    #my_eye = SparseArrays.speye(length(x))
+    my_eye = SparseMatrixCSC{Float64}(LinearAlgebra.I, length(x), length(x))
     Q_T = [J_T[:,m.bcon.l_i] -J_T[:,m.bcon.u_i] my_eye[:,m.bvar.l_i] -my_eye[:,m.bvar.u_i]];
-    return Q_T'
+    return SparseArrays.sparse(Q_T')
 
     #return @time [J[m.bcon.l_i,:]; -J[m.bcon.u_i,:]; my_eye[m.bvar.l_i,:]; -my_eye[m.bvar.u_i,:]];
 end
@@ -232,18 +238,20 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     y_cons[m.bcon.l_i] -= y_l_con(y, m)
     y_cons[m.bcon.u_i] += y_u_con(y, m)
 
-    H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
+    #H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
+    #H = hess(m.nlp, _cute_x(m, x), y=y_cons; obj_weight=w);
+    H = hess(m.nlp, _cute_x(m, x), y_cons; obj_weight=w);
     #H = hess(m.nlp, _cute_x(m, x), w, y_cons);
     #@show typeof(H)
 
     ind = _i_not_fixed(m.nlp)
 
     H_not_fixed = H[ind,ind]
-    #H_true = sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
+    #H_true = SparseArrays.sparse(Symmetric(H_not_fixed,:L) + spzeros(length(x),length(x)))
     #H_true = H_not_fixed + H_not_fixed' - spdiagm(diag(H_not_fixed))
     #convert()
     #@time H_true = make_symmetric(H_not_fixed)
-    #@show norm(H_true - H2,Inf)
+    #@show LinearAlgebra.norm(H_true - H2,Inf)
 
     return H_not_fixed
 end

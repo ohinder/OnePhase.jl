@@ -1,4 +1,5 @@
-type Symmetric_KKT_solver <: abstract_KKT_system_solver
+using LinearAlgebra
+mutable struct Symmetric_KKT_solver <: abstract_KKT_system_solver
     # abstract_KKT_system_solver
     ls_solver::abstract_linear_system_solver
     factor_it::Class_iterate
@@ -35,7 +36,8 @@ function form_system!(kkt_solver::Symmetric_KKT_solver, iter::Class_iterate, tim
     start_advanced_timer(timer, "symmetric/form_system");
     J = get_jac(iter) #.cache.J
     J_T = get_jac_T(iter) #.cache.J_T
-    B = spdiagm(-iter.point.s ./ iter.point.y);
+    #B = spdiagm(-iter.point.s ./ iter.point.y);
+    B = sparse(Diagonal(-iter.point.s ./ iter.point.y))
     M = [[get_lag_hess(iter) J_T]; [J B]];
 
     pause_advanced_timer(timer, "symmetric/form_system");
@@ -64,8 +66,7 @@ function compute_direction_implementation!(kkt_solver::Symmetric_KKT_solver, tim
     dir_x_and_y = ls_solve(kkt_solver.ls_solver, symmetric_rhs, timer);
 
     shift_vector = [ones(dim(kkt_solver.factor_it));
-     zeros(ncon(kkt_solver.factor_it))] * get_delta(kkt_solver.factor_it);
-
+    zeros(ncon(kkt_solver.factor_it))] * get_delta(kkt_solver.factor_it);
 
     dir = kkt_solver.dir;
     dir.x = dir_x_and_y[1:length(rhs.dual_r)];

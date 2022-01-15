@@ -1,17 +1,18 @@
 include("linear_system_solvers.jl")
-
-using advanced_timer
+#using advanced_timer
+using Main.advanced_timer
+#using SparseArrays
 
 start_advanced_timer()
 solver_julia = linear_solver_JULIA(:unsymmetric)
 initialize!(solver_julia)
-ls_factor!(solver_julia, speye(10), 10, 0)
+ls_factor!(solver_julia, SparseArrays.speye(10), 10, 0)
 ls_solve(solver_julia, rand(10))
 #mumps_sym(:symmetric)
 
 solver_mumps = linear_solver_MUMPS(:unsymmetric)
 initialize!(solver_mumps)
-ls_factor!(solver_mumps, speye(10), 10, 0)
+ls_factor!(solver_mumps, SparseArrays.speye(10), 10, 0)
 ls_solve(solver_mumps, rand(10))
 pause_advanced_timer()
 
@@ -43,11 +44,11 @@ function solves!(my_kkt_solver::abstract_KKT_system_solver)
   MUMPS.associate_rhs!(my_kkt_solver.ls_solver._factor, rand(n));
   MUMPS.solve!(my_kkt_solver.ls_solver._factor);
   sol = MUMPS.get_solution(my_kkt_solver.ls_solver._factor);
-  @show norm(sol)
+  @show LinearAlgebra.norm(sol)
 end
 
 function fact!(my_kkt_solver::abstract_KKT_system_solver)
-    MUMPS.associate_matrix!(my_kkt_solver.ls_solver._factor, sparse(rand(n,n)));
+    MUMPS.associate_matrix!(my_kkt_solver.ls_solver._factor, SparseArrays.sparse(rand(n,n)));
     MUMPS.factorize!(my_kkt_solver.ls_solver._factor);
 end
 

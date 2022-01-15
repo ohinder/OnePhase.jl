@@ -1,5 +1,7 @@
+using SparseArrays
+
 function comp_merit(it::Class_iterate)
-    return norm(comp(it),Inf)^3 / get_mu(it)^2
+    return LinearAlgebra.norm(comp(it),Inf)^3 / get_mu(it)^2
 end
 
 #function comp_merit_predicted(it::Class_iterate, dir::Class_point, step_size::Float64)
@@ -7,7 +9,7 @@ end
 #end
 
 function comp(it::Class_iterate)
-    return it.point.s .* it.point.y - it.point.mu
+    return it.point.s .* it.point.y .- it.point.mu
 end
 
 
@@ -16,7 +18,7 @@ function comp_ratio_max(it::Class_iterate)
     return max(maximum(it.point.s .* it.point.y ./ it.point.mu), maximum(it.point.mu ./ (it.point.s .* it.point.y)))
 end
 
-type Eval_NaN_error <: Exception
+mutable struct Eval_NaN_error <: Exception
    num::Float64
    point::Array{Float64,1}
    place::String
@@ -81,7 +83,7 @@ function get_jac_T(it::Class_iterate)
 end
 
 function eval_J_T_J(it::Class_iterate, diag_vals::Vector)
-    return it.cache.J_T * spdiagm(diag_vals) * it.cache.J
+    return it.cache.J_T * sparse(Diagonal(diag_vals)) * it.cache.J
 end
 
 function eval_diag_J_T_J(it::Class_iterate,diag_vals::Vector)
@@ -106,7 +108,7 @@ function eval_jac_T_prod(it::Class_iterate, y::Vector)
 end
 
 function get_primal_res(it::Class_iterate)
-    return it.cache.cons - it.point.s
+    return it.cache.cons .- it.point.s
 end
 
 function get_max_vio(it::Class_iterate)
@@ -152,7 +154,7 @@ function farkas_certificate(it::Class_iterate, y::Array{Float64,1})
     c = it.cache.cons
     feas_obj = -sum(c .* y)
     if feas_obj > 0.0
-      return norm(it.cache.J_T * y, 1) / feas_obj
+      return LinearAlgebra.norm(it.cache.J_T * y, 1) / feas_obj
     else
       return Inf
     end
@@ -160,7 +162,7 @@ end
 
 
 function stationary_infeasible_measure(it::Class_iterate, y::Array{Float64,1})
-    return (norm(it.cache.J_T * y, 1) + dot(it.point.s, it.point.y)) / norm(y,1)
+    return (LinearAlgebra.norm(it.cache.J_T * y, 1) + dot(it.point.s, it.point.y)) / LinearAlgebra.norm(y,1)
 end
 
 function eval_farkas(it::Class_iterate)
@@ -170,7 +172,7 @@ end
 function eval_merit_function(it::Class_iterate, pars::Class_parameters)
     if is_feasible(it, pars.ls.comp_feas)
         if length(it.point.s) > 0
-          comp_penalty = norm(comp(it), Inf)^3 / (it.point.mu)^2
+          comp_penalty = LinearAlgebra.norm(comp(it), Inf)^3 / (it.point.mu)^2
         else
           comp_penalty = 0.0
         end
@@ -192,7 +194,7 @@ end
 function eval_merit_function_difference(it::Class_iterate, candidate::Class_iterate, pars::Class_parameters)
     if is_feasible(candidate, pars.ls.comp_feas)
         if length(it.point.s) > 0
-          comp_penalty = norm(comp(candidate), Inf)^3 / (it.point.mu)^2 - norm(comp(it), Inf)^3 / (it.point.mu)^2
+          comp_penalty = LinearAlgebra.norm(comp(candidate), Inf)^3 / (it.point.mu)^2 - LinearAlgebra.norm(comp(it), Inf)^3 / (it.point.mu)^2
         else
           comp_penalty = 0.0
         end
@@ -248,12 +250,12 @@ end
 function comp_predicted(it::Class_iterate, dir::Class_point, step_size::Float64)
     y = it.point.y;
     s = it.point.s;
-    return s .* y + dir.y .* s * step_size + dir.s .* y * step_size - (it.point.mu + dir.mu * step_size)
+    return s .* y + dir.y .* s * step_size + dir.s .* y * step_size .- (it.point.mu + dir.mu * step_size)
 end
 
 function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point, step_size::Float64)
-    C_k = norm(comp(it),Inf)
-    P_k = norm(comp_predicted(it, dir, step_size), Inf)
+    C_k = LinearAlgebra.norm(comp(it),Inf)
+    P_k = LinearAlgebra.norm(comp_predicted(it, dir, step_size), Inf)
     #@show C_k, P_k
     if length(it.point.s) > 0
       comp_penalty = (P_k^3 - C_k^3) / (it.point.mu)^2
@@ -271,5 +273,5 @@ function merit_function_predicted_reduction(it::Class_iterate, dir::Class_point,
 end
 
 function eval_kkt_err(it::Class_iterate, par::Class_parameters)
-    return scaled_dual_feas(it, par) + norm(comp(it), Inf)
+    return scaled_dual_feas(it, par) + LinearAlgebra.norm(comp(it), Inf)
 end

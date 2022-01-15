@@ -1,6 +1,6 @@
 
 
-type Class_reduction_factors <: abstract_reduct_factors
+mutable struct Class_reduction_factors <: abstract_reduct_factors
     P::Float64 # scalar between 0 and 1 indicating how much we want to reduce primal feasibility
     D::Float64 # scalar between 0 and 1 indicating how much we want to reduce dual feasibility
     mu::Float64 # scalar between 0 and 1 indicating how much we want to reduce complementarity slackness
@@ -36,7 +36,7 @@ function Eta_reduct(eta::Float64, strategy::Symbol)
 end
 
 
-type System_rhs
+mutable struct System_rhs
     # RHS for the matrix
     # [ H 0  A' ]
     # [ A -I 0 ]
@@ -69,11 +69,11 @@ type System_rhs
       s = get_s(it)
       y = get_y(it)
 
-      return new(dual_target, primal_target, mu_target - s .* y);
+      return new(dual_target, primal_target, mu_target .- s .* y);
     end
 end
 
-import Base.LinAlg.norm
+import LinearAlgebra.norm
 function norm(rhs::System_rhs, p::Float64)
     return norm([rhs.dual_r, rhs.primal_r, rhs.comp_r], p)
 end

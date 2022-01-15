@@ -5,6 +5,8 @@ include("primal-project.jl")
 include("gertz_init.jl")
 include("lp.jl")
 
+using Statistics
+
 function linear_cons(nlp::Class_CUTEst, x0::Vector)
     a1 = eval_a(nlp, x0)
     d = randn(length(x0))
@@ -38,13 +40,13 @@ function mehrotra_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_a
     nl_ineq = eq .& nl
 
     if pars.init.mehotra_scaling
-      mu = mean(s .* y)
+      mu = Statistics.mean(s .* y)
       conWeight = ((s - a) / mu)
       #v = conWeight[conWeight .> 0.0]
       #conWeight[conWeight .> 0.0] = min.(10.0,max.(v,1e-4))
     else
-      mu = (1e-6 + norm(s,Inf) + norm(g,Inf))
-      #mu = 1e-6 + norm(g,1) / length(s)
+      mu = (1e-6 + LinearAlgebra.norm(s,Inf) + LinearAlgebra.norm(g,Inf))
+      #mu = 1e-6 + LinearAlgebra.norm(g,1) / length(s)
       conWeight = zeros(length(s))
       ais = cons_indicies(nlp)
       conWeight[ais] = 1.0
@@ -73,8 +75,8 @@ function mehrotra_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_a
     #@show li
 
     #@show li
-    iter_init.frac_bd_predict[li] = pars.ls.fraction_to_boundary_linear
-    iter_init.frac_bd[li] = pars.ls.fraction_to_boundary_linear
+    iter_init.frac_bd_predict[li] .= pars.ls.fraction_to_boundary_linear
+    iter_init.frac_bd[li] .= pars.ls.fraction_to_boundary_linear
 
     @assert(all(iter_init.point.s .>= 0.0))
     @assert is_feasible(iter_init,pars.ls.comp_feas)

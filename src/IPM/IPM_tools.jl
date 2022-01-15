@@ -7,15 +7,15 @@ end
 
 function dual_scale(iter::Class_iterate, pars::Class_parameters)
     if pars.term.dual_scale_mode == :ipopt
-      return pars.term.dual_scale_threshold / max(mean(get_y(iter)), pars.term.dual_scale_threshold)
+      return pars.term.dual_scale_threshold / max(Statistics.mean(get_y(iter)), pars.term.dual_scale_threshold)
     elseif pars.term.dual_scale_mode == :max_dual
-      return pars.term.dual_scale_threshold / max(norm(get_y(iter),Inf), pars.term.dual_scale_threshold)
+      return pars.term.dual_scale_threshold / max(LinearAlgebra.norm(get_y(iter),Inf), pars.term.dual_scale_threshold)
     elseif pars.term.dual_scale_mode == :sqrt
-      return pars.term.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf)), pars.term.dual_scale_threshold)
+      return pars.term.dual_scale_threshold / max(sqrt(LinearAlgebra.norm(get_y(iter), Inf)), pars.term.dual_scale_threshold)
     elseif pars.term.dual_scale_mode == :exact
       return 1.0
     elseif pars.term.dual_scale_mode == :primal_dual
-      return pars.term.dual_scale_threshold / max(sqrt(norm(get_y(iter), Inf) * norm(get_s(iter), Inf)), + pars.term.dual_scale_threshold)
+      return pars.term.dual_scale_threshold / max(sqrt(LinearAlgebra.norm(get_y(iter), Inf) * LinearAlgebra.norm(get_s(iter), Inf)), + pars.term.dual_scale_threshold)
     else
       throw("dual scale type does not exist")
     end
@@ -26,7 +26,7 @@ function scaled_dual_feas(iter::Class_iterate, pars::Class_parameters)
 end
 
 function scaled_dual_feas(iter::Class_iterate, mu::Float64, pars::Class_parameters)
-    return norm(eval_grad_lag(iter, mu),Inf) * dual_scale(iter, pars)
+    return LinearAlgebra.norm(eval_grad_lag(iter, mu),Inf) * dual_scale(iter, pars)
 end
 
 function check_for_nan(point::Class_point)

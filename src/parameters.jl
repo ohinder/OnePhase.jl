@@ -1,14 +1,16 @@
-@compat abstract type abstract_reduct_factors end
-@compat abstract type abstract_pars end
+abstract type abstract_reduct_factors end
+abstract type abstract_pars end
 
-type Class_kkt_solver_options <: abstract_pars
+mutable struct Class_kkt_solver_options <: abstract_pars
     ItRefine_Num::Int64
     ItRefine_BigFloat::Bool
     saddle_err_tol::Float64
     kkt_solver_type::Symbol
+    kkt_system_rescale::Symbol
     linear_solver_type::Symbol
     linear_solver_safe_mode::Bool
     linear_solver_recycle::Bool
+    ma97_u::Float64
     stable_reduct_factors::abstract_reduct_factors
     aggressive_reduct_factors::abstract_reduct_factors
 
@@ -19,6 +21,11 @@ type Class_kkt_solver_options <: abstract_pars
       this.ItRefine_BigFloat = false
       this.saddle_err_tol = Inf
 
+      this.kkt_system_rescale = :none
+      this.ma97_u = 1e-8
+      #this.kkt_system_rescale = :u_only
+      #this.kkt_system_rescale = :u_and_x
+      #this.kkt_system_rescale = :u_and_x
       if true
         this.kkt_solver_type = :schur #_direct
         this.linear_solver_type = :julia
@@ -38,7 +45,7 @@ type Class_kkt_solver_options <: abstract_pars
     end
 end
 
-type Class_line_search_parameters <: abstract_pars
+mutable struct Class_line_search_parameters <: abstract_pars
   kkt_reduction_factor::Float64
   kkt_include_comp::Bool
   filter_type::Symbol
@@ -96,11 +103,11 @@ type Class_line_search_parameters <: abstract_pars
   end
 end
 
-type Class_IPM_parameters
+mutable struct Class_IPM_parameters
   # fill in
 end
 
-type Class_termination_parameters <: abstract_pars
+mutable struct Class_termination_parameters <: abstract_pars
     max_it::Int64
     max_time::Float64
     tol_opt::Float64
@@ -128,13 +135,13 @@ type Class_termination_parameters <: abstract_pars
     end
 end
 
-type Class_delta_parameters <: abstract_pars
+mutable struct Class_delta_parameters <: abstract_pars
     max::Float64
     #max_it::Int64
     start::Float64
     dec::Float64
     inc::Float64
-    zero::Float64 #get_mu(iter) / ((1e2 + norm(get_x(iter),Inf)) * 1e2)
+    zero::Float64 #get_mu(iter) / ((1e2 + LinearAlgebra.norm(get_x(iter),Inf)) * 1e2)
     min::Float64
 
     function Class_delta_parameters()
@@ -152,7 +159,7 @@ type Class_delta_parameters <: abstract_pars
 end
 
 
-type Class_init_parameters <: abstract_pars
+mutable struct Class_init_parameters <: abstract_pars
     mu_scale::Float64
     mehotra_scaling::Bool
     init_style::Symbol
@@ -194,7 +201,7 @@ type Class_init_parameters <: abstract_pars
     end
 end
 
-type Class_testing <: abstract_pars
+mutable struct Class_testing <: abstract_pars
     response_to_failure::Symbol
     function Class_testing()
         this = new()
@@ -205,7 +212,7 @@ type Class_testing <: abstract_pars
     end
 end
 
-type Class_parameters <: abstract_pars
+mutable struct Class_parameters <: abstract_pars
     term::Class_termination_parameters
     init::Class_init_parameters
     delta::Class_delta_parameters
@@ -230,6 +237,8 @@ type Class_parameters <: abstract_pars
     primal_bounds_dual_feas::Bool
     a_norm_penalty::Float64
 
+    eps_mach::Float64
+
     function Class_parameters()
         this = new()
 
@@ -247,6 +256,11 @@ type Class_parameters <: abstract_pars
         ## general parameters ##
         ########################
 
+        # debugging
+        this.output_level = 2
+        this.debug_mode = 0
+        this.throw_error_nans = false
+
         # switching condition
         this.aggressive_dual_threshold = 1.0 # kappa_{1}
         this.primal_bounds_dual_feas = false
@@ -260,11 +274,8 @@ type Class_parameters <: abstract_pars
         # e.g. min x s.t. x, y >= 0, without any changes y -> \infty
         this.a_norm_penalty = 1e-4
 
-        # debugging
-        this.output_level = 2
-        this.debug_mode = 0
-        this.throw_error_nans = false
-
+        # machine precision
+        this.eps_mach = 1e-16
 
         return this
     end

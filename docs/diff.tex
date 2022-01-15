@@ -1,0 +1,942 @@
+16a17
+> 
+19a21,34
+> %\def\inProgress{1}
+> \def\inProgress{0}
+> 
+> \if\inProgress1
+> \newcommand{\inProgressHide}[1]{#1} % show
+> \newcommand{\yinyu}[1]{{\color{red} Yinyu: #1}}
+> \newcommand{\hinder}[1]{{\color{red}{Hinder: #1}}}
+> \newcommand{\ron}[1]{ {\color{orange}Ron:  #1}}
+> \else
+> \newcommand{\inProgressHide}[1]{} % hide
+> \newcommand{\yinyu}[1]{}
+> \newcommand{\hinder}[1]{}
+> \newcommand{\ron}[1]{}
+> \fi
+32d46
+< 
+197d210
+< %\newcommand{\conWeight}{w}
+241a255,258
+> \begin{center}
+> \color{red}
+> \large Draft: please do not distribute
+> \end{center}
+250a268,276
+> \hinder{
+> To do:
+> \begin{enumerate}
+> \item Make implementation consistent with paper (flip signs etc)
+> \item Replace aggressive term with affine?
+> \item Explain that Mehrotra's initialization etc is just shifted barrier on the dual
+> \end{enumerate}
+> }
+> 
+267c293
+< %
+---
+> %This approach also simplifies the algorithm by avoiding the need for a good initial guess for the size of the penalty parameters. 
+269,270c295,296
+< %
+< %
+---
+> % before reaching the minimizer and only stationary point at $x = 2$.}
+> %This infeasible-start algorithm was combined with predictor-corrector technique of Mehrotra \cite{ye1993quadratic} into an algorithm with excellent practical performance. 
+286c312
+< %
+---
+> %Inexact penalty methods require the penalty parameter to be continually increased throughout the algorithm.
+291c317
+< %
+---
+> %From \cite{haeser2017behavior} we know that if certain sufficient conditions for local optimality conditions hold, then a subsequence of the dual multipliers will converge if the primal solution is converging to a KKT point. Consequently, our algorithm may find finite dual multipliers, even if the set of dual multipliers at the KKT point is unbounded. Conversely, methods that reduce the primal feasibility too quickly, such as IPOPT, will suffer from divergent dual multipliers \cite{haeser2017behavior}.
+296a323
+> %Our method has further similarities with Mehrotra's \cite{mehrotra1992implementation} predictor-corrector algorithm for linear programming: the rate that we reduce the dual feasibility, primal feasibility and complementarity is adaptive \hinder{cite the adaptive andreas paper}.
+304c331,332
+< 
+---
+> %Therefore we shift the constraints, problem and gradually reduce the
+> % in the primal feasibility at each iteration. This is known shifted barrier formulation is given as follows:
+306c334
+< \min_{x \in \R^{\nvar}} \barrier_{\mu}(x) := \obj(x) - \mu  \sum_i{ \left( \parConRegularizer \cons_i(x) + \log \left( \mu \conWeight_i - \cons_i(x)  \right) \right)  }, %
+---
+> \min_{x \in \R^{\nvar}} \barrier_{\mu}(x) := \obj(x) - \mu  \sum_i{ \left( \parConRegularizer \cons_i(x) + \log \left( \mu \conWeight_i - \cons_i(x)  \right) \right)  }, %\label{shifted-barrier-problem}
+308c336,344
+< where $\parConRegularizer \in \parConRegularizerInterval$ is a constant with default value $\parConRegularizerValue$, $\conWeight \ge 0$ is a vector that remains fixed for all subproblems, and some $\mu > 0$ measures the size of the shift. The purpose of the term $\parConRegularizer \cons_i(x)$ is to ensure that $-(\parConRegularizer \cons_i(x) + \log \left( \mu \conWeight_i - \cons_i(x) \right) )$ remains bounded below. This prevents the primal iterates from unnecessarily diverging. We remark that this modification of the log barrier function is similar to previous works \cite[Section 3.7]{wachter2006implementation}.
+---
+> where $\parConRegularizer \in \parConRegularizerInterval$ is a constant with default value $\parConRegularizerValue$, $\conWeight \ge 0$ is a vector that remains fixed for all subproblems, and some $\mu > 0$ measures the size of the shift. The purpose of the term $\parConRegularizer \cons_i(x)$ is to ensure that $-(\parConRegularizer \cons_i(x) + \log \left( \mu \conWeight_i - \cons_i(x) \right) )$ remains bounded below. This prevents the primal iterates from unnecessarily diverging. We remark that this modification of the log barrier function is similar to previous works \hinder{more refs} \cite[Section 3.7]{wachter2006implementation}.
+> 
+> \ron{make the role of the regularizer clear}
+> 
+> 
+> %\todo{say something more vague or cite theorem}
+> %As  $\mu \rightarrow 0$ convergent sequence of KKT solutions with $\mu \rightarrow 0$ to the shifted barrier problem \eqref{shifted-barrier-problem} will converge towards a KKT solution of the original problem.
+> %\todo{Comment about importance of nonlinear updates and intialization}
+> 
+311a348,351
+> %This choice reflects challenges that occur in nonconvex optimization and will be discussed more in \hinder{what challenges?}
+> 
+> %Section~\ref{sec:convergence-proofs}. 
+> 
+322c362,364
+< Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that satisfy the aggressive step criterion \eqref{agg-criteron}) such that %
+---
+> \if\inProgress1 \missingfigure[figwidth=6cm]{Plot of shifted log barrier with $\sin$. Size of shift is $O(\mu)$} \fi
+> 
+> Furthermore, there is a subsequence of the iterates $\pi_{k}$ (i.e., those that satisfy the aggressive step criterion \eqref{agg-criteron}) such that % , i.e., $x^{k} \rightarrow x^{*}$ and $s^{k} \rightarrow s^{*}$
+323a366
+> \hinder{this does not match aggressive step criteron}
+327c370
+< where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) + (y - \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path.
+---
+> where $c > 0$ is some constant and $\Lag_{\mu} (x, y) := \obj(x) + (y - \mu \parConRegularizer e)^T \cons(x)$ is the modified Lagrangian function. Requiring \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is common in practical linear programming implementations \cite{mehrotra1992implementation}\if\inProgress1 \cite{more} \fi. Note that \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} can be interpreted as a `central sequence'. This is weaker than the existence of a central path, a concept from convex optimization \cite{andersen1999homogeneous,megiddo1989pathways}. Unfortunately, in nonconvex optimization there may not exist a continuous central path\if\inProgress1 (see Appendix~\ref{app:non-existence-of-central-path})\fi.
+329c372
+< Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence of this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}.
+---
+> Conditions \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} are desirable because they imply the dual multipliers are likely to be well-behaved. To be more precise, assume the subsequence satisfying \eqref{eq:barrier-primal-sequence-nice} and \eqref{eq:dual-feas} is converging to a feasible solution. If this solution satisfies certain sufficiency conditions for local optimality, then the dual variables remain bounded and strict complementarity holds. We refer to our paper \cite{haeser2017behavior} for further understanding of this issue. A consequence of this property is that we can re-write equality constraints as two inequalities while avoiding numerical issues that might arise if we did this using other solvers \cite{haeser2017behavior}\if\inProgress1 (see Section~\ref{sec:linear-algebra} for further discussion of how do this without additional computation)\fi.
+339c382
+< %
+---
+> %\hinder{move} Another subtle difference is that primal feasibility for us is $a(x) \le 0$ rather than 
+341,342c384,385
+< %
+< %
+---
+> %Furthermore, our algorithm is simpler because we do not need a scheme for choosing $\delta_{c}$. 
+> %Furthermore, our approach naturally allows two options for computing the factorization and search directions, we can either (i) directly factorize the symmetric system~\eqref{eq:ldl-system} to compute $(\dir{x},\dir{y})$ using \LDL{}, as is traditionally chosen by nonlinear programming solvers or (ii) perform a Cholesky factorization of equation \eqref{eq:Schur-matrix}, the primal Schur complement. 
+344c387
+< %
+---
+> %For an explanation on how to efficiently incorporate lower and upper bounds (or equalities) read Section~\ref{sec:linear-algebra}. 
+346,349c389,392
+< %
+< %
+< %
+< %
+---
+> %This latter 
+> %\todo{
+> %interpretation of equality v.s. inequality constraints primal-dual methods 
+> %}
+352c395
+< %
+---
+> %\hinder{This choice ensures that [BLAH].}
+371,372c414,415
+< %
+< %
+---
+> %Let the point $(x, \hat{s}, \hat{y}, \mu)$ which is the iterate at beginning of the current outer iteration. 
+> %%Our algorithm (Algorithm~\ref{simple-one-phase}) consists of inner iterations and outer iterations. The inner iterations recycle the factorization of the matrix $\Schur + \delta I$ that we compute on each outer iteration.
+391c434
+< %
+---
+> %%This factorization $\Schur + \delta I$ is computed at the beginning of each outer iteration and is recycled during the inner iterations of the algorithm. This reduces the number of factorizations our algorithm requires.
+399c442
+< \dir{x}^{*} \in \arg \min_{\bar{\vec{d}}_{x} \in \R^{\nvar}} & \barrier_{\gamma \mu}(x + \bar{\vec{d}}_{x}) + \frac{\delta}{2} \|\bar{\vec{d}}_{x} \|^2 %
+---
+> \dir{x}^{*} \in \arg \min_{\bar{d}_{x} \in \R^{\nvar}} & \barrier_{\gamma \mu}(x + \bar{d}_{x}) + \frac{\delta}{2} \| \bar{d}_{x} \|^2 %\label{prox-obj}
+443c486
+< %
+---
+> %Aside from performing a Cholesky factorization of $\Schur + \delta I$, we can also determine that the matrix is positive definite by computing the number of positive and negative elements in the diagonal of the \LDL{} factorization of \eqref{eq:ldl-system}. A more in-depth discussion of the linear algebra details will be given in Section~\ref{sec:linear-algebra}.
+445c488
+< %
+---
+> %One could factorize this system using an \LDL{} factorization. However, we further reduce the system to a problem only involving the $\dir{x}$ variable.
+461a505,593
+> %We emphasize the importance of the dual multipliers being bounded for the success of the Cholesky factorization
+> 
+> \hinder{Of course in many situations an \LBL{} factorization might be faster, but having both options available is preferable.}
+> 
+> \hinder{importance of boundedness of dual multipliers for Cholesky factorization to be numerically stable, instability of \LBL{}}
+> 
+> \hinder{need to add citations or more arguement}
+> 
+> 
+> 
+> \if\inProgress1
+> 
+> \subsection{\LDL{} factorization for systems where $\Schur + \delta I$ is positive definite}
+> 
+> Is it possible that we can use an of \LDL{} of system~\eqref{eq:ldl-system} with a static ordering? Let us call a matrix factorable if an \LDL{} factorization exists. As \citet{vanderbei1995symmetric} points out the following matrix is not factorable
+> $$
+> \left( \begin{matrix}
+> 0 & 1 \\
+> 1 & 2
+> \end{matrix} \right)
+> $$
+> which is a possible outcome for system~\eqref{eq:ldl-system}. Therefore the system is not strongly factorable, i.e. factorable for any permutation. However, the system 
+> $$
+> \left( \begin{matrix}
+> 2 & 1 \\
+> 1 & 0
+> \end{matrix} \right)
+> $$
+> is factorable. In Lemma~\ref{lem:when-factorable} we show for a large set of perturbations system~\eqref{eq:ldl-system} is factorable. The matrix $Q$ corresponds to $Y^{-1} S$
+> 
+> \begin{lemma}\label{lem:when-factorable}
+> Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $Q \in \R^{\ncon \times \ncon}$ with $H$ symmetric and $Q$ is a diagonal matrix with non-zero entries. Let $M = H + A^T Q^{-1} A$. If $M \succ 0$ then for all permutation matrices $P_{1}$ and $P_{2}$ the matrix
+> $$
+> \left( \begin{matrix}
+> P_{1} & 0 \\
+> 0 & P_{2}
+> \end{matrix} \right)
+> \left( \begin{matrix}
+> -Q & A  \\
+> A^T & H
+> \end{matrix} \right)
+> \left( \begin{matrix}
+> P_{1}^T & 0 \\
+> 0 & P_{2}^T
+> \end{matrix} \right)
+> $$
+> is factorable.
+> \end{lemma}
+> 
+> \begin{proof}
+> It is sufficient to show each of the leading principal sub-matrices are non-singular [REF!!!]. Since any principal sub-matrix with less than $\ncon$ rows is non-singular (i.e., it is a sub-matrix of $Q$), let us consider some principal sub-matrix with at least $\ncon$ rows and denote it by
+> $$
+> \left(\begin{matrix}
+> -Q & A_{S}  \\
+> A^T_{S} & H_{S}
+> \end{matrix}\right).
+> $$
+> Note that since $Q$ is quasi-definite (and therefore non-singular) this matrix is singular only if $H_{S} + A^T_{S} Q^{-1} A_{S}$ is singular (otherwise the linear system involving this principal sub-matrix has a solution for any right hand side). However, $H_{S} + A^T_{S} Q^{-1} A_{S}$ is a sub-matrix of $M$ hence $H_{S} + A^T_{S} Q^{-1} A_{S} \succ 0$.
+> \end{proof}
+> 
+> \fi
+> 
+> %Let us comment on the choice of the matrix $\Schur$. First note if $Y = \mu S^{-1}$ then ...
+> 
+> 
+> 
+> 
+> %is a primal-dual approximation of the hessian of the log barrier function $ \barrier_{\mu}(x)$.
+> 
+> 
+> % old strategy
+> %\begin{flalign}\label{eq:Schur-complement-system}
+> %(\Schur + \delta I)  \dir{x} &= - \grad \Lag_{\gamma \mu}(x, \tilde{y}) \\
+> %\tilde{y} &= \gamma \mu S^{-1} \ones + (1 - \gamma) Y ( \ones + S^{-1} \mu w)
+> %\end{flalign}
+> %
+> %\grad \obj(x) - \grad \cons(x)^T  - \gamma \mu \grad r(x)
+> %\hinder{$\Lag_{\mu}$}
+> 
+> 
+> %\subsection{Stabilization step acceptance criteron}
+> 
+> 
+> %\subsection{Augmented log barrier merit function}\label{sec:augmented-log-barrier}
+> 
+> %\hinder{steps where $\gamma = 1$}
+> 
+> %To measure progress when $\gamma = 1$ we use th
+> 
+526a659,662
+> \hinder{ write something about this}
+> 
+> %Satisfying this termination criterion for arbitrarily small $ \TOLunbounded$ does not guarantee that the problem has an objective that is unbounded below on the feasible region. However, if the functions $f$ and $a$ are convex, and there exists a strictly feasible solution, then if the criterion is satisfied as $\TOLunbounded \rightarrow 0$ one can conclude the objective is unbounded below on the feasible region.
+> 
+540c676,678
+< where the parameter $\parCompAgg \in (\parComp, 1)$ has a default value of $\parCompAggValue$. The purpose of \eqref{agg-criteron-opt} is to ensure that we have approximately solved the shifted log barrier problem and guarantees that this subsequence of iterates satisfies \eqref{eq:dual-feas}. Equation~\eqref{agg-criteron-farkas} helps ensure (as we show in Section~\ref{sec:global-conv}) that if the dual variables are diverging rapidly then the infeasibility termination criterion is met. Finally, equation~\eqref{agg-criteron-buffer} with $\parCompAgg > \parComp$ ensures we have a buffer such that we can still satisfy \eqref{eq:comp-slack} when we take an aggressive step. 
+---
+> where the parameter $\parCompAgg \in (\parComp, 1)$ has a default value of $\parCompAggValue$. The purpose of \eqref{agg-criteron-opt} is to ensure that we have approximately solved the shifted log barrier problem and guarantees that this subsequence of iterates satisfies \eqref{eq:dual-feas}. Equation~\eqref{agg-criteron-farkas} helps ensure (as we show in Section~\ref{sec:global-conv}) that if the dual variables are diverging rapidly then the infeasibility termination criterion is met. Finally, equation~\eqref{agg-criteron-buffer} with $\parCompAgg > \parComp$ ensures we have a buffer such that we can still satisfy \eqref{eq:comp-slack} when we take an aggressive step. \hinder{To ensure superlinear convergence we add a further condition for taking an aggressive step which occurs if the previous step was an aggressive step, equations \eqref{agg-criteron-opt} and \eqref{agg-criteron-farkas} hold.
+> }
+> 
+561,565c699,703
+< %
+< %
+< %
+< %
+< %
+---
+> %\item \label{simple-stb-step} \emph{Take a superlinear stabilization step}. 
+> %\begin{enumerate}[label*=.{\arabic*}]
+> %\item Set $\delta \gets \delta_{\min}$. Run Algorithm~\ref{alg:simple-stb-step}. 
+> %\item Go to line~\ref{simple-first-step}.
+> %\end{enumerate}
+620c758
+< %
+---
+> % then $\status =\success$ otherwise $\status =\failure$.
+642c780
+< for some non-negative vector $\conWeight$. For example, a natural choice of $\conWeight$ is $\conWeight_i = 0$ for variable bounds and $\conWeight_i = 1$ for all other constraints. This results in minimizing the $L_{\infty}$ norm of the constraint violation subject to variable bounds. Using $\conWeight \ge 0$ we can see that \eqref{infeasible-problem} is equivalent to the optimization problem
+---
+> for some non-negative vector $\conWeight$. For example, a natural choice of $\conWeight$ is $\conWeight_i = 0$ for variable bounds and $\conWeight_i = 1$ for all other constraints. This results in minimizing the $L_{\infty}$ norm of the constraint violation subject to variable bounds. Note that \eqref{infeasible-problem} is equivalent to the optimization problem
+680,685d817
+< This leads to a puzzle. How can we guarantee to either find a certificate of infeasibility or optimality on any problem, when classic infeasible start methods fail on \eqref{failure-ex}? The key is that the example of \citet*{wachter2000failure} forces the IPM to converge to a point $(x^{*}, s^{*})$ with
+< $$
+< a_1(x^{*}) + s^{*}_1 < 0 \quad \quad a_1(x^{*}) + s^{*}_2 > 0.
+< $$
+< Consequently, even if $(x^{*}, s^{*})$ is a KKT point for \eqref{infeasible-problem} this is not equivalent to any natural feasibility minimization problem such as \eqref{feas-problem}. This is because the transition from \eqref{infeasible-problem} to \eqref{feas-problem} is dependent on $\conWeight \ge 0$.
+< 
+700a833,841
+> \hinder{
+> \subsection{When are the primal iterates bounded?}
+> \begin{enumerate}
+> \item Analyze central path. $X^{*}(\mu) := \{ x \in \R^{\nvar} : \grad \barrier_{\mu}(x) = 0 \}$
+> \item Assume $\|x \| \rightarrow \infty$ then $\| a(x) \| \rightarrow \infty$. Show that if $x \rightarrow \infty$ then $f(x) \rightarrow \infty$ or problem is (weakly) infeasible
+> \item Argue that if $a(x)$ is bounded on $X^{*}$ then $a(x^k)$ is bounded.
+> \end{enumerate}
+> }
+> 
+763,765c904,906
+< %
+< %
+< %
+---
+> %\underbrace{\barrier_{\mu}(x)}_{\text{bounded above by assumption}} = \underbrace{f(x)}_{\text{bounded below by assumption}} + \underbrace{\parConRegularizer \ones^T \cons(x)  - \mu  \sum_i{ \log \left( \mu \conWeight_i - \cons_i(x)  \right) }}_{\text{always bounded below for $\parConRegularizer, \mu > 0$}} + \sum_{i = 1}^{\nvar} \sqrt{\parRegularizer^2 x_i^2 + 1
+> %}
+> %$$
+767c908
+< %
+---
+> %Key to the result is showing $x$ is bounded for all $(x,s,y) \in \mathbb{Q}_{\mu, C}$. To do this we observe that if $f(x)$ is bounded below then in order for $\phi_{\mu}(x,s,y)$ to be bounded above the term $r(x) + \sum_i \log( \mu \conWeight - \cons_i(x) ) + \| S y - \mu \|^3_{\infty} / \mu^2$ must also be bounded above. Therefore the term $\sqrt{\parRegularizer^2 x_i + 1}$ must be bounded above.
+788a930,976
+> %\hinder{nice thing about global convergence proofs -- they enable debugging of the algorithm, i.e., what is a numerical error and what is due to algorithm design}
+> 
+> \if\inProgress1
+> 
+> \subsection{superlinear convergence}
+> 
+> \hinder{reference wright paper etc}
+> 
+> \begin{definition}
+> Big-O notation
+> \end{definition}
+> 
+> \begin{assumption}\label{second-order-sufficient-conditions}
+> At the point $(x^{*},s^{*},y^{*})$ the following conditions hold.
+> \begin{enumerate}
+> \item $\grad \Lag_{0}(x^{*}, y^{*}) = 0$.
+> \item $a(x^{*}) + s^{*} = 0$, $s^{*}, y^{*} \ge 0$.
+> \item Strict complementarity $y^{*} + s^{*} > 0$.
+> \item $f : \R^{\nvar} \rightarrow \R$ and $a : \R^{\nvar} \rightarrow \R^{\ncon}$ are twice differentiable on $\R^{\nvar}$.
+> \item The second-order sufficient conditions hold. In particular, there exists some $\alpha > 0$ s.t.
+> $$
+> v^T \grad^2_{xx} \Lag_{0}(x,y) v \ge \alpha \| v \|^2
+> $$
+> for all $v$ s.t. $Y^{*} \grad a(x^{*}) v = 0$.
+> \end{enumerate}
+> \end{assumption}
+> 
+> \begin{restatable}{lemma}{lemDirectionSize}\label{lemDirectionSize}
+> Suppose Assumption~\ref{second-order-sufficient-conditions} holds at the point $(x^{*}, s^{*}, y^{*})$, then there exists some neighborhood $N$ of $(x^{*},s^{*},y^{*})$ such that for all $(x,y,s) \in N$ if $\| \grad_{x} \Lag_{\mu}(x,y) \|  = O(\mu)$ the directions computed via \eqref{eq:Schur-complement-system} and \eqref{compute-ds-dy} with  $\gamma = 0$ satisfy 
+> $$\| (\dir{x}, \dir{s}, \dir{y}) \| =  O( \mu  ).$$
+> \end{restatable}
+> 
+> Proof given in Appendix~\ref{sec:lemDirectionSize}.
+> 
+> \begin{restatable}{theorem}{thmSuperlinear}\label{thmSuperlinear}
+> Suppose Assumption~\ref{second-order-sufficient-conditions} holds at the point $(x^{*}, s^{*}, y^{*})$ and $\theta \in (1,2)$. Then there there exists some radius $R > 0$, such that if  $\norm{ (0,x^{*},s^{*},y^{*}) - (\mu^K,x^K,s^K,y^K) } < R$, $Sy / \mu \in [\parCompAgg, 1/\parCompAgg]$
+> and $\norm{ \grad \Lag_{\mu}(x,y) } = O(\mu)$ 
+> then
+> $$
+> \norm{(0,x^{*},s^{*},y^{*}) - (\mu^{k+1},x^{k+1},s^{k+1},y^{k+1})} \le C \norm{ (0,x^{*},s^{*},y^{*}) - (\mu^{k},x^{k},s^{k},y^{k}) }^{\theta}
+> $$
+> for all $k \ge K$.
+> \end{restatable}
+> 
+> Proof given in Appendix~\ref{sec:thmSuperlinear}.
+> 
+> \fi
+801a990
+> %{\color{red} !!!!!!!!!!!![Cite Robert Vanderbei on linear algebra]!!!!!!!!!!}
+829,833c1018,1022
+<  %
+< %
+< %
+< %
+< %
+---
+>  %, because
+> %$$
+> %\parFracBoundary \min\{ s, \| \dir{x} \|_{\infty}^2 \} \le \parFracBoundaryMax  \min\{ s, \max\{ 2 \| \dir{x} \|_{\infty}^2 , \| \dir{x} \|_{\infty}^{\parFracBoundaryExp} \} \},
+> %$$
+> %i.e, the right-hand side of  \eqref{fracBoundary-primal} is larger than \eqref{fracBoundaryPrimalMax}. \hinder{argue since second derivatives are continous}
+839c1028
+< y + \alpha_{D} \dir{y} &\ge  \parFracBoundary y \min\{ 1 , \| \dir{x} \|_{\infty} \}. \label{fracBoundary-dual} %
+---
+> y + \alpha_{D} \dir{y} &\ge  \parFracBoundary y \min\{ 1 , \| \dir{x} \|_{\infty} \}. \label{fracBoundary-dual} %,  S^{-1} (\Dir{s} + \| \dir{x} \|_{\infty}^2 \eye ) \dir{y}
+846c1035
+< \alpha_{D} &\gets \arg \min_{\zeta \in B( s^{+}, \dir{y} )} \| S^{+} y - \mu^{+} + \zeta S^{+} \dir{y} \|^2_{2} + \| \grad \obj(x^{+})   +  \grad \cons(x^{+})^T (y + \zeta \dir{y}) \|^{2}_{2} %
+---
+> \alpha_{D} &\gets \arg \min_{\zeta \in B( s^{+}, \dir{y} )} \| S^{+} y - \mu^{+} + \zeta S^{+} \dir{y} \|^2_{2} + \| \grad \obj(x^{+})   +  \grad \cons(x^{+})^T (y + \zeta \dir{y}) \|^{2}_{2} %\gamma \delta \dir{x}
+851c1040,1042
+< Equation~\eqref{eq:alphaD-least-squares} can be interpreted as choosing the step size $\alpha_{D}$ that minimizes the complementarity and dual infeasibility. This reduces to a one-dimensional least squares problem in $\zeta$ which has a closed form expression for the solution. Equation~\eqref{min:alpha-D} encourages the dual step size to be at least as large as the primal step size $\alpha_{P}$. This prevents tiny dual step sizes being taken when the dual direction is not a descent direction for the dual infeasibility, which may occur if $\delta$ is large. %
+---
+> Equation~\eqref{eq:alphaD-least-squares} can be interpreted as choosing the step size $\alpha_{D}$ that minimizes the complementarity and dual infeasibility. This reduces to a one-dimensional least squares problem in $\zeta$ which has a closed form expression for the solution. Equation~\eqref{min:alpha-D} encourages the dual step size to be at least as large as the primal step size $\alpha_{P}$. This prevents tiny dual step sizes being taken when the dual direction is not a descent direction for the dual infeasibility, which may occur if $\delta$ is large. %This encourages large dual step sizes without forgoing information about dual feasibility.
+> 
+> \hinder{discuss backtracking line search here}
+859,860c1050,1051
+< This merit function measures progress effectively in regimes where $\Schur$, given in \eqref{eq:Schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:Schur-complement-system} will be a descent direction on this merit function (for the first inner iteration of each outer iteration of Algorithm~\ref{practical-one-phase-IPM} i.e., $j = 1$). This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in nonconvex optimization it has serious issues. In particular, the search direction \eqref{eq:Schur-complement-system} might not be a descent direction. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function.}. For further discussion of these issues, see \cite{shanno2000interior}.
+< %
+---
+> This merit function measures progress effectively in regimes where $\Schur$, given in \eqref{eq:Schur-matrix}, is positive definite. In this case, the search directions generated by \eqref{eq:Schur-complement-system} will be a descent direction on this merit function (for the first inner iteration of each outer iteration of Algorithm~\ref{practical-one-phase-IPM} i.e., $j = 1$). This merit function is similar to the potential functions used in interior point methods for convex optimization \cite{andersen1998computational,huang2016solution}. Unfortunately, while this merit function may be an excellent choice for convex problems, in nonconvex optimization it has serious issues. In particular, the search direction \eqref{eq:Schur-complement-system} might not be a descent direction. Moreover, changing the search direction to minimize the dual feasibility has negative ramifications. The algorithm could converge to a critical point of the dual feasibility where $\meritKKT_{\mu} ( x, s, y ) \neq 0$\footnote{To see why this occurs one need only consider an unconstrained problem, e.g., minimizing $\obj(x) = x^4 + x^3 + x$ subject to no constraints. The point $x = 0$ is a stationary point for the gradient of $\grad \obj(x)$, but is not a critical point of the function. \hinder{a similar comment is made earlier}}. For further discussion of these issues, see \cite{shanno2000interior}.
+> %\cite{shanno1997interior}.
+864c1055
+< %
+---
+> % where we accept any step that makes sufficient progress on the function $\phi$, i.e., \eqref{eq:phi-sufficient-progress}  or sufficient progress is made on the KKT merit function relative to historical iterates. 
+869,870c1060,1061
+< \phi_{\mu}(x^{+}, s^{+}, y^{+}) &\le \phi_{\mu}(\tilde{x}, \tilde{s}, \tilde{y}) + \sqrt{\meritKKT_{\mu} (\tilde{x}, \tilde{s}, \tilde{y})} %
+< \end{flalign} %
+---
+> \phi_{\mu}(x^{+}, s^{+}, y^{+}) &\le \phi_{\mu}(\tilde{x}, \tilde{s}, \tilde{y}) + \sqrt{\meritKKT_{\mu} (\tilde{x}, \tilde{s}, \tilde{y})} % + \meritKKT_{\mu} (\hat{x}, \hat{y}, \hat{s})^2 \right), \alpha_{P}
+> \end{flalign} %\parFilterReduceBarrier
+881,882c1072,1073
+< %
+< %
+---
+> %\hinder{explain that the selection of the initial point is addressed later}
+> %it is suffices to choose $\mu^{0} \conWeight > \cons(x^{0})$, although we choose $\conWeight_i = 1$ for
+887,888c1078,1079
+< \vspace{0.1 cm} %
+< %
+---
+> \vspace{0.1 cm} %\\
+> %\emph{For each outer iteration $i \in \{1, \dots, i_{\max}\}$ perform the following steps:}
+890c1081
+< %
+---
+> %\item \label{step-1}  \emph{Evaluate the Hessian of the Lagrangian $\grad_{xx}^2 \Lag(x,y)$.} % and the Jacobian of the constraints $\grad \cons(x)$.}
+894c1085
+< %
+---
+> %\item \emph{Form primal Schur complement at the current point $\Schur$ via \eqref{}.}
+933,935c1124,1126
+< %
+< %
+< %
+---
+> %\begin{flalign}
+> %\tilde{\Delta}^{\phi_{\mu}}_{(\hat{x},\hat{y})}(\dir{x}, \dir{y}) < 0. \label{eq:obj-could-improve}
+> %\end{flalign}
+945c1136
+< %
+---
+> %\parMinStepAgg \times \min_{\{ j : a_j(x) + s_j < 0 \}}{ \frac{ -s_j }{ a_j(x) + s_j} },
+1001a1193
+> \hinder{$\frac{1}{2} \dir{x}^T \Schur \dir{x} + \grad \barrier_{\mu}(x)^T \dir{x} + \frac{\| S y + Y \dir{s} + S \dir{y} - \mu \|_{\infty}^3}{\mu^2} < -\parObjReductFactor \left( 1/2 (\grad \barrier_{\mu}(x)^T \dir{x} - \delta \| \dir{x} \|^2 )  - \MeritComp_{\mu}(s,y)\right)$}
+1003c1195
+< %
+---
+> %\delta \| \dir{x} \|_{\infty} &\le (1 - \parKKTReductFactor) \max\{ \| \grad \Lag(x, y ) \|_{\infty}, \| S y - \mu \ones \|_{\infty} \} \label{eq:KKT-could-improve} \\
+1014,1020c1206,1212
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+---
+> %\item \backtrackBlurb \label{line:sbl-backtrack}
+> %\begin{enumerate}[label=({\roman*})] 
+> %\item The \fracBound{} rule \eqref{fracBoundary-primal} is satisfied.
+> %\item The set of valid dual step sizes is non-empty, i.e., $B( s^{+}, \dir{y} ) \neq \emptyset$.
+> %\item \emph{Sufficient progress on filter.} Either equation~\eqref{eq:phi-sufficient-progress} or \eqref{eq:filter} is satisfied.
+> %\end{enumerate}
+> %Terminate with $\status = \failure$ if the step size becomes too small, i.e., \eqref{eq:min-step-size-stable} is satisfied.
+1025c1217
+< \item If the \fracBound{} rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}. 
+---
+> \item If the \fracBound{} rule \eqref{fracBoundary-primal} is not satisfied, then set $\alpha_{P} \gets \parBacktracking \alpha_{P}$ and go to line~\ref{line:agg-back-too-small}. \hinder{one option is to use a quadratic approximation of the constraints to guess the next step}
+1102c1294
+< %
+---
+> %\section{Implementation details}\label{sec:implementation-details}
+1106c1298
+< %
+---
+> % and (ii) the NETLIB linear programming
+1109c1301
+<  %
+---
+>  %, the code for producing the numerical results inside the folder /benchmark/ and the table of results [The code can be found here and table of results].
+1121c1313
+< %
+---
+> %We emphasize while each outer iteration may consist of multiple function, constraint and jacobian produce evaluations; we only evaluate the Hessian of the Lagragian once per iteration.
+1170,1173c1362,1365
+< %
+< %
+< %
+< %
+---
+> %? 1   ? failure     ? 35.0  ? 5.0       ?
+> %? 2   ? infeasible  ? 2.0   ? 21.0      ?
+> %? 3   ? unbounded   ? 0.0   ? 0.0       ?
+> %? 4   ? KKT         ? 21.0  ? 32.0      ?
+1212,1216c1404,1438
+< %
+< %
+< %
+< %
+< %
+---
+> %\subsection{Comparison on selected large scale problems}\label{sec:large-scale}
+> %\newcommand{\NETtimeOnePhase}{100}
+> %\newcommand{\NETtimeIPOPT}{963}
+> %\newcommand{\NETitOnePhase}{26}
+> %\newcommand{\NETitIPOPT}{596}
+> 
+> %Here we compare IPOPT and the one-phase solver on a large-scale problems. The goal is to highlight that, for certain large scale problems with amiable sparsity structure, the one-phase algorithm is vastly superior to IPOPT. The problems sizes are given in Table~\ref{large-scale:basic-info}. The first problem NET4 is the largest CUTEst problem (in terms of number of variables and constraints) with nonlinear constraints based on a real application. NET4 is a gas network problem for the British NTS system. Both IPOPT and the one-phase solve declare the problem infeasible; however, it takes the one-phase solver only 100 seconds ($26$ iterations) versus 963 seconds for IPOPT (596 iterations). This runtime difference can be put down to (i) the superior performance of the one-phase algorithm on infeasible problems and (ii) the constraint sparsity (see final column of Table~\ref{large-scale:basic-info}), which means $\Schur$ is very sparse, and hence the factorizations of the one-phase algorithm is cheap. 
+> 
+> %Here we compare IPOPT and the one-phase solver on a model of the economic impact of taxation policy\footnote{Created by Michael Saunders, Ding Ma and Kenneth Judd.}. This problem is generated with synthetic data. We have created three instances. A small, medium and large instance as recorded in Table~\ref{large-scale:basic-info} (ECON10, ECON50 and ECON250 respectively). Note that the problems have many more constraints than variables. This favors our approach of solving a linear system only the size of the number of variables instead of IPOPT's strategy of solving a system that is as large as \eqref{eq:ldl-system} with a total of $n + m$ variables. From Table~\ref{compare-runtime} we see that the one-phase solver has better runtime than IPOPT as the problem size increases.
+> %\begin{table}[H]
+> %\begin{tabular}{l l l l l l}
+> %name &  \# vars & \# cons & \# nnz Hess & \# nnz Jac & \# nnz densest con  \\ 
+> %%NET4 & 61,488 & 75,024  & 151,056 & 247,557 & 12 \\  
+> %ECON10 &  40 & 381 & 1,560 & 1,560 &  40 \\
+> %ECON50 &  100 & 2,451 & 9,900 & 9,900 &  100 \\
+> %ECON250 & 500 & 62,251 & 249,500 & 249,500 & 500 \\
+> %\end{tabular}
+> %\caption{Basic information on selected large-scale test problems}\label{large-scale:basic-info}
+> %\end{table}
+> 
+> 
+> %\begin{table}[H]
+> %\begin{tabular}{|c| c c | c c |}
+> %  \hline
+> %  \multirow{2}{*}{} 
+> %      & \multicolumn{2}{c|}{Time (s)} 
+> %          & \multicolumn{2}{|c|}{\# iterations} \\             \cline{2-5}
+> %  & one-phase & IPOPT & one-phase & IPOPT \\  \hline
+> %%  NET4 & $\NETtimeOnePhase$ & $\NETtimeIPOPT$  & $\NETitOnePhase$   & $\NETitIPOPT$ \\      \hline
+> %    ECON20 & $2$  & $0$  & $52$ & $25$   \\      \hline
+> %  ECON50 & $15$  & $335$  & $268$ & $122$   \\      \hline
+> %  ECON250 & $523$  &  out of memory & $326$ & out of memory \\      \hline
+> %\end{tabular}
+> %\caption{Runtime comparison on selected large-scale test problems}\label{compare-runtime}
+> %\end{table}
+1218c1440
+< %
+---
+> \section{Conclusion and avenues for improvement}
+1220,1230c1442
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+---
+> This paper proposed a one-phase algorithm. It avoids a two phase or penalty method typically used in IPM for nonlinear programming. Nonetheless, under mild assumptions it is guaranteed to converge to a first-order certificate of infeasibility, unboundedness or optimality. As we have demonstrated on large-scale test problems the algorithm has similar iteration counts to IPOPT, but significantly better performance on infeasible problems. 
+1231a1444
+> An additional benefit of our approach is the ability to choose $\conWeight$. For example, if one has a starting point $x^0$ that strictly satisfies a subset of the constraints one can initialize the algorithm with $\conWeight_i = 0$ on this subset (we do this automatically for the bound constraints). The algorithm will then satisfy these constraints for all subsequent iterations. Aside from potentially speeding up convergence, this is particularly beneficial if some of the constraints or objective are undefined outside the region defined by this subset.
+1233,1246c1446
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+---
+> One can interpret the relative value of $\mu^0$ and $\conWeight$ as the extent to which feasibility is prioritized over optimality: a larger $\mu^0$ gives more priority to feasibility. For a fixed $\conWeight$ picking a huge $\mu$ makes the IPM method behave like a phase-one, phase-two method: initially the algorithm attempts to find a feasible solution then it minimizes the objective on the feasible region. We have attempted such an initialization strategy and note that while it performs well on many problems, in others it causes the dual multipliers to become unduly large (as the theory of \cite{haeser2017behavior} predicts when, for example, the feasible region lacks an interior). We find that manually tuning the value of $\mu^0$ for a specific problem often significantly reduces the number of iterations. This sensitivity to the initialization, especially compared with the homogenous self-dual, is a known issue for Lustig's IPM for linear programming \cite[Table 1]{meszaros2015practical}. Therefore, we believe that improving our initialization scheme (Section~\ref{sec:initialization}) could result in significant improvements.
+1248c1448
+< \section{Conclusion and avenues for improvement}
+---
+> %The behavior and performance of our algorithm is sensitive to large changes in the choice of $\conWeight$ and $\mu^0$. 
+1250c1450
+< This paper proposed a one-phase algorithm. It avoids a two phase or penalty method typically used in IPMs for nonlinear programming. Nonetheless, under mild assumptions it is guaranteed to converge to a first-order certificate of infeasibility, unboundedness or optimality. As we have demonstrated on large-scale test problems the algorithm has similar iteration counts to IPOPT, but significantly better performance on infeasible problems. 
+---
+> Finally, we note that improving the accuracy of the linear system solves would also improve our robustness. A disadvantage of using the Cholesky factorization is that we often had difficulty obtaining a sufficiently accurate solution as we approached optimality. Potentially switching to an \LBL{} factorization \cite{amestoy1998mumps,bunch1971direct} might help resolve this issue.
+1252c1452,1453
+< An additional benefit of our approach is the ability to choose $\conWeight$. For example, if one has a starting point $x^0$ that strictly satisfies a subset of the constraints one can initialize the algorithm with $\conWeight_i = 0$ on this subset (we do this automatically for the bound constraints). The algorithm will then satisfy these constraints for all subsequent iterations. Aside from potentially speeding up convergence, this is particularly beneficial if some of the constraints or objective are undefined outside the region defined by this subset of the constraints.
+---
+> \if\inProgress1
+> \section{Remaining question: how to choose $\conWeight$?}
+1254c1455
+< One can interpret the relative value of $\mu^0$ and $\conWeight$ as the extent to which feasibility is prioritized over optimality: a larger $\mu^0$ gives more priority to feasibility. For a fixed $\conWeight$ picking a huge $\mu$ makes the IPM method behave like a phase-one, phase-two method: initially the algorithm attempts to find a feasible solution then it minimizes the objective on the feasible region. We have attempted such an initialization strategy and note that while it performs well on many problems, in others it causes the dual multipliers to become unduly large (as the theory of \cite{haeser2017behavior} predicts when, for example, the feasible region lacks an interior). We find that manually tuning the value of $\mu^0$ for a specific problem often significantly reduces the number of iterations. This sensitivity to the initialization, especially compared with the homogenous self-dual, is a known issue for Lustig's IPM for linear programming \cite[Table 1]{meszaros2015practical}. Therefore, we believe that improving our initialization scheme (Section~\ref{sec:initialization}) could result in significant improvements.
+---
+> Picking $\conWeight$ small and selecting $\mu$ s.t. $s > 0$ gives an algorithm that prioritizes feasibility over optimality. Alternatively 
+1256c1457,1486
+< %
+---
+> \fi
+> 
+> 
+> \if\inProgress1
+> 
+> \hinder{convert first two COPs problem into julia}
+> 
+> \section{Conclusions}
+> \begin{enumerate}
+> \item ??
+> \end{enumerate}
+> 
+> 
+> \section{To do}
+> 
+> \begin{enumerate}
+> \item clean up 
+> \item edit code to match document
+> \item run full CUTEst test
+> \item explain performance on Watcher-Beliger example.
+> \end{enumerate}
+> 
+> \fi
+> 
+> \hinder{Given a strictly feasible starting point, by setting $\conWeight = 0$ one can remain strictly feasible for the remainder of the algorithm. Maybe give an example problem.}
+> 
+> \hinder{If we set $\mu$ large and $\conWeight$ small then the algorithm is essentially a two-phase algorithm -- makes a lot of sense for problems with large interior. But works terribly for problems with a small interior.}
+> 
+> 
+> %Currently, our iteration counts are competitive. In the future, we intend to improve the speed of the code and ...
+1258d1487
+< Finally, we note that improving the accuracy of the linear system solves would also improve our robustness. A disadvantage of using the Cholesky factorization is that we often had difficulty obtaining a sufficiently accurate solution as we approached optimality. Potentially switching to an \LBL{} factorization \cite{amestoy1998mumps,bunch1971direct} might help resolve this issue.
+1262c1491
+< We would like to thank Michael Saunders and Ron Estrin for useful conversations and feedback on the paper. The first author was supported by the PACCAR INC. fellowship.
+---
+> We would like to thank Michael Saunders, Ron Estrin and Toshihiro Kosaki for useful conversations and feedback on the paper.
+1264c1493
+< \bibliographystyle{abbrvnat} %
+---
+> \bibliographystyle{abbrvnat} %abbrv}
+1269a1499,1530
+> %\section{Examples showing the importance of the regularizer}\label{app:examples-regularizer}
+> %
+> %This section gives examples showing that the regularizer is necessary to guarantee that each barrier sub-problem has a bounded optimal solution. Example~\ref{example-regular-1} shows that either $\parConRegularizer > 0$ or $\parRegularizer > 0$ is necessary, even for solving linear programs. Example~\ref{example-regular-2} shows that $\parRegularizer > 0$ is needed to ensure that the optimal solution of all sub-problems is bounded. Example~\ref{example-regular-3} shows that $\parConRegularizer > 0$ is needed to ensure that the optimal solution of all sub-problems is bounded.
+> %
+> %\begin{example}\label{example-regular-1}
+> %Consider the problem 
+> %$$\min{ 0 } \text{ s.t. }  x \le 0.$$ 
+> %For this problem with $\conWeight = [1]$ and $\parRegularizer = 0$, 
+> %$$\barrier_{\mu}(x) = \parConRegularizer \mu x - \mu \log(\mu - x)$$ 
+> %and the optimal solution is $x^{*} = \frac{1 + \parConRegularizer}{\parConRegularizer}$ for all $\mu$, alternately if $\parConRegularizer = 0$ then $x^{*} \rightarrow \infty$.
+> %\end{example}
+> %
+> %\begin{example}\label{example-regular-2}
+> %Consider the problem 
+> %$$\min{ \exp(x_{2}) } \text{ s.t. }  \exp(x_{1}) \le x_{2} - 1, x_{2} \ge 1.$$ 
+> %For this problem with $\conWeight = [1;~1]$, 
+> %$$\barrier_{\mu}(x) = \exp(x_{2}) + \mu r(x)  - \mu \log(\mu + x_{2}) - \mu \log \left(\mu + x_{2} - 1 - e^{x_{1}}\right).$$ 
+> %If $\parRegularizer = 0$, $\parConRegularizer > 0$ then for sufficiently large $\mu$ the optimal solution is $x_{1} \rightarrow \infty$, $x_{2} = 0$.
+> %\end{example}
+> %
+> %\begin{example}\label{example-regular-3}
+> %Consider the problem
+> %$$
+> %\min{x/2} \text{ s.t. } 1 - \exp(x^2) \le 0.
+> %$$
+> %For this problem with $\conWeight = [1]$,
+> %$$\barrier_{\mu}(x) = x/2 + \mu r(x)  - \mu \log(\mu + \exp(x^2) - 1) .$$ 
+> %If $\mu = 1$, $\parConRegularizer = 0$ and $\parRegularizer > 0$ then
+> %$$\barrier_{1}(x) = x/2 + \sqrt{\parRegularizer x^2 + 1}  - x^2$$ 
+> %which is unbounded below.
+> %\end{example}
+> 
+1370c1631
+< %
+---
+> %Using the fact that $Q$ is compact and $s > 0$ we deduce that $S^{-1} e$ is bounded, it follows that
+1417,1418c1678,1679
+< %
+< %
+---
+> %With Corollary~\ref{coro:bound-everything} in hand we proceed to showing for sufficiently large $\delta$, Algorithm~\ref{alg:stable} will succeed.
+> %that there will only be a finite number of stabilization steps until the next aggressive step.
+1477a1739,1881
+> \if\inProgress1
+> 
+> \section{superlinear convergence}\label{app:superlinear-conv}
+> 
+> 
+> \hinder{currently re-writing these results}
+> 
+> \hinder{
+> one can get superlinear convergence purely through the aggressive steps, just take a step size $\alpha = 1 - \mu^{\theta}$ with $\theta \in (0,1)$. 
+> eat into boundary.
+> }
+> \hinder{add switching condition for superlinear mode i.e. $\mu^{+} \le \mu^{\theta}$ and $\| \grad \Lag_{\mu}(x^{+},y^{+}) \| \le \mu^{\theta}$.}
+> 
+> \hinder{look at old paper}
+> 
+> \subsection{Proof of Lemma~\ref{lemDirectionSize}}\label{sec:lemDirectionSize}
+> 
+> Consider the following two Lemmas. 
+> 
+> \begin{lemma}\label{lem:hager-reformulated}
+> Suppose Assumption~\ref{second-order-sufficient-conditions} holds then there exists a neighborhood $N$ of $(x^{*},s^{*},y^{*})$ such that for all $(x,s,y) \in N$  if $ \| \grad_{x} \Lag_{\mu}(x,y) \|  = O(\mu)$ there exists $\tilde{y}^{*}$ with such that $\grad \Lag(x^{*}, \tilde{y}^{*}) = 0$ and 
+> $$\| (x,s,y) - (x^{*}, s^{*}, \tilde{y}^{*}) \|  = O( \mu ).$$
+> \end{lemma}
+> 
+> \begin{proof}
+> Follows from \citet{hager1999stability}.
+> \end{proof}
+> 
+> 
+> \begin{restatable}{lemma}{lemDistanceToDirection}\label{lemDistanceToDirection}
+> Assume $M > 0$ at $x$ etc. Then for any KKT point $(x^{*}, s^{*}, y^{*})$ and $(x,s,y)$ with $\norm{ (x^{*}, s^{*}, y^{*}) - (x,s,y)} = O(\mu)$ directions $\dir{}$ computed via \eqref{eq:Schur-complement-system} and \eqref{compute-ds-dy} with  $\gamma = 0$ satisfy 
+> $$\| \dir{} \| = O \left( \mu \right).$$
+> \end{restatable}
+> 
+> 
+> We defer the proof of Lemma~\ref{lemDistanceToDirection} to Section~\ref{sec:lemDistanceToDirection}.
+> Combining these two Lemma allows us to deduce Lemma~\ref{lemDirectionSize}.
+> 
+> \lemDirectionSize*
+> 
+> \begin{proof}
+> 
+> \end{proof}
+> 
+> 
+> \subsection{Proof of Lemma~\ref{lemDistanceToDirection}}\label{sec:lemDistanceToDirection}
+> 
+> \begin{lemma}\label{matrix-bound-lemma}
+> Consider matrices $H  \in \R^{\nvar \times \nvar}$, $A \in \R^{\nvar \times \ncon}$ and $D \in \R^{\ncon \times \ncon}$ with $H$ and $D$ symmetric, and vector $v \in \R^{\nvar}$. Let $M = H + A^T D^2 A$. Consider a vector $u^{*} \in \R^{\ncon}$ that solves
+> $$
+> M u^{*} =  v
+> $$
+> then 
+> %$$\| u^{*} \|^2 \le \frac{16 \| r \|^2}{ \lambda_{\min}(M)}  \max\left\{1, \frac{- \lambda_{\min}(H)}{\lambda_{\min}(M)} \right\}.$$
+> $$\| D A u^{*} \| \le 8 \| v \| \max\left\{1, \frac{- \lambda_{\min}(H)}{\lambda_{\min}(M)} \right\}.$$
+> \end{lemma}
+> 
+> \begin{proof}
+> \hinder{is there a simpler argument?}
+> Note that since $\lambda_{\min}(M) \ge 0$ we deduce $u^{*}$ is the minimizer of $g(u) := u^T M u +  2 u^T A^T D r$, furthermore for any $\eta \in \R$ we have
+> $$
+> g(u)  = (1 - \eta) u^T M u + \eta u^T H u + \eta \| D A u -  v / \eta \|^2 - \| v \|^2 / \eta.
+> $$
+> If $\eta = 1/4 \min\left\{1,  \frac{-  \lambda_{\min}(M)}{\lambda_{\min}(H)} \right\}$ then
+> $$
+> 0 = g(0) \ge g(u^{*}) \ge \| u^{*} \|^2 ( \lambda_{\min}(M) / 2 + \eta \lambda_{\min}(H) ) + \eta \| D A u^{*}  -  v / \eta \|^2 - \| v \|^2 / \eta \ge   \eta \| D A u^{*}  -  v / \eta \|^2  - \| v \|^2 / \eta 
+> $$
+> %and $\| D A u -  r / \eta \| \ge 0$
+> where the second inequality holds using $\eta \le 1/2$, the final inequality uses $\eta \le -\lambda_{\min}(M) / (4 \lambda_{\min}(H))$. Re-arranging this equation and applying the triangle inequality gives
+> $$
+> \| D A u^{*} \|^2 \le 2 \| v \|^2 / \eta^2
+> $$
+> substituting for $\eta$ gives the result.
+> \end{proof}
+> 
+> \begin{lemma}\label{generic-direction-bound}
+> \hinder{under generic neighborhood assumption}
+> Assume $\lambda_{\min}(\Schur) > c_{1} > 0$, $\lambda_{\min}( \grad^2 \Lag_{\mu}(x,y) ) > c_{2}$, $\| y \| < c_{3}$ and $\mu \in (0,1)$. If $\hat{d}$ satisfies
+> $$\mathcal{K}_{0} \hat{d} = b$$
+> then
+> $$
+> \| \hat{d} \| = O \left( \frac{\| b \|}{\mu} \right).
+> $$
+> \end{lemma}
+> 
+> \begin{proof}
+> Recall from \eqref{eq:Schur-complement-system} that with $\delta = 0$ the direction $\dir{x}$ satisfies:
+> $$
+> \Schur \dir{x} = -\left( b_{D} + \grad \cons(x)^T S^{-1} \left( Y b_{P} - b_{C} \right) \right).
+> $$
+> since $\| b_{D} + \grad \cons(x)^T S^{-1} \left( Y b_{P} - b_{C} \right) \| = O( \| b \| / \mu)$ we get
+> $$
+> \| \dir{x} \| = O( \| b \| / \mu).
+> $$
+> 
+> Furthermore, by \eqref{compute-ds-dy} we have
+> $$
+> \| \dir{s} \| \le \| b_{P} \| + \| \grad \cons(x) \dir{x} \| = O( \| b \| / \mu )
+> $$
+> $$
+> \| \dir{y} \| = \| S^{-1/2} Y^{1/2} \| \| S^{-1/2} Y^{1/2} \grad \cons(x) \dir{x} \| + O(  \| b \| / \mu) = O(  \| b \| / \mu)
+> $$
+> where the last transition follows by Lemma~\ref{matrix-bound-lemma}.
+> \end{proof}
+> 
+> 
+> 
+> \lemDistanceToDirection*
+> 
+> \begin{proof}
+> Let $\tilde{d} = (x,s,y) - (x^{*}, s^{*}, y^{*})$ and $\hat{b} = \mathcal{K}_{0} \tilde{d} - b$. Note that
+> $$
+> \| \mathcal{K}_{0} \tilde{d} - b \| = \| \hat{b} \| = O( \| \tilde{d} \|^2 )
+> $$
+> Let $\hat{d}$ be a solution to $\mathcal{K}_{0} \hat{d} = \hat{b}$ by Lemma~\ref{generic-direction-bound} we have
+> $$
+> \| \hat{d} \| = O ( \| \hat{b} \| / \mu ) = O( \| \tilde{d} \|^2 / \mu ) = O(\mu)
+> $$
+> \end{proof}
+> 
+> 
+> \subsection{Proof of Theorem~\ref{thmSuperlinear}}\label{sec:thmSuperlinear}
+> \begin{lemma}
+> Let $\tau = \frac{\parComp + \parCompAgg}{2}$.
+> Suppose Assumption~\ref{second-order-sufficient-conditions} holds at the point $(x^{*}, s^{*}, y^{*})$. Then there there exists some radius $R > 0$, such that then for all $r \in (0,R)$  if the iterates begin with $\norm{ (0,x^{*},s^{*},y^{*}) - (\mu,x,s,y) } < r$ and $Sy / \mu \in [\parCompAgg, 1/\parCompAgg]$ then the consecutive sequence of aggressive steps starting at $(\mu,x,s,y)$ we have
+> \begin{enumerate}
+> \item $\norm{ (0,x^{*},s^{*},y^{*}) - (\mu, x,s,y) } < 2 r$
+> \item $Sy / \mu \in [\tau, 1/\tau]$
+> \end{enumerate}
+> \end{lemma}
+> 
+> \begin{proof}
+> 
+> \end{proof}
+> 
+> \thmSuperlinear*
+> 
+> \begin{proof}
+> 
+> \end{proof}
+> 
+> \fi
+> 
+1482c1886
+< %
+---
+> %\hinder{re-write and add initialization scheme}
+1503c1907
+< %
+---
+> %\subsection{Warm starting}
+1507a1912,1913
+> \hinder{review and test!!! there should be three separate routines - one for correcting the $x$ variables, one for selection slack variables $s$ and dual variables $y$ and one for correcting the guessed $y$, $s$.}
+> 
+1509a1916,1917
+> 
+> \ron{How does IPOPT do this?}
+1512c1920,1939
+< The remainder of the initialization scheme is inspired by Mehrotra's scheme for linear programming \cite[Section 7]{mehrotra1992implementation} and the scheme of \citet*{gertz2004starting} for nonlinear programming. %
+---
+> 
+> 
+> %This is done because often the nonlinear constraints or objective may not be defined outside the bound constraints. 
+> 
+> %Note that the way we present our work the variables bound correspond to constraints indicies 
+> %are a subset of the set constraints given by $a_i(x) \le 0$ for $i = 1, ..., m$. We project onto the bounds in the same way as \cite[Section 3.7]{wachter2006implementation}. Note that by setting $a_i(x)
+> 
+> %\begin{flalign}
+> %x_{i}^{0} \gets \min \{ x_{i}^{0}, u_i \} \\
+> %x_{i}^{0} \gets \max \{ x_{i}^{0}, l_i \} 
+> %\end{flalign}
+> %where $l$ and $u$ correspond to the upper and lower bounds defined by the constraints $a$.
+> 
+> %Recall that to start the algorithm, we must select points vector $w \ge 0$, slack variables $s > 0$ and initial barrier parameter $\mu^{0}$ such that
+> %$$
+> %\cons(x^{0}) + s^{0} = w \mu^{0}
+> %$$
+> %How do we choose these variables? Suppose that the initial point is given to us (otherwise set $x_0$).
+> %we some initial primal and dual variables $x^{0}$ and $\bar{y}^{0} > 0$
+> The remainder of the initialization scheme is inspired by Mehrotra's scheme for linear programming \cite[Section 7]{mehrotra1992implementation} and the scheme of \citet*{gertz2004starting} for nonlinear programming. % adapted to the nonlinear programming context. 
+1519c1946
+< %
+---
+> %dual and slack variables by solving system~\ref{} with .
+1521a1949,1955
+> %from
+> %\begin{flalign*}
+> %\tilde{y} &\gets \grad \cons(x^0) (\grad \cons(x^0)^T \grad \cons(x^0) + I \parInitialize)^{-1}  \grad \obj(x^0) \\
+> %\tilde{s} &\gets -\cons(x^{0})
+> %\end{flalign*}
+> %\hinder{check this matches!!!}
+> %for some parameter $\parInitialize \in (0,\infty)$ with default value $\parInitializeValue$. 
+1523,1530c1957
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+< %
+---
+> %If this computation fails we set $y^0 \gets e$.
+1557a1985,2020
+> 
+> 
+> 
+> \inProgressHide{
+> 
+> %The default value is $\kappa = 10^{-3}$.
+> 
+> %\begin{enumerate}
+> %\item Dealing with bound constraints
+> %\end{enumerate}
+> %
+> %For simplicity consider the case that $\conWeight = e$, observe that for any initial starting point $x^{1}$ we can select the slack variables $s^{1}$ and infeasibility measure $\mu^{1}$ via
+> %\begin{flalign*}
+> %\mu^{1} &\gets 2 \max_i{ -a_i(x^{1}) } \\
+> %s^{1} &\gets \mu^{1} \ones - \cons(x^{1}) 
+> %\end{flalign*}   
+> 
+> \subsection{Handling bound constraints}
+> 
+> \todo[inline]{explain how equality and lower/upper bounds can be handled}
+> 
+> \subsection{Linear algebra}\label{sec:linear-algebra}
+> 
+> \begin{enumerate}
+> \item Splitting dense columns in sparse linear systems. Linear Algebra and its Applications. Robert J. Vanderbei. \cite{vanderbei1991splitting}
+> \item \cite{lustig1991formulating} Get between 5 times and 80 times speed up from splitting dense columns for stochastic programs.
+> \item Matrix Stretching for Sparse Least Squares \url{https://pdfs.semanticscholar.org/0054/9cc96c29f24c9d55d76962676fe5993f2b11.pdf}
+> \item Matrix Stretching for Linear Equations \url{https://arxiv.org/abs/1203.2377}
+> \item J. F. Grcar, Matrix stretching for linear equations, Tech. Report SAND90-8723, Sandia
+> National Laboratories, Nov. 1990.
+> \end{enumerate}
+> 
+> \subsection{Iterative refinement}
+> 
+> }
+> 
+1571a2035,2078
+> 
+> 
+> 
+> \if\inProgress1
+> 
+> \section{The (non-existence) of a central path in nonconvex optimization}\label{app:non-existence-of-central-path}
+> 
+> Would be nice to have a long discussion on this issue
+> 
+> $$
+> f_{\mu}(x) = 50 (x - 0.5)^3 + x - \mu (\log(x) + \log(1 - x))
+> $$
+> 
+> $$
+> \grad f_{\mu}(x) = 150.0 * (x - 0.5)^2 + 1.0  - \mu / x + \mu / (1 - x) = 0 \\
+> $$
+> Is discontinuous at $\mu = 3$, $x \approx 0.5$, i.e., there exists no function $x(\mu)$ such that $\grad f_{\mu}(x(\mu)) = 0$ and $x(\mu)$ is continuous. 
+> 
+> [Vanderbei' s example for the problem $\min{ x -x^2}$ s.t. $x \ge 0$ there exists no continuous central path from an initial point to the optimal solution. However, optimal solution is unbounded.]
+> 
+> \fi
+> 
+> 
+> \inProgressHide{
+> \section{Numerical issues}
+> compute:
+> $$
+>  \psi_{\mu}(x^{+})  - \psi_{\mu}(x) = (f(x^{+})  - f(x))- \mu \sum_i \log( \cons_i(x^{+}) / \cons_i(x)) + \mu (r(x^{+}) - r(x))
+> $$
+> 
+> $$
+>  \phi_{\mu}(x^{+}, s^{+}, y^{+})  - \phi_{\mu}(x, s, y) = \left( \psi_{\mu}(x^{+})  - \psi_{\mu}(x) \right) + \left( \zeta_{\mu}(s^{+}, y^{+})  - \zeta_{\mu}(s, y) \right)
+> $$
+> computation of dual feasible region
+> 
+> \section{Why penalty methods are difficult}
+> 
+> \begin{enumerate}
+> \item There exists some optimal penalty parameter $\rho^{*}$ anything smaller than this will fail.
+> \item We should probably tune the $\conWeight$ to constraint ratio.
+> \end{enumerate}
+> 
+> 
+> }

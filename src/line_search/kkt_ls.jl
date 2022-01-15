@@ -1,4 +1,4 @@
-type Class_kkt_ls <: abstract_ls_info
+mutable struct Class_kkt_ls <: abstract_ls_info
     step_size_P::Float64
     step_size_D::Float64
     num_steps::Int64

@@ -1,10 +1,10 @@
 function one_phase_solve(m::JuMP.Model)
-    nlp_raw = MathProgNLPModel(m);
+    nlp_raw = MathOptNLPModel(m);
     return one_phase_solve(nlp_raw)
 end
 
 function one_phase_solve(m::JuMP.Model, pars::Class_parameters)
-    nlp_raw = MathProgNLPModel(m);
+    nlp_raw = MathOptNLPModel(m);
     return one_phase_solve(nlp_raw, pars::Class_parameters)
 end
 
@@ -16,9 +16,11 @@ end
 
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parameters)
     nlp = Class_CUTEst(nlp_raw);
+	if ncon(nlp) == 0
+		throw(ErrorException("Unconstrained minimization problems are unsupported"))
+	end
     timer = class_advanced_timer()
     start_advanced_timer(timer)
-
     start_advanced_timer(timer, "INIT")
     if pars.init.init_style == :gertz
         intial_it = gertz_init(nlp, pars, timer); # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
@@ -30,14 +32,11 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
         error("Init strategy does not exist")
     end
     pause_advanced_timer(timer, "INIT")
-
     pause_advanced_timer(timer)
     if pars.output_level >= 4
         print_timer_stats(timer)
     end
-
     start_advanced_timer(timer)
-
     @assert(is_feasible(intial_it, pars.ls.comp_feas))
     iter, status, hist, t, err = one_phase_IPM(intial_it, pars, timer);
 
@@ -46,7 +45,6 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parame
     if pars.output_level >= 3
         print_timer_stats(timer)
     end
-
     return iter, status, hist, t, err, timer
 end
 
@@ -56,12 +54,12 @@ function switching_condition(iter::Class_iterate, last_step_was_superlinear::Boo
     dual_avg = scaled_dual_feas(iter, pars)
 
     if pars.primal_bounds_dual_feas
-      dual_progress = dual_avg < pars.aggressive_dual_threshold * norm(get_primal_res(iter), Inf)
+      dual_progress = dual_avg < pars.aggressive_dual_threshold * LinearAlgebra.norm(get_primal_res(iter), Inf)
     else
       dual_progress = dual_avg < pars.aggressive_dual_threshold * get_mu(iter)
     end
-    delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, norm(get_y(iter),Inf))
-    lag_grad = norm(eval_grad_lag(iter,get_mu(iter)),1) < sum(iter.point.s .* iter.point.y) + norm(get_grad(iter) + iter.point.mu * eval_grad_r(iter),1) # + norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(norm(get_y(iter),Inf))
+    delta_small = get_delta(iter) < sqrt(get_mu(iter)) * max(0.1, LinearAlgebra.norm(get_y(iter),Inf))
+    lag_grad = LinearAlgebra.norm(eval_grad_lag(iter,get_mu(iter)),1) < sum(iter.point.s .* iter.point.y) + LinearAlgebra.norm(get_grad(iter) + iter.point.mu * eval_grad_r(iter),1) # + LinearAlgebra.norm(get_primal_res(iter), Inf) + 1.0 #+ sqrt(LinearAlgebra.norm(get_y(iter),Inf))
 
     be_aggressive = is_feas && dual_progress && lag_grad
     be_aggressive |= last_step_was_superlinear && dual_progress && lag_grad
@@ -139,7 +137,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                          end
 
                          if pars.output_level >= 5
-                             println("Strict comp = ", maximum(min.(iter.point.s/norm(iter.point.s,Inf),iter.point.y/norm(iter.point.y,Inf))))
+                             println("Strict comp = ", maximum(min.(iter.point.s/LinearAlgebra.norm(iter.point.s,Inf),iter.point.y/LinearAlgebra.norm(iter.point.y,Inf))))
                          end
 
                        tot_num_fac = 0; inertia_num_fac = 0;
@@ -166,6 +164,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            tot_num_fac = inertia_num_fac
                            old_delta = get_delta(iter)
                            set_delta(iter, new_delta)
+						   
                            pause_advanced_timer(timer, "ipopt_strategy")
 
                            if fact_succeed != :success
@@ -176,7 +175,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            start_advanced_timer(timer, "STEP/first")
 
                            if pars.output_level >= 5
-                             println(pd("**"), pd("status"), pd("delta"), pd("α_P"), pd("dx"), pd("dy"), pd("ds"))
+                             println(pd("**"), pd("status"), pd("delta"), pd("a_P"), pd("dx"), pd("dy"), pd("ds"))
                            end
 
                            for k = 1:100
@@ -186,14 +185,14 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
 
                              if pars.output_level >= 6
                                println("")
-                               println(pd("**"), pd(step_status), rd(get_delta(iter)), rd(ls_info.step_size_P), rd(norm(kkt_solver.dir.x,Inf)), rd(norm(kkt_solver.dir.y,Inf)), rd(norm(kkt_solver.dir.s,Inf)))
+                               println(pd("**"), pd(step_status), rd(get_delta(iter)), rd(ls_info.step_size_P), rd(LinearAlgebra.norm(kkt_solver.dir.x,Inf)), rd(LinearAlgebra.norm(kkt_solver.dir.y,Inf)), rd(LinearAlgebra.norm(kkt_solver.dir.s,Inf)))
                              end
 
                              if step_status == :success
                                break
                              elseif i < 100 && get_delta(iter) < pars.delta.max
                                if pars.test.response_to_failure == :lag_delta_inc
-                                 set_delta(iter, max(norm(eval_grad_lag(iter,iter.point.mu),Inf) / norm(kkt_solver.dir.x,Inf),get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
+                                 set_delta(iter, max(LinearAlgebra.norm(eval_grad_lag(iter,iter.point.mu),Inf) / LinearAlgebra.norm(kkt_solver.dir.x,Inf),get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
                                elseif pars.test.response_to_failure == :default
                                  set_delta(iter, max(get_delta(iter) * pars.delta.inc, max(pars.delta.start, old_delta * pars.delta.dec)))
                                else
@@ -201,12 +200,17 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                                end
                                inertia = factor!(kkt_solver, get_delta(iter), timer)
                                tot_num_fac += 1
+                             elseif LinearAlgebra.norm(comp(iter),Inf) > 1e-14
+                                 warn("Error ... large delta causing issues")
+                                iter.point.y = iter.point.mu ./ iter.point.s
+                                step_status = :success
+                                break
                              else
                                pause_advanced_timer(timer, "STEP/first")
                                pause_advanced_timer(timer, "STEP")
                                println("Terminated due to max delta while attempting to take step")
                                println("delta=$(get_delta(iter)), be_aggressive=$be_aggressive, status=$step_status")
-                               println("dx = $(norm(kkt_solver.dir.x,2)), dy = $(norm(kkt_solver.dir.y,2)), ds = $(norm(kkt_solver.dir.s,2))")
+                               println("dx = $(LinearAlgebra.norm(kkt_solver.dir.x,2)), dy = $(LinearAlgebra.norm(kkt_solver.dir.y,2)), ds = $(LinearAlgebra.norm(kkt_solver.dir.s,2))")
                                @show reduct_factors #, ls_mode
                                @show ls_info
                                return iter, :MAX_DELTA, progress, t, false
@@ -237,7 +241,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                        if step_status == :success
                          iter = new_iter
                          if be_aggressive
-                           dir_size_agg = norm(kkt_solver.dir.x, 2)
+                           dir_size_agg = LinearAlgebra.norm(kkt_solver.dir.x, 2)
                          end
                        end
 

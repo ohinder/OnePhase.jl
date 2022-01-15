@@ -39,7 +39,7 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
 
     MAX_IT = 500
     DELTA_ZERO = pars.delta.zero
-    #DELTA_MIN = iter.point.mu * norm(iter.point.y,Inf) / 100.0 #
+    #DELTA_MIN = iter.point.mu * LinearAlgebra.norm(iter.point.y,Inf) / 100.0 #
     DELTA_MIN = pars.delta.min
     DELTA_MAX = pars.delta.max
 
@@ -50,16 +50,14 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
 
     inertia = 0
     status = :none
-
     tau = 1.5 * diag_min(kkt_solver)
     #Q = Symmetric(kkt_solver.M,:L)
     #eigvals,vec, = eigs(Q,nev=1,which=:SR,maxiter=10,tol=1e4)
     #@show eigvals
     #v = randn(length(iter.point.x))
-    #v = v /norm(v,2)
+    #v = v /LinearAlgebra.norm(v,2)
     #@show dot(v,Q * v)
     delta = DELTA_ZERO
-
     # see if we can succeed with delta = DELTA_ZERO
     if tau > 0.0
       tau = 0.0
@@ -69,11 +67,9 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         return :success, num_fac, delta
       end
     end
-
     if pars.output_level >= 4
         println(pd("delta"), pd("inertia"))
     end
-
     for i = 1:MAX_IT
         if pars.output_level >= 4
           println("delta=",rd(delta), "inertia=", pd(inertia))
@@ -92,14 +88,19 @@ function ipopt_strategy!(iter::Class_iterate, kkt_solver::abstract_KKT_system_so
         inertia = factor!( kkt_solver, delta, timer )
         num_fac += 1
 
+        n = length(iter.point.x)
+
         if inertia == 1
           return :success, num_fac, delta
+        elseif is_diag_dom(kkt_solver.Q[1:n,1:n])
+            println("WARNING: Inertia calculation incorrect")
+            @warn("Inertia calculation incorrect")
         end
 
         if delta > DELTA_MAX
-          dx = norm(kkt_solver.dir.x,Inf)
-          dy = norm(kkt_solver.dir.y,Inf)
-          ds = norm(kkt_solver.dir.s,Inf)
+          dx = LinearAlgebra.norm(kkt_solver.dir.x,Inf)
+          dy = LinearAlgebra.norm(kkt_solver.dir.y,Inf)
+          ds = LinearAlgebra.norm(kkt_solver.dir.s,Inf)
 
           my_warn("ipopt_strategy failed with delta_max=$DELTA_MAX, delta=$delta, i=$i")
           my_warn("num_fac=$num_fac, inertia=$inertia, status=$status, dir_x=$dx, dir_y=$dx, dir_s=$ds")

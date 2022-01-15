@@ -1,4 +1,4 @@
-@compat abstract type abstract_ls_info end
+abstract type abstract_ls_info end
 
 include("frac_boundary.jl")
 include("move.jl")
@@ -24,10 +24,10 @@ function Blank_ls_info()
 end
 
 function basic_checks(iter::Class_iterate, f_it::Class_iterate, dir::Class_point)
-  primal_accurate = norm(eval_jac_prod(f_it, dir.x) - eval_jac_prod(iter, dir.x),Inf) < norm(get_primal_res(iter),Inf) #* 10.0
-  dual_accurate = norm(eval_jac_T_prod(f_it, dir.y) - eval_jac_T_prod(iter, dir.y),Inf) < norm(eval_grad_lag(iter,get_mu(iter)),Inf) #* 10.0
+  primal_accurate = LinearAlgebra.norm(eval_jac_prod(f_it, dir.x) - eval_jac_prod(iter, dir.x),Inf) < LinearAlgebra.norm(get_primal_res(iter),Inf) #* 10.0
+  dual_accurate = LinearAlgebra.norm(eval_jac_T_prod(f_it, dir.y) - eval_jac_T_prod(iter, dir.y),Inf) < LinearAlgebra.norm(eval_grad_lag(iter,get_mu(iter)),Inf) #* 10.0
   #comp_accurate = -50.0 * get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 50.0 * get_mu(iter)
-  comp_accurate = norm(comp_predicted(iter,dir,1.0),Inf) < 50.0 * get_mu(iter)
+  comp_accurate = LinearAlgebra.norm(comp_predicted(iter,dir,1.0),Inf) < 50.0 * get_mu(iter)
 
   return comp_accurate #&& primal_accurate && dual_accurate
   #return true
@@ -85,7 +85,7 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
         if move_status == :success
             start_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")
             lb, ub = dual_bounds(candidate, candidate.point.y, dir.y, pars.ls.comp_feas)
-            lb_y_new = lb_y(iter,dir,pars) #min(dir.y .* (dir.s + norm(dir.x,Inf)^2) ./ candidate.point.s, pars.ls.fraction_to_boundary * candidate.point.y)
+            lb_y_new = lb_y(iter,dir,pars) #min(dir.y .* (dir.s + LinearAlgebra.norm(dir.x,Inf)^2) ./ candidate.point.s, pars.ls.fraction_to_boundary * candidate.point.y)
             ub = min(ub, simple_max_step(candidate.point.y, dir.y, lb_y_new))
             pause_advanced_timer(timer,"SIMPLE_LS/move/dual_bounds")
 
@@ -142,13 +142,13 @@ function simple_ls(iter::Class_iterate, f_it::Class_iterate, dir::Class_point, a
         # OUTPUT INFORMATION ABOUT LINE SEARCH
         if pars.output_level >= 5
           diff = eval_merit_function(candidate, pars) - eval_merit_function(iter, pars)
-          comp_diff = norm(comp(candidate),Inf) - norm(comp(iter), Inf)
+          comp_diff = LinearAlgebra.norm(comp(candidate),Inf) - LinearAlgebra.norm(comp(iter), Inf)
           mu = iter.point.mu
           phi_diff = eval_phi(candidate, mu) - eval_phi(iter, mu)
 
-          dx = step_size_P * norm(dir.x,2);
-          dy = norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
-          kkt_diff = norm(eval_grad_lag(candidate, get_mu(candidate)),Inf) / norm(eval_grad_lag(iter, get_mu(iter)),Inf)
+          dx = step_size_P * LinearAlgebra.norm(dir.x,2);
+          dy = LinearAlgebra.norm(candidate.point.y - iter.point.y,2); ds = norm(candidate.point.s - iter.point.s,2);
+          kkt_diff = norm(eval_grad_lag(candidate, get_mu(candidate)),Inf) / LinearAlgebra.norm(eval_grad_lag(iter, get_mu(iter)),Inf)
           println(rd(step_size_P), rd(step_size_D), rd(diff), rd(comp_diff), rd(phi_diff), rd(kkt_diff), rd(dx), rd(dy), rd(ds), pd(status))
         end
 
@@ -209,8 +209,9 @@ function eigenvector_ls(iter::Class_iterate, dir::Class_point, pars::Class_param
 
     max_it = 10;
 
-    i = 1;
+    counter_i = 1;
     for i = 1:max_it
+      counter_i = i
       candidate_pos, is_feas, step_size_D = move(iter, dir, step_size_P, pars, timer)
       candidate_neg, is_feas, step_size_D = move(iter, dir, -step_size_P, pars, timer)
 
@@ -237,9 +238,9 @@ function eigenvector_ls(iter::Class_iterate, dir::Class_point, pars::Class_param
       step_size_P *= 6.0
     end
 
-    @show step_size_P, norm(dir.x), best_val - intial_val
+    @show step_size_P, LinearAlgebra.norm(dir.x), best_val - intial_val
 
-    if i == max_it
+    if counter_i == max_it
       my_warn("max it reached for eig search")
     end
 

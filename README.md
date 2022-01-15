@@ -16,8 +16,8 @@ where the functions ![f : R^n -> R](misc/f.gif) and ![a : R^n -> R^m](misc/a.gif
 ## How to install
 
 ```julia
-Pkg.clone("https://github.com/ohinder/advanced_timer.jl")
-Pkg.clone("https://github.com/ohinder/OnePhase.git")
+add https://github.com/ohinder/advanced_timer.jl
+add https://github.com/ohinder/OnePhase.git
 ```
 
 ## How to use with JuMP
@@ -42,7 +42,9 @@ Install [CUTEst](http://juliasmoothoptimizers.github.io/CUTEst.jl/latest/) then 
 ```julia
 using OnePhase, CUTEst
 nlp = CUTEstModel("CHAIN")
-iter = one_phase_solve(nlp);
+iter, status, hist, t, err, timer = one_phase_solve(nlp);
+@show get_original_x(iter) # gives the primal solution of the solver
+@show get_y(iter) # gives the dual solution of the solver
 ```
 
 ## Feedback?

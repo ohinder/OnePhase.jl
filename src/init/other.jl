@@ -2,15 +2,18 @@ function eval_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advan
     start_advanced_timer(timer, "INIT/evals")
 
     a = eval_a(nlp, x);
+    if a == Float64[]
+      a = zeros(1)
+    end
     J = eval_jac(nlp, x)
     g = eval_grad_f(nlp, x)
 
     s = deepcopy(a);
     m = length(a)
 
-    if length(nonzeros(J)) > 0
-      if(isbad(nonzeros(J)))
-          throw(Eval_NaN_error(getbad(nonzeros(J)),x,"J"))
+    if length(SparseArrays.nonzeros(J)) > 0
+      if(isbad(SparseArrays.nonzeros(J)))
+          throw(Eval_NaN_error(getbad(SparseArrays.nonzeros(J)),x,"J"))
       end
 
       if(isbad(a))

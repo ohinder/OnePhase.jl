@@ -1,0 +1,3 @@
+- proximal
+- complementarity
+- stall primal at feasibility tolerance

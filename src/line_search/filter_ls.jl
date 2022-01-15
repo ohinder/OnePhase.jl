@@ -3,7 +3,7 @@
 #    return norm(comp(iter),Inf)^3 / (iter.point.mu)^2 + norm(dir.x,2)^2 * get_delta(iter)
 #end
 
-type Class_filter_ls <: abstract_ls_info
+mutable struct Class_filter_ls <: abstract_ls_info
     step_size_P::Float64
     step_size_D::Float64
     num_steps::Int64
@@ -20,11 +20,11 @@ type Class_filter_ls <: abstract_ls_info
         this.num_steps = 0
 
         g = eval_grad_phi(iter, get_mu(iter))
-        this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * norm(dir.x,2)^2)
+        this.predict_red = -comp_merit(iter) + 0.5 * (dot(g,dir.x) - get_delta(iter) * LinearAlgebra.norm(dir.x,2)^2)
         #merit_function_predicted_reduction(iter, dir, 1.0);
         this.cur_merit = eval_merit_function(iter, pars)
 
-        sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * norm(g,2)^2 / norm(get_lag_hess(iter),2)^2
+        sufficient_descent = dot(g,dir.x) < 0.0 #-0.5 * LinearAlgebra.norm(g,2)^2 / LinearAlgebra.norm(get_lag_hess(iter),2)^2
         merit_reduce = merit_function_predicted_reduction(iter, dir, 1.0) < this.predict_red / 2.0
         #comp_sufficient = -get_mu(iter) < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < 100.0 * get_mu(iter)
         #comp_sufficient = -get_mu(iter) * pars.ls.comp_feas_agg < minimum(comp_predicted(iter,dir,1.0)) && maximum(comp_predicted(iter,dir,1.0)) < get_mu(iter) * (1.0 / pars.ls.comp_feas_agg - 1.0)
@@ -41,7 +41,7 @@ type Class_filter_ls <: abstract_ls_info
     end
 end
 
-type Class_filter
+mutable struct Class_filter
     fval::Float64
     scaled_kkt_err::Float64
     mu::Float64
@@ -50,9 +50,9 @@ type Class_filter
       this = new()
       this.fval = eval_merit_function(iter, pars)
 
-      kkt_err = norm(eval_grad_lag(iter, get_mu(iter)),Inf)
+      kkt_err = LinearAlgebra.norm(eval_grad_lag(iter, get_mu(iter)),Inf)
       if pars.ls.kkt_include_comp
-         kkt_err += norm(comp(iter),Inf)
+         kkt_err += LinearAlgebra.norm(comp(iter),Inf)
       end
       this.scaled_kkt_err = kkt_err * dual_scale(iter, pars) #eval_kkt_err(iter, pars)
       this.mu = iter.point.primal_scale

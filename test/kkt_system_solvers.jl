@@ -1,6 +1,10 @@
+#using SparseArrays
+using MathProgBase
+using NLPModels, NLPModelsJuMP
+
 function test_compute_indicies()
     @testset "test_compute_indicies" begin
-        J = sparse([[1.0 1.0 1.0];
+        J = SparseArrays.sparse([[1.0 1.0 1.0];
                     [-1.0 -1.0 -1.0];
                     [1.0 0.0 0.0];
                     [0.0 4.0 3.0];
@@ -8,7 +12,8 @@ function test_compute_indicies()
                     [3.0 2.0 1.0];
                     [-2.0 -2.0 -2.0]])
 
-        J_T = J'
+        J_T = SparseArrays.sparse(J')
+
         sorted_cols = OnePhase.sorted_col_list(J_T)
         @test sorted_cols == [4, 5, 3, 6, 1, 2, 7]
         break_points = OnePhase.compute_breakpoints(J_T,sorted_cols)
@@ -54,16 +59,18 @@ end
 #####
 
 function test_kkt_solver(jump_model,pars)
-    setsolver(jump_model,OnePhase.OnePhaseSolver())
-    JuMP.build(jump_model)
-
-    nlp_raw = OnePhase.MathProgNLPModel(jump_model.internalModel)
+    nlp_raw = OnePhase.MathOptNLPModel(jump_model)
     nlp = OnePhase.Class_CUTEst(nlp_raw)
     timer = OnePhase.class_advanced_timer()
     OnePhase.start_advanced_timer(timer)
 
     iter = OnePhase.mehrotra_init(nlp, pars, timer);
     OnePhase.update!(iter, timer, pars) # is this necessary ????
+
+    #@show iter.point.x
+    #@show iter.point.y
+    #@show iter.point.mu
+    #@show iter.point.s
 
     kkt_solver = OnePhase.pick_KKT_solver(pars);
     OnePhase.initialize!(kkt_solver, iter)
@@ -85,29 +92,67 @@ function test_kkt_solvers(jump_model)
     pars = OnePhase.Class_parameters()
     pars.output_level = 0
 
+#Original Code
     dir_schur = test_kkt_solver(jump_model,pars)
+    if OnePhase.USE_HSL
+        begin
+            pars.kkt.kkt_solver_type=:symmetric
+            pars.kkt.linear_solver_type=:HSL
 
-    pars.kkt.kkt_solver_type=:symmetric
-    pars.kkt.linear_solver_type=:HSL
+            dir_sym = test_kkt_solver(jump_model,pars)
 
-    dir_sym = test_kkt_solver(jump_model,pars)
+            @test LinearAlgebra.norm(dir_schur.x - dir_sym.x,2)<1e-6
+            @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
+            @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
+        end
+    end
 
-    @test norm(dir_schur.x - dir_sym.x,2)<1e-6
-    @test norm(dir_schur.y - dir_sym.y,2)<1e-6
-    @test norm(dir_schur.s - dir_sym.s,2)<1e-6
+#Updated Code
 
-    pars.kkt.kkt_solver_type=:clever_symmetric
-    pars.kkt.linear_solver_type=:HSL
+    begin
+        pars.kkt.kkt_solver_type=:symmetric
+        pars.kkt.linear_solver_type=:julia
 
-    dir_clever_sym =test_kkt_solver(jump_model,pars)
+        dir_sym = test_kkt_solver(jump_model,pars)
 
-    @test norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
-    @test norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
-    @test norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.x - dir_sym.x,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.y - dir_sym.y,2)<1e-6
+        @test LinearAlgebra.norm(dir_schur.s - dir_sym.s,2)<1e-6
+    end
+
+#Original Code
+    if OnePhase.USE_HSL
+        begin
+            pars.kkt.kkt_solver_type=:clever_symmetric
+            pars.kkt.linear_solver_type=:HSL
+
+            dir_clever_sym =test_kkt_solver(jump_model,pars)
+
+            @test LinearAlgebra.norm(dir_clever_sym.x - dir_sym.x,2)<1e-6
+            @test LinearAlgebra.norm(dir_clever_sym.y - dir_sym.y,2)<1e-6
+            @test LinearAlgebra.norm(dir_clever_sym.s - dir_sym.s,2)<1e-6
+        end
+    end
+
+#Updated Code
+
+    begin
+        pars.kkt.kkt_solver_type=:clever_symmetric
+        pars.kkt.linear_solver_type=:julia
+
+        dir_clever_sym =test_kkt_solver(jump_model,pars)
+        @test LinearAlgebra.norm(dir_schur.x - dir_clever_sym.x,2)<1e-6
+        @test LinearAlgebra.norm(dir_clever_sym.y - dir_schur.y,2)<1e-6
+        @test LinearAlgebra.norm(dir_clever_sym.s - dir_schur.s,2)<1e-6
+    end
+
 end
 
 function test_kkt_solvers()
     @testset "test_kkt_solvers" begin
+	jump_model = toy_lp0()
+        test_kkt_solvers(jump_model)
+
         jump_model = toy_lp1()
         test_kkt_solvers(jump_model)
 
@@ -131,12 +176,13 @@ function test_kkt_solvers()
 
         jump_model = toy_lp8()
         test_kkt_solvers(jump_model)
+
     end
 end
 
 function test_compare_columns()
     @testset "test_compare_columns" begin
-        A = sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])'
+        A = SparseArrays.sparse(SparseArrays.sparse([[0 10 0.0]; [1 0 1]; [1 0 0]; [2 0 0];])')
         @test OnePhase.compare_columns(A,1,2) === true
         @test OnePhase.compare_columns(A,2,1) === false
         @test OnePhase.compare_columns(A,2,3) === false

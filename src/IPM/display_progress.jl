@@ -1,4 +1,4 @@
-@compat abstract type abstract_alg_history end
+abstract type abstract_alg_history end
 
 export abstract_alg_history, get_col, generic_alg_history, alg_history2
 
@@ -54,7 +54,7 @@ function major_its_only(hist::Array{alg_history2,1})
     return hist[keep_these]
 end
 
-type generic_alg_history <: abstract_alg_history
+mutable struct generic_alg_history <: abstract_alg_history
   t::Int64
   #mu::Float64
   fval::Float64
@@ -99,8 +99,8 @@ end
 
 
 function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::String, iter::Class_iterate, kss::abstract_KKT_system_solver,  ls_info::abstract_ls_info, eta::Class_reduction_factors, num_fac_inertia::Int64, tot_num_fac::Int64, par::Class_parameters, display::Bool)
-    dir_y_norm = norm(kss.dir.y,Inf);
-    dir_x_norm = norm(kss.dir.x,Inf);
+    dir_y_norm = LinearAlgebra.norm(kss.dir.y,Inf);
+    dir_x_norm = LinearAlgebra.norm(kss.dir.x,Inf);
     dir_s_norm = norm(kss.dir.s,Inf);
     ls_info_num_steps = ls_info.num_steps
     ls_info_step_size_P = ls_info.step_size_P
@@ -109,21 +109,21 @@ function record_progress!(progress::Array{alg_history2,1}, t::Int64, step_type::
     mu = get_mu(iter)
     fval = get_fval(iter)
     sy_mean = dot(iter.point.s,iter.point.y)/length(iter.point.s)
-    norm_grad_lag = norm(eval_grad_lag(iter, 0.0),Inf)
-    norm_grad_lag_mod = norm(eval_grad_lag(iter, iter.point.mu),Inf)
+    norm_grad_lag = LinearAlgebra.norm(eval_grad_lag(iter, 0.0),Inf)
+    norm_grad_lag_mod = LinearAlgebra.norm(eval_grad_lag(iter, iter.point.mu),Inf)
     dual_scaled = scaled_dual_feas(iter, par)
-    primal_residual = norm(get_primal_res(iter),Inf)
+    primal_residual = LinearAlgebra.norm(get_primal_res(iter),Inf)
     con_vio = get_max_vio(iter)
-    val_comp = norm(comp(iter),Inf)
-    sy_inf = norm(iter.point.s .* iter.point.y,Inf)
-    comp_ratio = comp_ratio_max(iter) * par.ls.comp_feas_agg #norm(comp(iter),Inf)
+    val_comp = LinearAlgebra.norm(comp(iter),Inf)
+    sy_inf = LinearAlgebra.norm(iter.point.s .* iter.point.y,Inf)
+    comp_ratio = comp_ratio_max(iter) * par.ls.comp_feas_agg #LinearAlgebra.norm(comp(iter),Inf)
     farkas = eval_farkas(iter)
     delta = get_delta(iter)
     val_merit_function = eval_merit_function(iter, par)
     val_phi = eval_phi(iter,iter.point.mu)
-    val_grad_phi = norm(eval_grad_phi(iter, iter.point.mu),Inf)
-    y_norm = norm(get_y(iter),Inf)
-    x_norm = norm(get_x(iter),Inf)
+    val_grad_phi = LinearAlgebra.norm(eval_grad_phi(iter, iter.point.mu),Inf)
+    y_norm = LinearAlgebra.norm(get_y(iter),Inf)
+    x_norm = LinearAlgebra.norm(get_x(iter),Inf)
     tot_num_fac = tot_num_fac
     num_fac_inertia = num_fac_inertia
     kkt_ratio = kss.kkt_err_norm.ratio

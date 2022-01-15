@@ -1,6 +1,7 @@
-@compat abstract type abstract_nlp end
+using SparseArrays
+abstract type abstract_nlp end
 
-type Class_cache
+mutable struct Class_cache
     fval::Float64
     cons::Array{Float64,1}
     grad::Array{Float64,1}
@@ -26,7 +27,7 @@ function is_updated_correction(c::Class_cache)
     return c.fval_updated && c.cons_updated && c.grad_updated && c.J_updated
 end
 
-type Class_local_info
+mutable struct Class_local_info
     delta::Float64
     radius::Float64
     prev_step::Symbol
@@ -36,7 +37,7 @@ type Class_local_info
 end
 
 
-type Class_iterate
+mutable struct Class_iterate
     primal_residual_intial::Array{Float64,1}
     point::Class_point
     nlp::abstract_nlp
@@ -125,15 +126,15 @@ function copy(it::Class_iterate, timer::class_advanced_timer)
 end
 
 function finite_diff_check(it::Class_iterate)
-   approx_grad = Calculus.gradient(it.nlp.eval_f, it.point.x)
+   approx_grad = grad(it.nlp.eval_f, it.point.x)
    actual_grad = it.nlp.eval_grad_lag(it.point.x, 0.0, zeros(length(it.point.y)))
-   @assert(norm(approx_grad -  actual_grad, 2) < 1e-3)
+   @assert(LinearAlgebra.norm(approx_grad -  actual_grad, 2) < 1e-3)
 
    actual_jac = it.nlp.eval_jac(it.point.x)
    for i = 1:length(it.point.s)
        a_i = x::Vector -> it.nlp.eval_a(x)[i]
-       approx_grad_a_i = Calculus.gradient(a_i, it.point.x)
-       @assert(norm(actual_jac[i,:] - approx_grad_a_i,2) < 1e-3)
+       approx_grad_a_i = grad(a_i, it.point.x)
+       @assert(LinearAlgebra.norm(actual_jac[i,:] - approx_grad_a_i,2) < 1e-3)
    end
 end
 
@@ -287,7 +288,7 @@ function update_H!(it::Class_iterate, timer::class_advanced_timer, pars::Class_p
 
       x = it.point.x
 
-      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y + y_rx, 1.0)
+      it.cache.H = eval_lag_hess(it.nlp, x, it.point.y .+ y_rx, 1.0)
       #it.cache.H = eval_lag_hess(it.nlp, it.point.x, it.point.y, 1.0)
       it.cache.H_updated = true
     end

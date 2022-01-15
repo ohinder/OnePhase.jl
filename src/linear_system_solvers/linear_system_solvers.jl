@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 ################################################################################
 ## Defines linear system solvers.
 ## Note that linear system solvers need to be coupled with a KKT system solver
@@ -6,19 +8,30 @@
 ################################################################################
 
 println("Loading linear_system_solvers ... ")
-@compat abstract type abstract_linear_system_solver end
+abstract type abstract_linear_system_solver end
 
 include("julia.jl")
-USE_HSL = true
-if USE_HSL
+global USE_HSL = false
+setUSE_HSL(use_hsl) = (global USE_HSL = use_hsl)
+
+export USE_HSL, setUSE_HSL, loadHSL
+
+function loadHSL(hsl_dir)
+    if USE_HSL
 	try
-		include("hsl.jl")
+		hsl_code_location = string(hsl_dir, "hsl.jl")
+		include(hsl_code_location)
 	catch (e)
 		println("Loading HSL failed:")
-		warn(e)
+		@warn(e)
 		println("Continuing although you will not be able to choose HSL as a linear solver ...")
 	end
+    end
+    
 end
+
+loadHSL("./")
+
 #include("matlab.jl")
 if USE_MUMPS
 	include("mumps_wrapper.jl")

@@ -65,29 +65,13 @@ function dual_bounds(it::Class_iterate, y::Array{Float64,1}, dy::Array{Float64,1
         if lb < ub
           mu_lb = (y[i] + lb * dy[i]) * s
           mu_ub = (y[i] + ub * dy[i]) * s
-
-          #if mu_lb > mu / comp_feas
-          #    println("HERE1")
-          #end
-
-          if mu_ub > mu / comp_feas
-            println("HERE2")
-          end
-
-          #if mu_ub < mu * comp_feas
-          #  println("HERE3")
-          #end
-
-          if mu_lb < mu * comp_feas
-            println("HERE4")
-          end
         end
     end
 
     #boundary = min(0.01 * y, abs(dy) .* abs(dy) ./ it.point.s
     #ub = min(ub, simple_max_step(y, dy, 10.0^(-3.0) * y))
     if isbad(lb) || isbad(ub)
-      warn("lb or ub for dual step size is bad")
+      @warn("lb or ub for dual step size is bad")
       return 0.0, -1.0
     else
       return lb, ub
@@ -125,9 +109,7 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
         #@show get_delta(new_it)
         #@show isbad(q), isbad(dual_res), isbad(comp(new_it)), isbad(ub), isbad(small_step)
         res = [scale_D * dual_res; -scale_mu * comp(new_it)]
-
         step_size_D = sum(res .* q) / sum(q.^2)
-
         step_size_D = min(step_size_D,ub)
         step_size_D = max(step_size_D,small_step)
       else
@@ -136,7 +118,6 @@ function move_dual(new_it::Class_iterate, dir::Class_point, step_size_P::Float64
     else
       step_size_D = step_size_P
     end
-
     new_it.point.y += dir.y * step_size_D
 
     if !is_feasible(new_it, pars.ls.comp_feas)
