@@ -49,7 +49,7 @@ iter, status, hist, t, err, timer = one_phase_solve(nlp);
 
 ## Feedback?
 
-If you have found some bug or think there is someway I can improve the code feel free to contact me! My webpage is https://stanford.edu/~ohinder/.
+If you have found some bug or think there is someway I can improve the code feel free to contact me! My webpage is https://www.oliverhinder.com/.
 
 ## Solver output
 
