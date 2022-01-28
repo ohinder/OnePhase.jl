@@ -1,5 +1,5 @@
 #using SparseArrays
-using MathProgBase
+# using MathProgBase
 using NLPModels, NLPModelsJuMP
 
 function test_compute_indicies()

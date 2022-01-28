@@ -409,6 +409,13 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
+[[deps.advanced_timer]]
+git-tree-sha1 = "a54f19acbfd236fa90be53d7b270d687ec836006"
+repo-rev = "master"
+repo-url = "https://github.com/ohinder/advanced_timer.jl"
+uuid = "4dc304fd-12b9-49bd-b6c0-9406f1c5c81b"
+version = "0.1.0"
+
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
