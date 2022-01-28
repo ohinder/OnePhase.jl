@@ -20,6 +20,10 @@ Open the package manager (type "]" in the console) then write
 ```julia
 add https://github.com/ohinder/advanced_timer.jl
 add https://github.com/ohinder/OnePhase.git
+add NLPModels
+add JuMP
+add NLPModelsJuMP
+add MathOptInterface
 ```
 
 ## How to use with JuMP
