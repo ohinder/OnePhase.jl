@@ -24,6 +24,7 @@ add NLPModels@0.15.0
 add JuMP@0.21.8
 add NLPModelsJuMP@0.8.2
 add MathOptInterface@0.9.22
+test OnePhase
 ```
 
 ## How to use with JuMP
