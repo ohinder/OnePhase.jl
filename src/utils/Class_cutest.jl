@@ -241,6 +241,10 @@ function eval_lag_hess(m::Class_CUTEst, x::Array{Float64,1}, y::Array{Float64,1}
     #H = hess(m.nlp, _cute_x(m, x), obj_weight=w, y=y_cons);
     #H = hess(m.nlp, _cute_x(m, x), y=y_cons; obj_weight=w);
     H = hess(m.nlp, _cute_x(m, x), y_cons; obj_weight=w);
+    #After NLPModels 0.16.0, they started returnning Symmetric Hessian instead of the Lower Triangular
+    H = LowerTriangular(H)
+    # println("_____________________________", H)
+    # println("_____________________________", LowerTriangular(H))
     #H = hess(m.nlp, _cute_x(m, x), w, y_cons);
     #@show typeof(H)
 

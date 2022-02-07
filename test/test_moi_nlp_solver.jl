@@ -4,7 +4,7 @@
 
 function test_lp1_feasible_MOI()
     solver = OnePhase.OnePhaseSolver()
-    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+    MOI.set(solver, MOI.RawOptimizerAttribute("output_level"), 0)
 
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
@@ -29,7 +29,7 @@ end
 
 function test_lp1_optimal_MOI()
     solver = OnePhase.OnePhaseSolver()
-    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+    MOI.set(solver, MOI.RawOptimizerAttribute("output_level"), 0)
 
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
@@ -60,7 +60,7 @@ end
 
 function test_nlp1_feasible_MOI()
     solver = OnePhase.OnePhaseSolver()
-    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+    MOI.set(solver, MOI.RawOptimizerAttribute("output_level"), 0)
 
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))
@@ -86,7 +86,7 @@ end
 
 function test_nlp1_optimal_MOI()
     solver = OnePhase.OnePhaseSolver()
-    MOI.set(solver, MOI.RawParameter("output_level"), 0)
+    MOI.set(solver, MOI.RawOptimizerAttribute("output_level"), 0)
 
     x = MOI.add_variables(solver, 2)
     l = MOI.add_constraint(solver, x[1], MOI.GreaterThan(0.0))

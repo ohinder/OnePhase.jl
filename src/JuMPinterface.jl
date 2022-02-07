@@ -119,7 +119,7 @@ mutable struct OnePhaseSolver <: MOI.AbstractOptimizer
 	variable_info::Vector{VariableInfo}
 	nlp_data::MOI.NLPBlockData
 	sense :: MOI.OptimizationSense
-    objective::Union{MOI.SingleVariable,MOI.ScalarAffineFunction{Float64},MOI.ScalarQuadraticFunction{Float64},Nothing}
+    objective::Union{Type{MOI.SingleVariable}, MOI.ScalarAffineFunction{Float64}, MOI.ScalarQuadraticFunction{Float64}, Nothing}
     linear_le_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}}
     linear_ge_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.GreaterThan{Float64}}}
     linear_eq_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}}
@@ -161,7 +161,7 @@ function OnePhaseSolver(; options...)
 		[],
         nothing,
         false,
-        Dict{String, Any}(),
+        options_dict,
         NaN,
     )
     set_options(onePhaseSolverModel, options)
@@ -172,7 +172,7 @@ end
 function set_options(model::OnePhaseSolver, options)
     for (name, value) in options
         sname = string(name)
-        MOI.set(model, MOI.RawParameter(sname), value)
+        MOI.set(model, MOI.RawOptimizerAttribute(sname), value)
     end
     return
 end
@@ -197,7 +197,7 @@ function MOI.is_empty(model::OnePhaseSolver)
 		   isempty(model.quadratic_int_constraints)
 end
 
-MOI.get(model::OnePhaseSolver, ::MOI.SolveTime) = model.solve_time
+# MOI.get(model::OnePhaseSolver, ::MOI.SolveTime) = model.solve_time
 
 function MOI.empty!(model::OnePhaseSolver)
     model.inner = nothing
@@ -249,6 +249,11 @@ end
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.LessThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.GreaterThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.EqualTo{Float64}}) = true
+
+MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.LessThan{Float64}}) = true
+MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.GreaterThan{Float64}}) = true
+MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.EqualTo{Float64}}) = true
+
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{MOI.LessThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{MOI.GreaterThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{MOI.EqualTo{Float64}}) = true
@@ -271,7 +276,7 @@ function is_fixed(model::OnePhaseSolver, vi::MOI.VariableIndex)
 end
 
 function MOI.add_constraint(
-    model::OnePhaseSolver, v::MOI.SingleVariable, lt::MOI.LessThan{Float64},
+    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, lt::MOI.LessThan{Float64},
 )
     vi = v.variable
     MOI.throw_if_not_valid(model, vi)
@@ -288,6 +293,27 @@ function MOI.add_constraint(
     model.variable_info[col].upper_bound = lt.upper
     model.variable_info[col].has_upper_bound = true
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}}(col)
+end
+
+function MOI.add_constraint(
+    model::OnePhaseSolver, v::MOI.VariableIndex, lt::MOI.LessThan{Float64},
+)
+    # vi = v.variable
+	vi = v
+    MOI.throw_if_not_valid(model, vi)
+    if isnan(lt.upper)
+        error("Invalid upper bound value $(lt.upper).")
+    end
+    if has_upper_bound(model, vi)
+        throw(MOI.UpperBoundAlreadySet{typeof(lt), typeof(lt)}(vi))
+    end
+    if is_fixed(model, vi)
+        throw(MOI.UpperBoundAlreadySet{MOI.EqualTo{Float64}, typeof(lt)}(vi))
+    end
+    col = column(vi)
+    model.variable_info[col].upper_bound = lt.upper
+    model.variable_info[col].has_upper_bound = true
+    return MOI.ConstraintIndex{MOI.VariableIndex, MOI.LessThan{Float64}}(col)
 end
 
 function MOI.set(
@@ -312,9 +338,30 @@ function MOI.delete(
 end
 
 function MOI.add_constraint(
-    model::OnePhaseSolver, v::MOI.SingleVariable, gt::MOI.GreaterThan{Float64},
+    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, gt::MOI.GreaterThan{Float64},
 )
     vi = v.variable
+    MOI.throw_if_not_valid(model, vi)
+    if isnan(gt.lower)
+        error("Invalid lower bound value $(gt.lower).")
+    end
+    if has_lower_bound(model, vi)
+        throw(MOI.LowerBoundAlreadySet{typeof(gt), typeof(gt)}(vi))
+    end
+    if is_fixed(model, vi)
+        throw(MOI.LowerBoundAlreadySet{MOI.EqualTo{Float64}, typeof(gt)}(vi))
+    end
+    col = column(vi)
+    model.variable_info[col].lower_bound = gt.lower
+    model.variable_info[col].has_lower_bound = true
+    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(col)
+end
+
+function MOI.add_constraint(
+    model::OnePhaseSolver, v::MOI.VariableIndex, gt::MOI.GreaterThan{Float64},
+)
+    # vi = v.variable
+	vi = v
     MOI.throw_if_not_valid(model, vi)
     if isnan(gt.lower)
         error("Invalid lower bound value $(gt.lower).")
@@ -353,7 +400,7 @@ function MOI.delete(
 end
 
 function MOI.add_constraint(
-    model::OnePhaseSolver, v::MOI.SingleVariable, eq::MOI.EqualTo{Float64},
+    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, eq::MOI.EqualTo{Float64},
 )
     vi = v.variable
     MOI.throw_if_not_valid(model, vi)
@@ -448,7 +495,7 @@ function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ObjectiveFunction,
     func::Union{
-        MOI.SingleVariable,
+        Type{MOI.SingleVariable},
         MOI.ScalarAffineFunction,
         MOI.ScalarQuadraticFunction,
     },
@@ -469,7 +516,7 @@ function parser_SAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_uco
   # Parse a ScalarAffineTerm{Float64}(coefficient, variable_index)
   for term in fun.terms
     push!(linrows, nlin + 1)
-    push!(lincols, term.variable_index.value)
+    push!(lincols, term.variable.value)
     push!(linvals, term.coefficient)
   end
 
@@ -500,7 +547,8 @@ function parser_VAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_uco
   # Parse a VectorAffineTerm{Float64}(output_index, scalar_term)
   for term in fun.terms
     push!(linrows, nlin + term.output_index)
-    push!(lincols, term.scalar_term.variable_index.value)
+    # push!(lincols, term.scalar_term.variable_index.value)
+	push!(lincols, term.scalar_term.variable.value)
     push!(linvals, term.scalar_term.coefficient)
   end
 
@@ -566,7 +614,8 @@ function NLPModelsJuMP.parser_MOI(moimodel)
   lin_lcon = Float64[]
   lin_ucon = Float64[]
 
-  contypes = MOI.get(moimodel, MOI.ListOfConstraints())
+  # contypes = MOI.get(moimodel, MOI.ListOfConstraints())
+  contypes = MOI.get(moimodel, MOI.ListOfConstraintTypesPresent())
   for (F, S) in contypes
     F == MOI.SingleVariable && continue
 	F <: AF
@@ -649,7 +698,8 @@ function parser_objective_MOI(moimodel, nvar)
     type = "LINEAR"
     constant = fobj.constant
     for term in fobj.terms
-      vect[term.variable_index.value] = term.coefficient
+      # vect[term.variable_index.value] = term.coefficient
+	  vect[term.variable.value] = term.coefficient
     end
   end
 
@@ -658,11 +708,14 @@ function parser_objective_MOI(moimodel, nvar)
     type = "QUADRATIC"
     constant = fobj.constant
     for term in fobj.affine_terms
-      vect[term.variable_index.value] = term.coefficient
+      # vect[term.variable_index.value] = term.coefficient
+	  vect[term.variable.value] = term.coefficient
     end
     for term in fobj.quadratic_terms
-      i = term.variable_index_1.value
-      j = term.variable_index_2.value
+      # i = term.variable_index_1.value
+      # j = term.variable_index_2.value
+	  i = term.variable_1.value
+      j = term.variable_2.value
       if i >= j
         push!(rows, i)
         push!(cols, j)
@@ -817,7 +870,7 @@ end
 
 function append_to_hessian_sparsity!(
     ::Any,
-    ::Union{MOI.SingleVariable,MOI.ScalarAffineFunction},
+    ::Union{Type{MOI.SingleVariable},MOI.ScalarAffineFunction},
 )
     return nothing
 end
@@ -829,7 +882,8 @@ function append_to_hessian_sparsity!(
     for term in quad.quadratic_terms
         push!(
             hessian_sparsity,
-            (term.variable_index_1.value, term.variable_index_2.value),
+            # (term.variable_index_1.value, term.variable_index_2.value),
+			(term.variable_1.value, term.variable_2.value),
         )
     end
 end
@@ -970,10 +1024,17 @@ function JuMP.optimize!(
 
 		# TODO: better error message if no optimizer is set
 		@assert m.state == MathOptInterface.Utilities.ATTACHED_OPTIMIZER
-        solver = m.optimizer.model
+        solver = m.optimizer.model.optimizer
         t = time()
         nlp = MathOptNLPModel(model)
 
+		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(m))
+		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(solver))
+		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(m.optimizer))
+
+		# println("!!!!!!!!", solver.optimizer)
+
+		# println("____________________", solver.options)
         pars = create_pars_JuMP(solver.options)
 
         iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
@@ -990,6 +1051,8 @@ function JuMP.optimize!(
 		solver.inner.pars = pars
 		solver.inner.iter = iter
 		solver.inner.hist = hist
+
+		model.is_model_dirty = false
     catch err
         # TODO: This error also be thrown also in MOI.set() if the solver is
         # attached. Currently we catch only the more common case. More generally
@@ -1033,33 +1096,43 @@ function MOI.get(
     return MOI.get(model.optimizer, attr)
 end
 
-function check_inbounds(model::OnePhaseSolver, var::MOI.SingleVariable)
+function check_inbounds(model::OnePhaseSolver, var::Type{MOI.SingleVariable})
     return MOI.throw_if_not_valid(model, var.variable)
 end
 
 function check_inbounds(model::OnePhaseSolver, aff::MOI.ScalarAffineFunction)
     for term in aff.terms
-        MOI.throw_if_not_valid(model, term.variable_index)
+        # MOI.throw_if_not_valid(model, term.variable_index)
+		MOI.throw_if_not_valid(model, term.variable)
     end
 end
 
 function check_inbounds(model::OnePhaseSolver, quad::MOI.ScalarQuadraticFunction)
     for term in quad.affine_terms
-        MOI.throw_if_not_valid(model, term.variable_index)
+        # MOI.throw_if_not_valid(model, term.variable_index)
+		MOI.throw_if_not_valid(model, term.variable)
     end
     for term in quad.quadratic_terms
-        MOI.throw_if_not_valid(model, term.variable_index_1)
-        MOI.throw_if_not_valid(model, term.variable_index_2)
+        # MOI.throw_if_not_valid(model, term.variable_index_1)
+        # MOI.throw_if_not_valid(model, term.variable_index_2)
+		MOI.throw_if_not_valid(model, term.variable_1)
+        MOI.throw_if_not_valid(model, term.variable_2)
     end
 end
 
 MOI.supports(::OnePhaseSolver, ::MOI.NLPBlock) = true
 
 function MOI.supports(
-    ::OnePhaseSolver, ::MOI.ObjectiveFunction{MOI.SingleVariable}
+    ::OnePhaseSolver, SF
 )
     return true
 end
+
+# function MOI.supports(
+#     ::OnePhaseSolver, ::MOI.ObjectiveFunction{Type{MOI.SingleVariable}}
+# )
+#     return true
+# end
 
 function MOI.supports(
     ::OnePhaseSolver, ::MOI.ObjectiveFunction{MOI.ScalarAffineFunction{Float64}}
@@ -1077,7 +1150,8 @@ MOI.supports(::OnePhaseSolver, ::MOI.ObjectiveSense) = true
 
 MOI.supports(::OnePhaseSolver, ::MOI.Silent) = true
 
-MOI.supports(::OnePhaseSolver, ::MOI.RawParameter) = true
+# MOI.supports(::OnePhaseSolver, ::MOI.RawParameter) = true
+MOI.supports(::OnePhaseSolver, ::MOI.RawOptimizerAttribute) = true
 
 function MOI.get(model::OnePhaseSolver, ::MOI.ObjectiveFunction)
     return model.objective
@@ -1130,15 +1204,26 @@ function MOI.get(
 end
 
 function MOI.set(model::OnePhaseSolver, ::MOI.TimeLimitSec, value::Real)
-    MOI.set(model, MOI.RawParameter(TIME_LIMIT), Float64(value))
+    MOI.set(model, MOI.RawOptimizerAttribute(TIME_LIMIT), Float64(value))
 end
 
-function MOI.set(model::OnePhaseSolver, p::MOI.RawParameter, value)
+# function MOI.set(model::OnePhaseSolver, p::MOI.RawParameter, value)
+#     model.options[p.name] = value
+#     return
+# end
+function MOI.set(model::OnePhaseSolver, p::MOI.RawOptimizerAttribute, value)
     model.options[p.name] = value
     return
 end
 
-function MOI.get(model::OnePhaseSolver, p::MOI.RawParameter)
+# function MOI.get(model::OnePhaseSolver, p::MOI.RawParameter)
+#     if haskey(model.options, p.name)
+#         return model.options[p.name]
+#     end
+#     error("RawParameter with name $(p.name) is not set.")
+# end
+
+function MOI.get(model::OnePhaseSolver, p::MOI.RawOptimizerAttribute)
     if haskey(model.options, p.name)
         return model.options[p.name]
     end

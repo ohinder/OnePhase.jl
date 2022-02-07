@@ -17,10 +17,10 @@ advanced_timer = "4dc304fd-12b9-49bd-b6c0-9406f1c5c81b"
 
 [compat]
 julia = "1.6"
-NLPModels = "0.15.0"
-JuMP = "0.21.8"
-NLPModelsJuMP = "0.8.2"
-MathOptInterface = "0.9.22"
+NLPModels = "0.18.1"
+JuMP = "0.22.2"
+NLPModelsJuMP = "0.9.1"
+MathOptInterface = "0.10.7"
 
 [extras]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
