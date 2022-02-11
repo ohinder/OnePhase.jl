@@ -162,12 +162,6 @@ function basic_tests()
 
     if OnePhase.USE_HSL
         @testset "Ma97 linear system solve" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:symmetric,
-            #kkt!linear_solver_type=:HSL)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
 	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,
@@ -177,12 +171,6 @@ function basic_tests()
         end
 
         @testset "Ma97 linear system solve with clever elimination" begin
-            #solver = OnePhase.OnePhaseSolver(term!max_it=max_it,
-            #a_norm_penalty = a_norm_penalty,
-            #output_level=output_level,
-            #kkt!kkt_solver_type=:clever_symmetric,
-            #kkt!linear_solver_type=:HSL)
-            #basic_tests(solver)
 	    options = Dict{String, Any}("term!max_it"=>max_it,
 	    "a_norm_penalty"=>a_norm_penalty,
             "output_level"=>output_level,

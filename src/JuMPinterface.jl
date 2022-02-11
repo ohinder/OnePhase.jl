@@ -119,7 +119,8 @@ mutable struct OnePhaseSolver <: MOI.AbstractOptimizer
 	variable_info::Vector{VariableInfo}
 	nlp_data::MOI.NLPBlockData
 	sense :: MOI.OptimizationSense
-    objective::Union{Type{MOI.SingleVariable}, MOI.ScalarAffineFunction{Float64}, MOI.ScalarQuadraticFunction{Float64}, Nothing}
+    # objective::Union{Type{MOI.SingleVariable}, MOI.ScalarAffineFunction{Float64}, MOI.ScalarQuadraticFunction{Float64}, Nothing}
+	objective::Union{MOI.VariableIndex, MOI.ScalarAffineFunction{Float64}, MOI.ScalarQuadraticFunction{Float64}, Nothing}
     linear_le_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}}
     linear_ge_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.GreaterThan{Float64}}}
     linear_eq_constraints::Vector{ConstraintInfo{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}}
@@ -222,6 +223,10 @@ Return the column associated with a variable.
 """
 column(x::MOI.VariableIndex) = x.value
 
+function MOI.get(model::OnePhaseSolver, ::MOI.ListOfVariableIndices)
+	return [MOI.VariableIndex(i) for i in 1:length(model.variable_info)]
+end
+
 function MOI.add_variable(model::OnePhaseSolver)
     push!(model.variable_info, VariableInfo())
     return MOI.VariableIndex(length(model.variable_info))
@@ -246,13 +251,14 @@ end
 
 ##################################################
 ## Support constraints
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.LessThan{Float64}}) = true
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.GreaterThan{Float64}}) = true
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.EqualTo{Float64}}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.LessThan{Float64}}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.GreaterThan{Float64}}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.SingleVariable}, ::Type{MOI.EqualTo{Float64}}) = true
 
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.LessThan{Float64}}) = true
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.GreaterThan{Float64}}) = true
-MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.EqualTo{Float64}}) = true
+MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{<:SS}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.LessThan{Float64}}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.GreaterThan{Float64}}) = true
+# MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.VariableIndex}, ::Type{MOI.EqualTo{Float64}}) = true
 
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{MOI.LessThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{MOI.GreaterThan{Float64}}) = true
@@ -262,6 +268,8 @@ MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Flo
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.GreaterThan{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.EqualTo{Float64}}) = true
 MOI.supports_constraint(::OnePhaseSolver, ::Type{MOI.ScalarQuadraticFunction{Float64}}, ::Type{MOI.Interval{Float64}}) = true
+
+MOI.supports_constraint(::OnePhaseSolver, ::Type{<:SF}, ::Type{<:SS}) = true
 
 function has_upper_bound(model::OnePhaseSolver, vi::MOI.VariableIndex)
     return model.variable_info[column(vi)].has_upper_bound
@@ -275,25 +283,25 @@ function is_fixed(model::OnePhaseSolver, vi::MOI.VariableIndex)
     return model.variable_info[column(vi)].is_fixed
 end
 
-function MOI.add_constraint(
-    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, lt::MOI.LessThan{Float64},
-)
-    vi = v.variable
-    MOI.throw_if_not_valid(model, vi)
-    if isnan(lt.upper)
-        error("Invalid upper bound value $(lt.upper).")
-    end
-    if has_upper_bound(model, vi)
-        throw(MOI.UpperBoundAlreadySet{typeof(lt), typeof(lt)}(vi))
-    end
-    if is_fixed(model, vi)
-        throw(MOI.UpperBoundAlreadySet{MOI.EqualTo{Float64}, typeof(lt)}(vi))
-    end
-    col = column(vi)
-    model.variable_info[col].upper_bound = lt.upper
-    model.variable_info[col].has_upper_bound = true
-    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}}(col)
-end
+# function MOI.add_constraint(
+#     model::OnePhaseSolver, v::Type{MOI.SingleVariable}, lt::MOI.LessThan{Float64},
+# )
+#     vi = v.variable
+#     MOI.throw_if_not_valid(model, vi)
+#     if isnan(lt.upper)
+#         error("Invalid upper bound value $(lt.upper).")
+#     end
+#     if has_upper_bound(model, vi)
+#         throw(MOI.UpperBoundAlreadySet{typeof(lt), typeof(lt)}(vi))
+#     end
+#     if is_fixed(model, vi)
+#         throw(MOI.UpperBoundAlreadySet{MOI.EqualTo{Float64}, typeof(lt)}(vi))
+#     end
+#     col = column(vi)
+#     model.variable_info[col].upper_bound = lt.upper
+#     model.variable_info[col].has_upper_bound = true
+#     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}}(col)
+# end
 
 function MOI.add_constraint(
     model::OnePhaseSolver, v::MOI.VariableIndex, lt::MOI.LessThan{Float64},
@@ -310,16 +318,28 @@ function MOI.add_constraint(
     if is_fixed(model, vi)
         throw(MOI.UpperBoundAlreadySet{MOI.EqualTo{Float64}, typeof(lt)}(vi))
     end
-    col = column(vi)
+    # col = column(vi)
+	col = vi.value
     model.variable_info[col].upper_bound = lt.upper
     model.variable_info[col].has_upper_bound = true
     return MOI.ConstraintIndex{MOI.VariableIndex, MOI.LessThan{Float64}}(col)
 end
 
+# function MOI.set(
+#     model::OnePhaseSolver,
+#     ::MOI.ConstraintSet,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}},
+#     set::MOI.LessThan{Float64},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].upper_bound = set.upper
+#     return
+# end
+
 function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ConstraintSet,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.LessThan{Float64}},
     set::MOI.LessThan{Float64},
 )
     MOI.throw_if_not_valid(model, ci)
@@ -327,9 +347,19 @@ function MOI.set(
     return
 end
 
+# function MOI.delete(
+#     model::OnePhaseSolver,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].upper_bound = Inf
+#     model.variable_info[ci.value].has_upper_bound = false
+#     return
+# end
+
 function MOI.delete(
     model::OnePhaseSolver,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.LessThan{Float64}},
 )
     MOI.throw_if_not_valid(model, ci)
     model.variable_info[ci.value].upper_bound = Inf
@@ -337,25 +367,25 @@ function MOI.delete(
     return
 end
 
-function MOI.add_constraint(
-    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, gt::MOI.GreaterThan{Float64},
-)
-    vi = v.variable
-    MOI.throw_if_not_valid(model, vi)
-    if isnan(gt.lower)
-        error("Invalid lower bound value $(gt.lower).")
-    end
-    if has_lower_bound(model, vi)
-        throw(MOI.LowerBoundAlreadySet{typeof(gt), typeof(gt)}(vi))
-    end
-    if is_fixed(model, vi)
-        throw(MOI.LowerBoundAlreadySet{MOI.EqualTo{Float64}, typeof(gt)}(vi))
-    end
-    col = column(vi)
-    model.variable_info[col].lower_bound = gt.lower
-    model.variable_info[col].has_lower_bound = true
-    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(col)
-end
+# function MOI.add_constraint(
+#     model::OnePhaseSolver, v::Type{MOI.SingleVariable}, gt::MOI.GreaterThan{Float64},
+# )
+#     vi = v.variable
+#     MOI.throw_if_not_valid(model, vi)
+#     if isnan(gt.lower)
+#         error("Invalid lower bound value $(gt.lower).")
+#     end
+#     if has_lower_bound(model, vi)
+#         throw(MOI.LowerBoundAlreadySet{typeof(gt), typeof(gt)}(vi))
+#     end
+#     if is_fixed(model, vi)
+#         throw(MOI.LowerBoundAlreadySet{MOI.EqualTo{Float64}, typeof(gt)}(vi))
+#     end
+#     col = column(vi)
+#     model.variable_info[col].lower_bound = gt.lower
+#     model.variable_info[col].has_lower_bound = true
+#     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(col)
+# end
 
 function MOI.add_constraint(
     model::OnePhaseSolver, v::MOI.VariableIndex, gt::MOI.GreaterThan{Float64},
@@ -372,16 +402,28 @@ function MOI.add_constraint(
     if is_fixed(model, vi)
         throw(MOI.LowerBoundAlreadySet{MOI.EqualTo{Float64}, typeof(gt)}(vi))
     end
-    col = column(vi)
+    # col = column(vi)
+	col = vi.value
     model.variable_info[col].lower_bound = gt.lower
     model.variable_info[col].has_lower_bound = true
-    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(col)
+    return MOI.ConstraintIndex{MOI.VariableIndex, MOI.GreaterThan{Float64}}(col)
 end
+
+# function MOI.set(
+#     model::OnePhaseSolver,
+#     ::MOI.ConstraintSet,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}},
+#     set::MOI.GreaterThan{Float64},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].lower_bound = set.lower
+#     return
+# end
 
 function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ConstraintSet,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.GreaterThan{Float64}},
     set::MOI.GreaterThan{Float64},
 )
     MOI.throw_if_not_valid(model, ci)
@@ -389,9 +431,19 @@ function MOI.set(
     return
 end
 
+# function MOI.delete(
+#     model::OnePhaseSolver,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].lower_bound = -Inf
+#     model.variable_info[ci.value].has_lower_bound = false
+#     return
+# end
+
 function MOI.delete(
     model::OnePhaseSolver,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.GreaterThan{Float64}},
 )
     MOI.throw_if_not_valid(model, ci)
     model.variable_info[ci.value].lower_bound = -Inf
@@ -399,10 +451,35 @@ function MOI.delete(
     return
 end
 
+# function MOI.add_constraint(
+#     model::OnePhaseSolver, v::Type{MOI.SingleVariable}, eq::MOI.EqualTo{Float64},
+# )
+#     vi = v.variable
+#     MOI.throw_if_not_valid(model, vi)
+#     if isnan(eq.value)
+#         error("Invalid fixed value $(eq.value).")
+#     end
+#     if has_lower_bound(model, vi)
+#         throw(MOI.LowerBoundAlreadySet{MOI.GreaterThan{Float64}, typeof(eq)}(vi))
+#     end
+#     if has_upper_bound(model, vi)
+#         throw(MOI.UpperBoundAlreadySet{MOI.LessThan{Float64}, typeof(eq)}(vi))
+#     end
+#     if is_fixed(model, vi)
+#         throw(MOI.LowerBoundAlreadySet{typeof(eq), typeof(eq)}(vi))
+#     end
+#     col = column(vi)
+#     model.variable_info[col].lower_bound = eq.value
+#     model.variable_info[col].upper_bound = eq.value
+#     model.variable_info[col].is_fixed = true
+#     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}}(col)
+# end
+
 function MOI.add_constraint(
-    model::OnePhaseSolver, v::Type{MOI.SingleVariable}, eq::MOI.EqualTo{Float64},
+    model::OnePhaseSolver,  v::MOI.VariableIndex, eq::MOI.EqualTo{Float64},
 )
-    vi = v.variable
+    # vi = v.variable
+	vi = v
     MOI.throw_if_not_valid(model, vi)
     if isnan(eq.value)
         error("Invalid fixed value $(eq.value).")
@@ -416,17 +493,30 @@ function MOI.add_constraint(
     if is_fixed(model, vi)
         throw(MOI.LowerBoundAlreadySet{typeof(eq), typeof(eq)}(vi))
     end
-    col = column(vi)
+    # col = column(vi)
+	col = vi.value
     model.variable_info[col].lower_bound = eq.value
     model.variable_info[col].upper_bound = eq.value
     model.variable_info[col].is_fixed = true
-    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}}(col)
+    return MOI.ConstraintIndex{MOI.VariableIndex, MOI.EqualTo{Float64}}(col)
 end
+
+# function MOI.set(
+#     model::OnePhaseSolver,
+#     ::MOI.ConstraintSet,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}},
+#     set::MOI.EqualTo{Float64},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].lower_bound = set.value
+#     model.variable_info[ci.value].upper_bound = set.value
+#     return
+# end
 
 function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ConstraintSet,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.EqualTo{Float64}},
     set::MOI.EqualTo{Float64},
 )
     MOI.throw_if_not_valid(model, ci)
@@ -435,9 +525,20 @@ function MOI.set(
     return
 end
 
+# function MOI.delete(
+#     model::OnePhaseSolver,
+#     ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}},
+# )
+#     MOI.throw_if_not_valid(model, ci)
+#     model.variable_info[ci.value].lower_bound = -Inf
+#     model.variable_info[ci.value].upper_bound = Inf
+#     model.variable_info[ci.value].is_fixed = false
+#     return
+# end
+
 function MOI.delete(
     model::OnePhaseSolver,
-    ci::MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo{Float64}},
+    ci::MOI.ConstraintIndex{MOI.VariableIndex, MOI.EqualTo{Float64}},
 )
     MOI.throw_if_not_valid(model, ci)
     model.variable_info[ci.value].lower_bound = -Inf
@@ -491,11 +592,25 @@ end
     MOI.ScalarQuadraticFunction{Float64}, MOI.Interval{Float64}, quadratic_int,
 )
 
+# function MOI.set(
+#     model::OnePhaseSolver,
+#     ::MOI.ObjectiveFunction,
+#     func::Union{
+#         Type{MOI.SingleVariable},
+#         MOI.ScalarAffineFunction,
+#         MOI.ScalarQuadraticFunction,
+#     },
+# )
+#     check_inbounds(model, func)
+#     model.objective = func
+#     return
+# end
+
 function MOI.set(
     model::OnePhaseSolver,
     ::MOI.ObjectiveFunction,
     func::Union{
-        Type{MOI.SingleVariable},
+        MOI.VariableIndex,
         MOI.ScalarAffineFunction,
         MOI.ScalarQuadraticFunction,
     },
@@ -580,7 +695,8 @@ function parser_MOI(moimodel)
 
   contypes = MOI.get(moimodel, MOI.ListOfConstraints())
   for (F, S) in contypes
-    F == MOI.SingleVariable && continue
+    # F == MOI.SingleVariable && continue
+	F == MOI.VariableIndex && continue
 	F <: AF
 	S <: LS
 
@@ -605,42 +721,47 @@ function parser_MOI(moimodel)
   return nlin, lincon, lin_lcon, lin_ucon
 end
 
-function NLPModelsJuMP.parser_MOI(moimodel)
-  # Variables associated to linear constraints
-  nlin = 0
-  linrows = Int[]
-  lincols = Int[]
-  linvals = Float64[]
-  lin_lcon = Float64[]
-  lin_ucon = Float64[]
-
-  # contypes = MOI.get(moimodel, MOI.ListOfConstraints())
-  contypes = MOI.get(moimodel, MOI.ListOfConstraintTypesPresent())
-  for (F, S) in contypes
-    F == MOI.SingleVariable && continue
-	F <: AF
-	S <: LS
-
-    conindices = MOI.get(moimodel, MOI.ListOfConstraintIndices{F, S}())
-    for cidx in conindices
-      fun = MOI.get(moimodel, MOI.ConstraintFunction(), cidx)
-      set = MOI.get(moimodel, MOI.ConstraintSet(), cidx)
-      if typeof(fun) <: SAF
-        parser_SAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_ucon)
-        nlin += 1
-      end
-      if typeof(fun) <: VAF
-        parser_VAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_ucon)
-        nlin += set.dimension
-      end
-    end
-  end
-  coo = NLPModelsJuMP.COO(linrows, lincols, linvals)
-  nnzj = length(linvals)
-  lincon = NLPModelsJuMP.LinearConstraints(coo, nnzj)
-
-  return nlin, lincon, lin_lcon, lin_ucon
-end
+# function NLPModelsJuMP.parser_MOI(moimodel)
+#   println("2************_______________")
+#   println("2************_______________")
+#   println("2************_______________")
+#   println("2************_______________")
+#   # Variables associated to linear constraints
+#   nlin = 0
+#   linrows = Int[]
+#   lincols = Int[]
+#   linvals = Float64[]
+#   lin_lcon = Float64[]
+#   lin_ucon = Float64[]
+#
+#   # contypes = MOI.get(moimodel, MOI.ListOfConstraints())
+#   contypes = MOI.get(moimodel, MOI.ListOfConstraintTypesPresent())
+#   for (F, S) in contypes
+#     # F == MOI.SingleVariable && continue
+# 	F == MOI.VariableIndex && continue
+# 	F <: AF
+# 	S <: LS
+#
+#     conindices = MOI.get(moimodel, MOI.ListOfConstraintIndices{F, S}())
+#     for cidx in conindices
+#       fun = MOI.get(moimodel, MOI.ConstraintFunction(), cidx)
+#       set = MOI.get(moimodel, MOI.ConstraintSet(), cidx)
+#       if typeof(fun) <: SAF
+#         parser_SAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_ucon)
+#         nlin += 1
+#       end
+#       if typeof(fun) <: VAF
+#         parser_VAF(fun, set, linrows, lincols, linvals, nlin, lin_lcon, lin_ucon)
+#         nlin += set.dimension
+#       end
+#     end
+#   end
+#   coo = NLPModelsJuMP.COO(linrows, lincols, linvals)
+#   nnzj = length(linvals)
+#   lincon = NLPModelsJuMP.LinearConstraints(coo, nnzj)
+#
+#   return nlin, lincon, lin_lcon, lin_ucon
+# end
 
 """
     parser_JuMP(jmodel)
@@ -868,9 +989,15 @@ function NLPModels.obj(nlp::MathOptNLPModel, x::AbstractVector)
   return res
 end
 
+# function append_to_hessian_sparsity!(
+#     ::Any,
+#     ::Union{Type{MOI.SingleVariable},MOI.ScalarAffineFunction},
+# )
+#     return nothing
+# end
 function append_to_hessian_sparsity!(
     ::Any,
-    ::Union{Type{MOI.SingleVariable},MOI.ScalarAffineFunction},
+    ::Union{MOI.VariableIndex,MOI.ScalarAffineFunction},
 )
     return nothing
 end
@@ -978,6 +1105,12 @@ end
 
 MOI.get(model::OnePhaseSolver, ::MOI.RawSolver) = model
 
+# copy
+MOI.supports_incremental_interface(solver::OnePhaseSolver) = true
+function MOI.copy_to(solver::OnePhaseSolver, src::MOI.ModelLike)
+    return MOI.Utilities.automatic_copy_to(model, src)
+end
+
 function JuMP.optimize!(
     model::Model,
     # TODO: Remove the optimizer_factory and bridge_constraints
@@ -993,7 +1126,6 @@ function JuMP.optimize!(
         MOI.set(model, MOI.NLPBlock(), JuMP._create_nlp_block_data(model))
         empty!(model.nlp_data.nlconstr_duals)
     end
-
     if optimizer_factory !== nothing
         # This argument was deprecated in JuMP 0.21.
         error(
@@ -1001,17 +1133,14 @@ function JuMP.optimize!(
             "`optimize!`. Call `set_optimizer` before `optimize!`.",
         )
     end
-
     # If the user or an extension has provided an optimize hook, call
     # that instead of solving the model ourselves
     if !ignore_optimize_hook
         return model.optimize_hook(model; kwargs...)
     end
-
     isempty(kwargs) || error(
         "Unrecognized keyword arguments: $(join([k[1] for k in kwargs], ", "))",
     )
-
     if mode(model) != DIRECT && MOIU.state(backend(model)) == MOIU.NO_OPTIMIZER
         throw(NoOptimizer())
     end
@@ -1021,38 +1150,26 @@ function JuMP.optimize!(
 		if m.mode == MathOptInterface.Utilities.AUTOMATIC && m.state == MathOptInterface.Utilities.EMPTY_OPTIMIZER
 			MOIU.attach_optimizer(m)
 		end
-
 		# TODO: better error message if no optimizer is set
 		@assert m.state == MathOptInterface.Utilities.ATTACHED_OPTIMIZER
-        solver = m.optimizer.model.optimizer
+		solver = m.optimizer.model
         t = time()
+		solver.inner = OnePhaseProblem()
         nlp = MathOptNLPModel(model)
-
-		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(m))
-		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(solver))
-		# println("%%%%%%%%%%%%%%%%%%%%%%%%: ", typeof(m.optimizer))
-
-		# println("!!!!!!!!", solver.optimizer)
-
-		# println("____________________", solver.options)
         pars = create_pars_JuMP(solver.options)
 
         iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
-
-		solver.inner = OnePhaseProblem()
 
 		solver.inner.status = status_One_Phase_To_JuMP(status)
 		solver.inner.x = get_original_x(iter)
 		solver.inner.obj_val = iter.cache.fval
 		solver.inner.lambda = get_y(iter)
 		solver.inner.solve_time = time() - t
-
 		# custom one phase features
 		solver.inner.pars = pars
 		solver.inner.iter = iter
 		solver.inner.hist = hist
 
-		model.is_model_dirty = false
     catch err
         # TODO: This error also be thrown also in MOI.set() if the solver is
         # attached. Currently we catch only the more common case. More generally
@@ -1066,9 +1183,28 @@ function JuMP.optimize!(
             rethrow(err)
         end
     end
-
+	model.is_model_dirty = false
     return
 end
+
+# function MOI.optimize!(solver :: OnePhaseSolver)
+#     t = time()
+#     nlp = MathOptNLPModel(jumpModel)
+#     pars = create_pars_JuMP(solver.options)
+#
+#     iter, status, hist, t, err, timer = one_phase_solve(nlp,pars)
+#     solver.inner = OnePhaseProblem()
+#     solver.inner.status = status_One_Phase_To_JuMP(status)
+#     solver.inner.x = get_original_x(iter)
+#     solver.inner.obj_val = iter.cache.fval
+#     solver.inner.lambda = get_y(iter)
+#     solver.inner.solve_time = time() - t
+#
+#     # custom one phase features
+#     solver.inner.pars = pars
+#     solver.inner.iter = iter
+#     solver.inner.hist = hist
+# end
 
 function MOI.optimize!(solver :: OnePhaseSolver, jumpModel:: Model)
     t = time()
@@ -1096,8 +1232,12 @@ function MOI.get(
     return MOI.get(model.optimizer, attr)
 end
 
-function check_inbounds(model::OnePhaseSolver, var::Type{MOI.SingleVariable})
-    return MOI.throw_if_not_valid(model, var.variable)
+# function check_inbounds(model::OnePhaseSolver, var::Type{MOI.SingleVariable})
+#     return MOI.throw_if_not_valid(model, var.variable)
+# end
+
+function check_inbounds(model::OnePhaseSolver, vi::MOI.VariableIndex)
+    return MOI.throw_if_not_valid(model, vi)
 end
 
 function check_inbounds(model::OnePhaseSolver, aff::MOI.ScalarAffineFunction)
@@ -1133,6 +1273,12 @@ end
 # )
 #     return true
 # end
+
+function MOI.supports(
+    ::OnePhaseSolver, ::MOI.ObjectiveFunction{MOI.VariableIndex}
+)
+    return true
+end
 
 function MOI.supports(
     ::OnePhaseSolver, ::MOI.ObjectiveFunction{MOI.ScalarAffineFunction{Float64}}
@@ -1195,6 +1341,40 @@ function MOI.set(
     return
 end
 
+# function MOI.set(
+#     model::MOIU.CachingOptimizer,
+#     attr::MOI.VariablePrimalStart,
+#     vi::MOI.VariableIndex,
+#     value::Union{Real, Nothing},
+# )
+#     MOI.throw_if_not_valid(model, vi)
+#     model.optimizer.model.optimizer.variable_info[column(vi)].start = value
+#     return
+# end
+
+# function MOI.set(
+#     model::MOIU.CachingOptimizer,
+#     attr::MOI.VariablePrimalStart,
+#     vi::MOI.VariableIndex,
+#     value::Union{Real, Nothing},
+# )
+# 	println("HHHHHHHHHHHHHHHEEEEEEEERRRREEE")
+#     MOI.throw_if_not_valid(model, vi)
+#     model.optimizer.model.optimizer.inner.x[column(vi)] = value
+#     return
+# end
+
+function MOI.get(model::MOIU.CachingOptimizer, args...)
+	return MOI.get(model.model.optimizer, args)
+end
+
+# model::MOIU.CachingOptimizer, args...)
+#
+# m.optimizer.model.optimizer
+function MOI.get(model::OnePhaseSolver, attr::MOI.VariablePrimal, v::VariableRef)
+	return MOI.get(model, attr, v.variable)
+end
+
 function MOI.get(
     model::OnePhaseSolver, attr::MOI.VariablePrimal, vi::MOI.VariableIndex,
 )
@@ -1202,6 +1382,36 @@ function MOI.get(
     MOI.throw_if_not_valid(model, vi)
     return model.inner.x[column(vi)]
 end
+
+#attr::MOI.AbstractVariableAttribute
+#vi::MOI.VariableIndex
+# function MOI.get(
+#     model::MOIU.CachingOptimizer, attr::MOI.AbstractVariableAttribute, vi::MOI.VariableIndex
+# )
+#     # MOI.check_result_index_bounds(model, attr)
+#     MOI.throw_if_not_valid(model, vi)
+# 	println("model.optimizer.model.optimizer.inner: ", model.optimizer.model.optimizer.inner)
+#     return model.optimizer.model.optimizer.inner.x[column(vi)]
+# #	return model.optimizer.model.optimizer.variable_info[column(vi)]
+# end
+
+
+# function MOI.get(
+#     model::Model,
+#     attr::MOI.AbstractVariableAttribute,
+#     v::VariableRef,
+# )
+#     check_belongs_to_model(v, model)
+#     println("attr: ", attr)
+#     println("model: ", model)
+#     println("model.is_model_dirty: ", model.is_model_dirty)
+#     if !MOI.is_set_by_optimize(attr)
+#         return MOI.get(backend(model), attr, index(v))
+#     elseif model.is_model_dirty && mode(model) != DIRECT
+#         throw(OptimizeNotCalled())
+#     end
+#     return _moi_get_result(backend(model), attr, index(v))
+# end
 
 function MOI.set(model::OnePhaseSolver, ::MOI.TimeLimitSec, value::Real)
     MOI.set(model, MOI.RawOptimizerAttribute(TIME_LIMIT), Float64(value))
