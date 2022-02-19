@@ -95,11 +95,17 @@ function mehortra_guarding( nlp, pars, timer, x::Vector, y_tilde::Vector, s_tild
 
     #@show y, J
 
-
-
-    ifree = _i_not_fixed(nlp.nlp)
-    uvar = nlp.nlp.meta.uvar[ifree]
-    lvar =  nlp.nlp.meta.lvar[ifree]
+	ifree = nothing
+	uvar = nothing
+	lvar = nothing
+	if nlp.nlp != nothing
+    	ifree = _i_not_fixed(nlp.nlp)
+		uvar = nlp.nlp.meta.uvar[ifree]
+		lvar =  nlp.nlp.meta.lvar[ifree]
+	else
+		ifree = _i_not_fixed(nlp.solver.variable_info)
+		lvar, uvar = extract_lvar_uvar(nlp.solver.variable_info, ifree)
+	end
 
     @assert(length(bis) == sum(uvar .< Inf) + sum(lvar .> -Inf))
     #lb()

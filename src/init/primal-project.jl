@@ -2,9 +2,19 @@ function projection_onto_bounds_ipopt_style( nlp::Class_CUTEst, pars::Class_para
     if pars.output_level >= 4
         println("projecting onto bounds ...")
     end
-    ifree = _i_not_fixed(nlp.nlp)
-    uvar = deepcopy(nlp.nlp.meta.uvar[ifree])
-    lvar =  deepcopy(nlp.nlp.meta.lvar[ifree])
+    ifree = nothing
+    lvar = nothing
+    uvar = nothing
+    if nlp.nlp != nothing
+      ifree = _i_not_fixed(nlp.nlp)
+      uvar = deepcopy(nlp.nlp.meta.uvar[ifree])
+      lvar = deepcopy(nlp.nlp.meta.lvar[ifree])
+    else
+      ifree = _i_not_fixed(nlp.solver.variable_info)
+      lvar_temp, uvar_temp = extract_lvar_uvar(nlp.solver.variable_info, ifree)
+      uvar = deepcopy(uvar_temp)
+      lvar =  deepcopy(lvar_temp)
+    end
 
     x = deepcopy(x)
     b_L = zeros(length(x))

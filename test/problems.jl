@@ -37,6 +37,7 @@ function rosenbrook2()
     @variable(model, y >= 0.0)
     @NLobjective(model, Min, (2.0 - x)^2 + 100 * (y - x^2)^2)
     @constraint(model, x + y >= 0.1)
+	@NLconstraint(model, x* y + x >= 0.1)
     return model
 end
 
@@ -217,10 +218,10 @@ function test_toy_lp4(options::Dict{String, Any})
     @test status == :Optimal
     check_toy_lp4(model)
 end
-
+#Order =, >, <, < <
 function toy_lp5()
     model = Model()
-    @variable(model, x, lower_bound=0.0, upper_bound=1.0)
+	@variable(model, x, lower_bound=0.0, upper_bound=1.0)
     @variable(model, y, lower_bound=0.0, upper_bound=1.0)
     @NLobjective(model, Min, x)
     @constraint(model, x + y == 1.0)

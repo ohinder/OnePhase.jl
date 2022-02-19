@@ -1,7 +1,6 @@
 function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_advanced_timer)
     start_advanced_timer(timer, "INIT/x")
     x0 = suggested_starting_point(nlp)
-
     if pars.init.start_satisfying_bounds
       x = projection_onto_bounds_ipopt_style( nlp, pars, x0 )
     end
@@ -29,7 +28,7 @@ function gertz_init(nlp::Class_CUTEst, pars::Class_parameters, timer::class_adva
     dir = kkt_solver.dir
     y_temp = init_point.y + dir.y
     s_temp = -a
-    s, y = mehortra_guarding( nlp, pars, timer, x, y_temp, s_temp, a, J, g )
+    s, y = mehortra_guarding(nlp, pars, timer, x, y_temp, s_temp, a, J, g)
     @assert(all(s .>= 0.0))
     @assert(all(s .> 0.0))
     @assert(all(y .> 0.0))

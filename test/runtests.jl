@@ -28,10 +28,10 @@ end
 function basic_tests(options::Dict{String, Any})
 
     @testset "rosenbrook" begin
-        test_rosenbrook1(options)
-        test_rosenbrook2(options)
-        test_rosenbrook3(options)
-        test_rosenbrook4(options)
+       test_rosenbrook1(options)
+	   test_rosenbrook2(options)
+       test_rosenbrook3(options)
+       test_rosenbrook4(options)
     end
 
     @testset "LP" begin
@@ -198,7 +198,7 @@ function moi_nlp_tests()
         test_lp1_optimal_MOI()
         test_nlp1_feasible_MOI()
         test_nlp1_optimal_MOI()
-        test_lp1_feasible_JuMP()
+        # test_lp1_feasible_JuMP()
         test_lp1_optimal_JuMP()
         test_nlp1_optimal_JuMP()
     end

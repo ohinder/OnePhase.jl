@@ -1,3 +1,9 @@
+# include("../parameters.jl")
+# include("../linear_system_solvers/linear_system_solvers.jl")
+# include("../kkt_system_solver/include.jl")
+# include("../line_search/line_search.jl")
+include("../JuMPinterface.jl")
+
 function one_phase_solve(m::JuMP.Model)
     nlp_raw = MathOptNLPModel(m);
     return one_phase_solve(nlp_raw)
@@ -15,8 +21,42 @@ function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel)
 end
 
 function one_phase_solve(nlp_raw::NLPModels.AbstractNLPModel, pars::Class_parameters)
-    nlp = Class_CUTEst(nlp_raw);
+	nlp = Class_CUTEst(nlp_raw);
 	if ncon(nlp) == 0
+		throw(ErrorException("Unconstrained minimization problems are unsupported"))
+	end
+    timer = class_advanced_timer()
+    start_advanced_timer(timer)
+    start_advanced_timer(timer, "INIT")
+    if pars.init.init_style == :gertz
+        intial_it = gertz_init(nlp, pars, timer); # Gertz, Michael, Jorge Nocedal, and A. Sartenar. "A starting point strategy for nonlinear interior methods." Applied mathematics letters 17.8 (2004): 945-952.
+    elseif pars.init.init_style == :mehrotra
+        intial_it = mehrotra_init(nlp, pars, timer);
+    elseif pars.init.init_style == :LP
+        intial_it = LP_init(nlp, pars, timer);
+    else
+        error("Init strategy does not exist")
+    end
+    pause_advanced_timer(timer, "INIT")
+    pause_advanced_timer(timer)
+    if pars.output_level >= 4
+        print_timer_stats(timer)
+    end
+    start_advanced_timer(timer)
+    @assert(is_feasible(intial_it, pars.ls.comp_feas))
+    iter, status, hist, t, err = one_phase_IPM(intial_it, pars, timer);
+
+    pause_advanced_timer(timer)
+
+    if pars.output_level >= 3
+        print_timer_stats(timer)
+    end
+    return iter, status, hist, t, err, timer
+end
+
+function one_phase_solve(solver::OnePhaseSolver, pars::Class_parameters)
+    nlp = Class_CUTEst(solver);
+	if number_constraints(nlp.solver) == 0
 		throw(ErrorException("Unconstrained minimization problems are unsupported"))
 	end
     timer = class_advanced_timer()
@@ -164,7 +204,7 @@ function one_phase_IPM(iter::Class_iterate, pars::Class_parameters, timer::class
                            tot_num_fac = inertia_num_fac
                            old_delta = get_delta(iter)
                            set_delta(iter, new_delta)
-						   
+
                            pause_advanced_timer(timer, "ipopt_strategy")
 
                            if fact_succeed != :success
