@@ -1,7 +1,7 @@
 include("include.jl")
 include("read_lp.jl")
 
-println("GUROBI NOT WORKING")
+#println("GUROBI NOT WORKING")
 #using Gurobi
 
 ### SHOULD REALLY BE LOOKING AT DUAL

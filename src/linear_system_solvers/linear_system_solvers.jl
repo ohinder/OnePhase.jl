@@ -27,7 +27,7 @@ function loadHSL(hsl_dir)
 		println("Continuing although you will not be able to choose HSL as a linear solver ...")
 	end
     end
-    
+
 end
 
 loadHSL("./")
