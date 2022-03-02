@@ -285,11 +285,11 @@ end
 function write_pars(stream, par::Class_parameters)
     write(stream, "PAR \t\t\t\t\t\t VALUE \n")
 
-    for fieldname in fieldnames(par)
+    for fieldname in fieldnames(typeof(par))
         fieldval = getfield(par, fieldname)
         if isa(fieldval,abstract_pars)
           write(stream, "$(pd(fieldname,40)) \n")
-          for subfieldname in fieldnames(fieldval)
+          for subfieldname in fieldnames(typeof(fieldval))
             subfieldval = getfield(fieldval, subfieldname)
             write(stream, "\t $(pd(subfieldname,40)) \t $(subfieldval) \n")
           end

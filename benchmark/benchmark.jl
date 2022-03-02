@@ -1,6 +1,7 @@
 include("../src/OnePhase.jl")
 
-using JLD, OnePhase, NLPModels, CUTEst
+#using JLD, OnePhase, NLPModels, CUTEst
+using JLD, NLPModels, CUTEst
 USE_IPOPT = false
 if USE_IPOPT
   using Ipopt

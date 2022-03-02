@@ -1,42 +1,34 @@
 include("../benchmark.jl")
-using OnePhase, advanced_timer
-
-function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, solver)
-    summary = Dict{String, problem_summary2}()
-
+#using OnePhase, advanced_timer
+using advanced_timer
+using NLPModelsIpopt
+function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, print_level::Int64, tol::Float64, max_iter::Int64, max_cpu_time::Float64, nlp_scaling_method::String, bound_relax_factor::Float64, acceptable_iter::Int64)
     if_mkdir("../results/$test_name")
     if_mkdir("../results/$test_name/log")
-
+    summary = Dict{String, problem_summary2}()
     for problem_name in problems
           println("RUNNING $problem_name")
 
-          ORG_STDOUT = STDOUT
+          ORG_STDOUT = stdout
           file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           nlp_raw = CUTEstModel(problem_name)
           summary[problem_name] = problem_summary2()
-          tic()
-
+          #tic()
+		  start_time = time()
           try
-            t = 0
-            function intermediate_ipopt(alg_mod::Int,iter_count::Int,obj_value::Float64,inf_pr::Float64, inf_du::Float64,  mu::Float64, d_norm::Float64, regularization_size::Float64, alpha_du::Float64, alpha_pr::Float64, ls_trials::Int)
-              t = iter_count
-              return true  # Keep going
-            end
+            global t = 0
+			function callback(alg_mod, iter_count, args...)
+           		global t = iter_count
+           		return true
+         	end
 
-            mp = NLPModels.NLPtoMPB(nlp_raw, solver)
-            setIntermediateCallback(mp.inner, intermediate_ipopt)
-            MathProgBase.optimize!(mp)
-            #x = MathProgBase.getsolution(mp)
-            #solver = MathProgBase.getrawsolver(mp)
-
-            status = MathProgBase.status(mp)
+	    stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter)
+            status = stats.status
             summary[problem_name].status = status;
-            summary[problem_name].it_count = t;
-
-            x = MathProgBase.getsolution(mp)
-            set_cutest_info_ipopt!(summary[problem_name], mp.inner, nlp_raw, x)
-            println("here4")
+            summary[problem_name].it_count = stats.iter;
+	    x = copy(stats.solution)
+            set_cutest_info_ipopt!(summary[problem_name], stats, nlp_raw, x)
           catch(e)
             println("Uncaught error in algorithm!!!")
             @show e;
@@ -44,7 +36,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
             summary[problem_name].it_count = -1;
           end
 
-          summary[problem_name].total_time = toc();
+          summary[problem_name].total_time = time() - start_time;
 
           redirect_stdout(ORG_STDOUT)
           finalize(nlp_raw)
@@ -62,7 +54,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
 end
 
 
-function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_name::String, par::Class_parameters)
+function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_name::String, par::OnePhase.Class_parameters)
 
     if_mkdir("../results/$test_name")
     if_mkdir("../results/$test_name/log")
@@ -77,7 +69,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
     already_solved_problems = keys(summary)
 
     par_file = open("../results/$(test_name)/par.txt", "w")
-    write_pars(par_file, par)
+    OnePhase.write_pars(par_file, par)
     close(par_file)
 
     master_timer = class_advanced_timer()
@@ -87,7 +79,7 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           println("$problem_name already solved")
       else
           println("RUNNING $problem_name")
-          ORG_STDOUT = STDOUT
+          ORG_STDOUT = stdout
           file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           summary[problem_name] = problem_summary2()
@@ -104,7 +96,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
                 throw(e)
               end
 
-              tic()
+              #tic()
+	      start_time = time()
 
               #=timer = class_advanced_timer()
               start_advanced_timer(timer)
@@ -129,15 +122,17 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               save("../results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
 
-              set_info_me!(summary[problem_name], history, status)
+              set_info_me!(summary[problem_name], history, status, iter)
               #.it_count = t;
-
-              summary[problem_name].total_time = toc();
+              summary[problem_name].number_variables = nlp_raw.meta.nvar
+              summary[problem_name].number_constraints = nlp_raw.meta.ncon
+              #summary[problem_name].total_time = toc();
+              summary[problem_name].total_time = time() - start_time;
           catch(e)
               println("Uncaught error in algorithm!!!")
               @show e;
 
-              if isa(e, Eval_NaN_error)
+              if isa(e, OnePhase.Eval_NaN_error)
                 summary[problem_name].status = :NaN_ERR
                 summary[problem_name].it_count = -1;
               else

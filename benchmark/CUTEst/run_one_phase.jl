@@ -12,7 +12,7 @@ RUN_LIST = ["Jan4"] #["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
 
 if "Jan4" in RUN_LIST
 
-my_par = Class_parameters()
+my_par = OnePhase.Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
 
@@ -20,7 +20,7 @@ folder_name = "one_phase/Jan4/CUTEst"
 if_mkdir("../results/$folder_name")
 run_cutest_problems_using_our_solver(problem_list, folder_name, my_par)
 
-my_par = Class_parameters()
+my_par = OnePhase.Class_parameters()
 my_par.term.max_time = 60.0 * 60
 my_par.term.max_it = 3000
 my_par.term.tol_opt = 1e-2
