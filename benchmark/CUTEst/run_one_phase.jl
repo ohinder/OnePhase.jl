@@ -10,6 +10,11 @@ problem_list = default_list()
 #RUN_LIST = [:corrections, :step_style, :regularizer, :tol]
 RUN_LIST = ["Jan4"] #["LowTol_Dec26","test_Dec26_ftb"]#"LowTol_Dec19",
 
+if OnePhase.USE_HSL
+    OnePhase.loadHSL("../../src/linear_system_solvers/")
+end
+
+
 if "Jan4" in RUN_LIST
 
 my_par = OnePhase.Class_parameters()

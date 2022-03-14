@@ -2,15 +2,31 @@ include("../benchmark.jl")
 #using OnePhase, advanced_timer
 using advanced_timer
 using NLPModelsIpopt
-function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, print_level::Int64, tol::Float64, max_iter::Int64, max_cpu_time::Float64, nlp_scaling_method::String, bound_relax_factor::Float64, acceptable_iter::Int64)
-    if_mkdir("../results/$test_name")
-    if_mkdir("../results/$test_name/log")
+
+if OnePhase.USE_HSL
+	OnePhase.loadHSL("../../src/linear_system_solvers/")
+end
+
+function run_cutest_problems_on_solver(test_name::String, print_level::Int64, tol::Float64, max_iter::Int64, max_cpu_time::Float64, linear_solver::String, min_ncon::Int64, max_ncon::Int64, min_nvar::Int64, max_nvar::Int64)
+	problems = get_problem_list(min_ncon, max_ncon, min_nvar, max_nvar)
+	nlp_scaling_method = "none"
+	bound_relax_factor =  0.0
+	acceptable_iter = 999999
+	run_cutest_problems_on_solver(problems, test_name, print_level, tol, max_iter, max_cpu_time, nlp_scaling_method, bound_relax_factor, acceptable_iter)
+end
+
+function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::String, print_level::Int64, tol::Float64, max_iter::Int64, max_cpu_time::Float64, nlp_scaling_method::String, bound_relax_factor::Float64, acceptable_iter::Int64, linear_solver::String="")
+    # if_mkdir("../results/$test_name")
+    # if_mkdir("../results/$test_name/log")
+	if_mkdir("$test_name")
+    if_mkdir("$test_name/log")
     summary = Dict{String, problem_summary2}()
     for problem_name in problems
           println("RUNNING $problem_name")
 
           ORG_STDOUT = stdout
-          file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
+          # file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
+		  file = open("$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           nlp_raw = CUTEstModel(problem_name)
           summary[problem_name] = problem_summary2()
@@ -22,9 +38,13 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
            		global t = iter_count
            		return true
          	end
-
-	    stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter)
-            status = stats.status
+			stats = nothing
+			if linear_solver != ""
+				stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter, linear_solver = linear_solver)
+			else
+				stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter)
+			end
+			status = stats.status
             summary[problem_name].status = status;
             summary[problem_name].it_count = stats.iter;
 	    x = copy(stats.solution)
@@ -45,30 +65,43 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
           println("it count = ", summary[problem_name].it_count)
           println("status = ", summary[problem_name].status)
 
-          save("../results/$(test_name)/summary.jld","summary",summary)
+          # save("../results/$(test_name)/summary.jld","summary",summary)
+		  save("$(test_name)/summary.jld","summary",summary)
 
-          summary_file = open("../results/$(test_name)/summary.txt", "w")
+          # summary_file = open("../results/$(test_name)/summary.txt", "w")
+		  summary_file = open("$(test_name)/summary.txt", "w")
           write_summary(summary_file, summary)
           close(summary_file)
     end
 end
 
 
+function run_cutest_problems_using_our_solver(test_name::String, par::OnePhase.Class_parameters, min_ncon::Int64, max_ncon::Int64, min_nvar::Int64, max_nvar::Int64)
+	problems = get_problem_list(min_ncon, max_ncon, min_nvar, max_nvar)
+	run_cutest_problems_using_our_solver(problems, test_name, par)
+end
+
 function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_name::String, par::OnePhase.Class_parameters)
 
-    if_mkdir("../results/$test_name")
-    if_mkdir("../results/$test_name/log")
-    if_mkdir("../results/$test_name/jld")
+    # if_mkdir("../results/$test_name")
+    # if_mkdir("../results/$test_name/log")
+    # if_mkdir("../results/$test_name/jld")
+	if_mkdir("$test_name")
+    if_mkdir("$test_name/log")
+    if_mkdir("$test_name/jld")
 
-    if isfile("../results/$(test_name)/summary.jld")
-      summary = load("../results/$(test_name)/summary.jld","summary")
+	# if isfile("../results/$(test_name)/summary.jld")
+    if isfile("$(test_name)/summary.jld")
+      # summary = load("../results/$(test_name)/summary.jld","summary")
+	  summary = load("$(test_name)/summary.jld","summary")
     else
       summary = Dict{String, problem_summary2}()
     end
 
     already_solved_problems = keys(summary)
 
-    par_file = open("../results/$(test_name)/par.txt", "w")
+    # par_file = open("../results/$(test_name)/par.txt", "w")
+	par_file = open("$(test_name)/par.txt", "w")
     OnePhase.write_pars(par_file, par)
     close(par_file)
 
@@ -80,7 +113,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
       else
           println("RUNNING $problem_name")
           ORG_STDOUT = stdout
-          file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
+          # file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
+		  file = open("$(test_name)/log/$(problem_name).txt", "w")
           redirect_stdout(file)
           summary[problem_name] = problem_summary2()
 
@@ -120,7 +154,8 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               master_timer = merge_timers(timer, master_timer)
 
-              save("../results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
+              # save("../results/$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
+			  save("$(test_name)/jld/$(problem_name).jld","history",history, "timer", timer)
 
               set_info_me!(summary[problem_name], history, status, iter)
               #.it_count = t;
@@ -148,13 +183,16 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
           println("it count = ", summary[problem_name].it_count)
           println("status = ", summary[problem_name].status)
 
-          save("../results/$(test_name)/summary.jld","summary",summary, "pars", par)
+          # save("../results/$(test_name)/summary.jld","summary",summary, "pars", par)
+		  save("$(test_name)/summary.jld","summary",summary, "pars", par)
 
-          summary_file = open("../results/$(test_name)/summary.txt", "w")
+          # summary_file = open("../results/$(test_name)/summary.txt", "w")
+		  summary_file = open("$(test_name)/summary.txt", "w")
           write_summary(summary_file, summary)
           close(summary_file)
 
-          timer_file = open("../results/$(test_name)/timer.txt", "w")
+          # timer_file = open("../results/$(test_name)/timer.txt", "w")
+		  timer_file = open("$(test_name)/timer.txt", "w")
           print_timer_stats(timer_file, master_timer)
           close(timer_file)
       end

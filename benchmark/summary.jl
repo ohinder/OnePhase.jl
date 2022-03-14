@@ -1,4 +1,4 @@
-using LinearAlgebra
+using LinearAlgebra, SolverCore
 mutable struct problem_summary # for backward compatibility
     status::Symbol
     it_count::Int64

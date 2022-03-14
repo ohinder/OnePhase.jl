@@ -44,9 +44,9 @@ end
 
 function jump_status_conversion(info::problem_summary2; MAX_IT::Int64=3000)
   status = info.status
-  if status == :Optimal
+  if status == :Optimal || status == :first_order
     return :Optimal
-  elseif status == :Infeasible
+  elseif status == :Infeasible || status == :infeasible
     return :primal_infeasible
   elseif status == :Unbounded
     return :dual_infeasible
@@ -56,6 +56,10 @@ function jump_status_conversion(info::problem_summary2; MAX_IT::Int64=3000)
     else
       return :MAX_TIME
     end
+  elseif status == :max_time
+    return :MAX_TIME
+  elseif status == :max_iter
+    return :MAX_IT
   elseif status == :Error
     if info.it_count > 0
       return :ERROR
