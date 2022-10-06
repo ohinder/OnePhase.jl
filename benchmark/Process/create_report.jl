@@ -33,7 +33,7 @@ function get_CUTEst_results()
       #results["IPOPT"] = cps(load("../results/one_phase/test_knitro_init8_Jan2/summary.jld", "summary"))
       #results["one-phase"] = cps(load("../results/one_phase/test_meh_init_Dec30/summary.jld", "summary"))
 
-      #results["IPOPT"] = convert_JuMP(cps(load("../results/ipopt/plain/summary.jld", "summary")))
+      results["IPOPT"] = convert_JuMP(cps(load("../results/ipopt/plain/summary.jld", "summary")))
     elseif data == :CUTEst_low_tol
       results["one-phase"] = cps(load("../results/one_phase/Jan4/LowTol/summary.jld", "summary"))
       results["IPOPT"] = convert_JuMP(cps(load("../results/ipopt/very_low_tol/summary.jld", "summary")))

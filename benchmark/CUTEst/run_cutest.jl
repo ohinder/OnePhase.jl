@@ -20,59 +20,77 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
     # if_mkdir("../results/$test_name/log")
 	if_mkdir("$test_name")
     if_mkdir("$test_name/log")
-    summary = Dict{String, problem_summary2}()
+
+	if isfile("$(test_name)/summary.jld")
+	  # summary = load("../results/$(test_name)/summary.jld","summary")
+	  summary = load("$(test_name)/summary.jld","summary")
+	else
+	  summary = Dict{String, problem_summary2}()
+	end
+
+	already_solved_problems = keys(summary)
+
     for problem_name in problems
-          println("RUNNING $problem_name")
+		if problem_name in already_solved_problems
+			 println("$problem_name already solved")
+		else
+			println("RUNNING $problem_name")
+			ORG_STDOUT = stdout
+	        # file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
+			file = open("$(test_name)/log/$(problem_name).txt", "w")
+	        redirect_stdout(file)
+	        summary[problem_name] = problem_summary2()
+	        #tic()
+			start_time = time()
+	        try
+				try
+					nlp_raw = CUTEstModel(problem_name)
+				catch(e)
+					println("$problem_name failed to load")
+					throw(e)
+                end
 
-          ORG_STDOUT = stdout
-          # file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
-		  file = open("$(test_name)/log/$(problem_name).txt", "w")
-          redirect_stdout(file)
-          nlp_raw = CUTEstModel(problem_name)
-          summary[problem_name] = problem_summary2()
-          #tic()
-		  start_time = time()
-          try
-            global t = 0
-			function callback(alg_mod, iter_count, args...)
-           		global t = iter_count
-           		return true
-         	end
-			stats = nothing
-			if linear_solver != ""
-				stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter, linear_solver = linear_solver)
-			else
-				stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter)
-			end
-			status = stats.status
-            summary[problem_name].status = status;
-            summary[problem_name].it_count = stats.iter;
-	    x = copy(stats.solution)
-            set_cutest_info_ipopt!(summary[problem_name], stats, nlp_raw, x)
-          catch(e)
-            println("Uncaught error in algorithm!!!")
-            @show e;
-            summary[problem_name].status = :ERR
-            summary[problem_name].it_count = -1;
-          end
+				global t = 0
+				function callback(alg_mod, iter_count, args...)
+	           		global t = iter_count
+	           		return true
+	         	end
+				stats = nothing
+				if linear_solver != ""
+					stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter, linear_solver = linear_solver)
+				else
+					stats = ipopt(nlp_raw, print_level=print_level, tol=tol, max_iter=max_iter, max_cpu_time=max_cpu_time, nlp_scaling_method=nlp_scaling_method, bound_relax_factor=bound_relax_factor, acceptable_iter=acceptable_iter)
+				end
+				status = stats.status
+	            summary[problem_name].status = status;
+	            summary[problem_name].it_count = stats.iter;
+		    	x = copy(stats.solution)
+	            set_cutest_info_ipopt!(summary[problem_name], stats, nlp_raw, x)
+	        catch(e)
+	            println("Uncaught error in algorithm!!!")
+	            @show e;
+	            summary[problem_name].status = :ERR
+	            summary[problem_name].it_count = -1;
+	        end
 
-          summary[problem_name].total_time = time() - start_time;
+          	summary[problem_name].total_time = time() - start_time;
 
-          redirect_stdout(ORG_STDOUT)
-          finalize(nlp_raw)
-          close(file)
+          	redirect_stdout(ORG_STDOUT)
+          	finalize(nlp_raw)
+          	close(file)
 
-          println("it count = ", summary[problem_name].it_count)
-          println("status = ", summary[problem_name].status)
+          	println("it count = ", summary[problem_name].it_count)
+          	println("status = ", summary[problem_name].status)
 
-          # save("../results/$(test_name)/summary.jld","summary",summary)
-		  save("$(test_name)/summary.jld","summary",summary)
+          	# save("../results/$(test_name)/summary.jld","summary",summary)
+		  	save("$(test_name)/summary.jld","summary",summary)
 
-          # summary_file = open("../results/$(test_name)/summary.txt", "w")
-		  summary_file = open("$(test_name)/summary.txt", "w")
-          write_summary(summary_file, summary)
-          close(summary_file)
-    end
+          	# summary_file = open("../results/$(test_name)/summary.txt", "w")
+		  	summary_file = open("$(test_name)/summary.txt", "w")
+          	write_summary(summary_file, summary)
+          	close(summary_file)
+    	end
+	end
 end
 
 
@@ -150,6 +168,10 @@ function run_cutest_problems_using_our_solver(problems::Array{String,1}, test_na
 
               print_timer_stats(timer)
               =#
+			  if OnePhase.USE_HSL
+				  par.kkt.kkt_solver_type = :clever_symmetric
+				  par.kkt.linear_solver_type = :HSL
+			  end
               iter, status, history, t, err, timer = OnePhase.one_phase_solve(nlp_raw, par)
 
               master_timer = merge_timers(timer, master_timer)
