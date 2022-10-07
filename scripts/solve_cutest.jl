@@ -1,11 +1,18 @@
 import ArgParse
-include("../benchmark/CUTest/run_cutest.jl")
+include("../benchmark/CUTEst/run_cutest.jl")
 
 """
 Defines parses and args.
 # Returns
 A dictionary with the values of the command-line arguments.
 """
+
+function if_mkpath(dir::String)
+  if !isdir(dir)
+     mkpath(dir)
+  end
+end
+
 function parse_command_line()
   arg_parse = ArgParse.ArgParseSettings()
 
@@ -25,11 +32,13 @@ function parse_command_line()
     "--linear_solver"
     help = "The linear solver type to use, must be ':julia' or 'HSL'"
     arg_type = Symbol
-    required = true
+    # required = true
+    default = :julia
 
     "--kkt_solver"
     help = "The kkt solver type to use, when selecting one-phase it must be ':schur' or ':symmetric' or ':clever_symmetric'"
     arg_type = Symbol
+    default = :schur
 
     "--max_it"
     help = "The maximum number of iterations to run"
@@ -58,7 +67,7 @@ function parse_command_line()
     "--min_nvar"
     help = "The minimum number of variables for CUTEst model"
     arg_type = Int64
-    default =  10
+    default =  100
 
     "--max_nvar"
     help = "The maximum number of variables for CUTEst model"
@@ -68,7 +77,7 @@ function parse_command_line()
     "--min_ncon"
     help = "The minimum number of constraints for CUTEst model"
     arg_type = Int64
-    default = 10
+    default = 100
 
     "--max_ncon"
     help = "The maximum constraints of variables for CUTEst model"
@@ -87,9 +96,9 @@ function main()
     my_par = OnePhase.Class_parameters()
     my_par.term.max_time = 60.0 * 60
     my_par.term.max_it = 3000
-    if parsed_args["linear_solver"] ==  Symbol(":julia") || parsed_args["linear_solver"] ==  Symbol(":HSL")
+    if parsed_args["linear_solver"] == :julia || parsed_args["linear_solver"] == :HSL
       my_par.kkt.linear_solver_type = parsed_args["linear_solver"]
-      if parsed_args["linear_solver"] ==  Symbol(":HSL")
+      if parsed_args["linear_solver"] == :HSL
         OnePhase.setUSE_HSL(true)
         OnePhase.loadHSL("../src/linear_system_solvers/")
       end
@@ -97,7 +106,7 @@ function main()
      error("Unknown linear solver type")
     end
 
-    if parsed_args["kkt_solver"] ==  Symbol(":schur") || parsed_args["kkt_solver"] ==  Symbol(":symmetric") || parsed_args["kkt_solver"] ==  Symbol(":clever_symmetric")
+    if parsed_args["kkt_solver"] == :schur || parsed_args["kkt_solver"] == :symmetric || parsed_args["kkt_solver"] == :clever_symmetric
       my_par.kkt.kkt_solver_type = parsed_args["kkt_solver"]
     else
      error("Unknown kkt solver type")
@@ -115,11 +124,11 @@ function main()
     folder_name = parsed_args["output_dir"]
     println("pwd: ", pwd())
     # if_mkdir("../benchmark/results/$folder_name")
-    if_mkdir("$folder_name")
+    if_mkpath("$folder_name")
     run_cutest_problems_using_our_solver(folder_name, my_par, min_ncon, max_ncon, min_nvar, max_nvar)
   elseif parsed_args["method"] == "ipopt"
     linear_solver = ""
-    if parsed_args["linear_solver"] ==  Symbol(":HSL")
+    if parsed_args["linear_solver"] == :HSL
       linear_solver = "ma97"
     end
     max_it = parsed_args["max_it"]
@@ -133,7 +142,7 @@ function main()
 
     folder_name = parsed_args["output_dir"]
     # if_mkdir("../benchmark/results/$folder_name")
-    if_mkdir("$folder_name")
+    if_mkpath("$folder_name")
     run_cutest_problems_on_solver(folder_name, output_level, tol_opt, max_it, max_time, linear_solver, min_ncon, max_ncon, min_nvar, max_nvar)
   else
     error("`method` arg must be either `one-phase` or `ipopt`.")
