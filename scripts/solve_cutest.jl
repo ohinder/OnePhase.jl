@@ -30,13 +30,13 @@ function parse_command_line()
     required = true
 
     "--linear_solver"
-    help = "The linear solver type to use, must be ':julia' or 'HSL'"
+    help = "The linear solver type to use, must be 'julia' or 'HSL'"
     arg_type = Symbol
     # required = true
     default = :julia
 
     "--kkt_solver"
-    help = "The kkt solver type to use, when selecting one-phase it must be ':schur' or ':symmetric' or ':clever_symmetric'"
+    help = "The kkt solver type to use, when selecting one-phase it must be 'schur' or 'symmetric' or 'clever_symmetric'"
     arg_type = Symbol
     default = :schur
 

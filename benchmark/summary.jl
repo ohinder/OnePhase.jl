@@ -124,11 +124,20 @@ function set_cutest_info_ipopt!(info::problem_summary2, stats::SolverCore.Generi
   x_true = x[1:num_vars]
 
   info.fval = stats.objective
-  info.total_fval_evaluation = stats.counters.neval_obj
-  info.total_grad_evaluation = stats.counters.neval_grad
-  info.total_jac_evaluation = stats.counters.neval_jac
-  info.total_cons_evaluation =  stats.counters.neval_cons
-  info.total_hess_evaluation = stats.counters.neval_hess
+  #Some NLPModelsIpopt library provide these info in the stats struct
+  try
+      info.total_fval_evaluation = stats.counters.neval_obj
+      info.total_grad_evaluation = stats.counters.neval_grad
+      info.total_jac_evaluation = stats.counters.neval_jac
+      info.total_cons_evaluation =  stats.counters.neval_cons
+      info.total_hess_evaluation = stats.counters.neval_hess
+  catch
+      info.total_fval_evaluation = nlp_raw.counters.neval_obj
+      info.total_grad_evaluation = nlp_raw.counters.neval_grad
+      info.total_jac_evaluation = nlp_raw.counters.neval_jac
+      info.total_cons_evaluation =  nlp_raw.counters.neval_cons
+      info.total_hess_evaluation = nlp_raw.counters.neval_hess
+  end
 
   a = cons(nlp_raw, x_true);
   info.con_vio = max(0.0, maximum(nlp_raw.meta.lvar - x_true), maximum(x_true - nlp_raw.meta.uvar), maximum(nlp_raw.meta.lcon - a), maximum(a - nlp_raw.meta.ucon))

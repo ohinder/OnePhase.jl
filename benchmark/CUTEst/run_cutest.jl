@@ -34,6 +34,7 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
 		if problem_name in already_solved_problems
 			 println("$problem_name already solved")
 		else
+			global nlp_raw = nothing
 			println("RUNNING $problem_name")
 			ORG_STDOUT = stdout
 	        # file = open("../results/$(test_name)/log/$(problem_name).txt", "w")
@@ -71,12 +72,15 @@ function run_cutest_problems_on_solver(problems::Array{String,1}, test_name::Str
 	            @show e;
 	            summary[problem_name].status = :ERR
 	            summary[problem_name].it_count = -1;
+			finally
+				if nlp_raw != nothing
+					finalize(nlp_raw)
+				end
 	        end
 
           	summary[problem_name].total_time = time() - start_time;
 
           	redirect_stdout(ORG_STDOUT)
-          	finalize(nlp_raw)
           	close(file)
 
           	println("it count = ", summary[problem_name].it_count)
