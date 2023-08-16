@@ -37,7 +37,7 @@ using OnePhase, JuMP
 m = Model()
 set_optimizer(m, OnePhase.OnePhaseSolver)
 @variable(m, x, start=-3)
-@objective(m, Min, x)
+@NLobjective(m, Min, x)
 @NLconstraint(m, x^2 >= 1.0)
 @NLconstraint(m, x >= -1.0)
 
