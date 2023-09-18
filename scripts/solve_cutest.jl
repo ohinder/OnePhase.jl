@@ -143,7 +143,7 @@ function main()
     folder_name = parsed_args["output_dir"]
     # if_mkdir("../benchmark/results/$folder_name")
     if_mkpath("$folder_name")
-    run_cutest_problems_on_solver(folder_name, output_level, tol_opt, max_it, max_time, linear_solver, min_ncon, max_ncon, min_nvar, max_nvar)
+    run_cutest_problems_on_solver(folder_name, output_level, tol_opt, max_it, max_time, linear_solver, min_ncon, max_ncon, min_nvar, max_nvar, linear_solver)
   else
     error("`method` arg must be either `one-phase` or `ipopt`.")
   end

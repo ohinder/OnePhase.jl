@@ -1,7 +1,7 @@
 include("run_cutest.jl")
 
 function perturb_cons(nr::CUTEstModel,scale::Float64)
-    srand(1)
+    Random.seed!(0)
 
     lcon = deepcopy(nr.meta.lcon);
     ucon = deepcopy(nr.meta.ucon);

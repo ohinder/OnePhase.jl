@@ -16,6 +16,7 @@ include("problems.jl")
 include("kkt_system_solvers.jl")
 include("linear_system_solvers.jl")
 include("test_moi_nlp_solver.jl")
+include("test_eval_lag_hess.jl")
 
 function unit_tests()
     test_compare_columns()
@@ -204,11 +205,19 @@ function moi_nlp_tests()
     end
 end
 
+function unit_tests_eval_lag_hess()
+	@testset "test_eval_lag_hess" begin
+		test_eval_lag_hess_no_constraint()
+		test_eval_lag_hess_one_constraint()
+	end
+end
+
 # lets run the tests!
 @time begin
   unit_tests()
   moi_nlp_tests()
   basic_tests()
+  unit_tests_eval_lag_hess()
   #cutest_tests()
   #executeCUTEST_Models()
   #executeCUTEST_Models_benchmark()
